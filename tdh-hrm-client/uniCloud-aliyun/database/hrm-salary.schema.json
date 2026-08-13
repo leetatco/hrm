@@ -1,0 +1,265 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "employee_name"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤日期",
+			"bsonType": "date",
+			"description": "考勤日期"
+		},
+		"attendance_ym_key": {
+			"title": "考勤年月",
+			"bsonType": "date",
+			"description": "考勤年月(用在与离职月份做区分)"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"employee_name": {
+			"title": "员工姓名",
+			"bsonType": "string",
+			"description": "员工姓名",
+			"trim": "both"
+		},
+		"department_name": {
+			"title": "部门名称",
+			"bsonType": "string",
+			"description": "部门名称",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "身份证号码唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"position_name": {
+			"title": "职位名称",
+			"bsonType": "string",
+			"description": "职位名称",
+			"trim": "both"
+		},
+		"hire_date": {
+			"title": "入职日期",
+			"bsonType": "timestamp",
+			"description": "入职日期",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"resign_date": {
+			"title": "离职日期",
+			"bsonType": "string",
+			"description": "离职日期"
+		},
+		"total_salary": {
+			"title": "综合工资",
+			"bsonType": "int",
+			"description": "综合工资"
+		},
+		"rest_type": {
+			"bsonType": "string",
+			"description": "休息类型：1 单休 2 双休 3 大小周",
+			"title": "休息类型"
+		},
+		"base_salary": {
+			"title": "基本工资",
+			"bsonType": "int",
+			"description": "基本工资"
+		},
+		"performance_salary": {
+			"title": "绩效工资",
+			"bsonType": "int",
+			"description": "绩效工资"
+		},
+		"overtime_fee": {
+			"title": "固定加班",
+			"bsonType": "int",
+			"description": "固定加班"
+		},
+		"penalty_fund": {
+			"title": "社保补偿金",
+			"bsonType": "int",
+			"description": "社保补偿金"
+		},
+		"housing_fund": {
+			"title": "公积补偿金",
+			"bsonType": "int",
+			"description": "公积补偿金"
+		},
+		"annual_allowance": {
+			"title": "年度补偿金",
+			"bsonType": "int",
+			"description": "年度补偿金"
+		},
+		"floating_bonus": {
+			"title": "浮动奖励",
+			"bsonType": "int",
+			"description": "浮动奖励"
+		},
+		"confidentiality_fee": {
+			"title": "保密费",
+			"bsonType": "int",
+			"description": "保密费"
+		},
+		"work_days": {
+			"title": "应勤天数",
+			"bsonType": "int",
+			"description": "应勤天数"
+		},
+		"real_days": {
+			"title": "实际出勤",
+			"bsonType": "int",
+			"description": "实际出勤"
+		},
+		"gross_salary": {
+			"title": "应发工资",
+			"bsonType": "double",
+			"description": "应发工资"
+		},
+		"overtime_cost": {
+			"title": "加班费",
+			"bsonType": "number",
+			"description": "加班费,额外补助项"
+		},
+		"free_cost": {
+			"title": "放假补助",
+			"bsonType": "double",
+			"description": "放假补助"
+		},
+		"grant": {
+			"title": "补助金",
+			"bsonType": "int",
+			"description": "补助金"
+		},
+		"agency_fee": {
+			"title": "介绍费",
+			"bsonType": "number",
+			"description": "介绍费"
+		},
+		"other_cost": {
+			"title": "其他费用",
+			"bsonType": "number",
+			"description": "其他费用"
+		},
+		"we_cost": {
+			"title": "水电费",
+			"bsonType": "double",
+			"description": "水电费,本月应扣项"
+		},
+		"clothes_cost": {
+			"title": "工衣费用",
+			"bsonType": "int",
+			"description": "工衣费用"
+		},
+		"earlytime_cost": {
+			"title": "迟\/早退费",
+			"bsonType": "int",
+			"description": "迟\/早退费"
+		},
+		"missed_cost": {
+			"title": "未打卡费",
+			"bsonType": "int",
+			"description": "未打卡费"
+		},
+		"loan_cost": {
+			"title": "借款",
+			"bsonType": "int",
+			"description": "借款"
+		},
+		"this_month_sb": {
+			"title": "本月社保",
+			"bsonType": "double",
+			"description": "本月社保,保留2位小数"
+		},
+		"this_month_dk": {
+			"title": "本月社保代扣部份",
+			"bsonType": "double",
+			"description": "本月社保代扣部份,保留2位小数"
+		},
+		"last_month_sb": {
+			"title": "下月社保",
+			"bsonType": "double",
+			"description": "下月社保,保留2位小数,代扣代缴项"
+		},
+		"last_month_gjj": {
+			"title": "下月公积金",
+			"bsonType": "double",
+			"description": "下月公积金,保留2位小数,代扣代缴项"
+		},
+		"last_month_dk": {
+			"title": "下月社保代扣部份",
+			"bsonType": "double",
+			"description": "上月社保代扣部份,保留2位小数"
+		},
+
+		"dkgs": {
+			"title": "代扣个税",
+			"bsonType": "double",
+			"description": "代扣个税"
+		},
+		"real_salary": {
+			"title": "实发工资",
+			"bsonType": "double",
+			"description": "实发工资"
+		},
+		"company_sb": {
+			"title": "公司社保",
+			"bsonType": "double",
+			"description": "公司社保"
+		},
+		"company_gjj": {
+			"title": "公司公积金",
+			"bsonType": "double",
+			"description": "公司公积金"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"enable_fd1": {
+			"title": "财务审核一级",
+			"bsonType": "bool",
+			"description": "财务审核 true已通过 false未通过"
+		},
+		"enable_fd2": {
+			"title": "财务审核二级",
+			"bsonType": "bool",
+			"description": "财务审核 true已通过 false未通过"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

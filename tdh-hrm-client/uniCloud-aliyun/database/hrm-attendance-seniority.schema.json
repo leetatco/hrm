@@ -1,0 +1,120 @@
+{
+	"bsonType": "object",
+	"required": ["rule_name"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"rule_name": {
+			"title": "规则名称",
+			"bsonType": "string",
+			"description": "如‘标准年假规则’，便于识别",
+			"trim": "both"
+		},
+		"seniority_type": {
+			"title": "工龄类型",
+			"bsonType": "int",
+			"description": "1=社会工龄，2=司龄",
+			"enum": [1, 2],
+			"defaultValue": 1
+		},
+		"rule_details": {
+			"title": "分段规则",
+			"bsonType": "array",
+			"description": "工龄区间与对应年假天数",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"year_min": {
+						"title": "最小工龄(年)",
+						"bsonType": "int",
+						"description": "包含此年数"
+					},
+					"year_max": {
+						"title": "最大工龄(年)",
+						"bsonType": "int",
+						"description": "包含此年数，为空表示无上限"
+					},
+					"annual_days": {
+						"title": "年假天数",
+						"bsonType": "int"
+					}
+				}
+			}
+		},
+		"probational_provide": {
+			"title": "试用期享有年假",
+			"bsonType": "bool",
+			"description": "试用期员工是否可使用年假",
+			"defaultValue": false
+		},
+		"first_year_prorate": {
+			"title": "入职当年折算",
+			"bsonType": "bool",
+			"description": "入职当年是否按比例计算年假",
+			"defaultValue": true
+		},
+		"prorate_method": {
+			"title": "折算方式",
+			"bsonType": "int",
+			"description": "1=按月份折算，2=按剩余天数折算，仅入职当年折算开启时有效",
+			"enum": [1, 2],
+			"defaultValue": 1
+		},
+		"carry_forward": {
+			"title": "允许顺延",
+			"bsonType": "bool",
+			"description": "未休完年假是否可延期至次年",
+			"defaultValue": false
+		},
+		"carry_forward_months": {
+			"title": "顺延有效月数",
+			"bsonType": "int",
+			"description": "如顺延3个月内有效",
+			"defaultValue": 3
+		},
+		"max_accumulate_days": {
+			"title": "累积上限(天)",
+			"bsonType": "int",
+			"description": "0表示无上限",
+			"defaultValue": 0
+		},
+		"status": {
+			"title": "启用状态",
+			"bsonType": "bool",
+			"description": "true=启用，false=停用",
+			"defaultValue": true
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注信息",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

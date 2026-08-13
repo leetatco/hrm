@@ -1,0 +1,1 @@
+<view class="{{['use-totop', 'fixed-top', 'animated', a]}}" style="{{'bottom:' + b + ';' + ('right:' + c)}}" catchtap="{{d}}"><text class="iconfont iconzhiding"></text></view>

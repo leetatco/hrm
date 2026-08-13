@@ -1,0 +1,74 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"customer_id": {
+			"bsonType": "string",
+			"foreignKey": "customers._id",
+			"description": "关联客户ID"
+		},
+		"investor_type": {
+			"bsonType": "string",
+			"description": "投资主体类型: company/actual_controller_spouse"
+		},
+		"is_holding": {
+			"bsonType": "bool",
+			"description": "是否控股"
+		},
+		"company_name": {
+			"bsonType": "string",
+			"description": "被投企业名称"
+		},
+		"registered_capital": {
+			"bsonType": "double",
+			"description": "注册资本(万元)"
+		},
+		"paid_in_capital": {
+			"bsonType": "double",
+			"description": "实收资本(万元)"
+		},
+		"main_business": {
+			"bsonType": "string",
+			"description": "主营业务"
+		},
+		"investment_ratio": {
+			"bsonType": "double",
+			"description": "投资比例(%)"
+		},
+		"is_shell": {
+			"bsonType": "bool",
+			"description": "是否空壳"
+		},
+		"profit_intro": {
+			"bsonType": "string",
+			"description": "营利介绍"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

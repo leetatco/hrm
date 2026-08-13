@@ -1,0 +1,48 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+/* 样式保持不变，同之前提供的完整代码 */
+.u-input-select.data-v-07402310 {
+  width: 100%;
+}
+.select-panel.data-v-07402310 {
+  background: #fff;
+  border-radius: 20rpx 20rpx 0 0;
+  padding: 30rpx;
+}
+.select-panel .panel-header.data-v-07402310 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+.select-panel .panel-header .panel-title.data-v-07402310 {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+.select-panel .search-box.data-v-07402310 {
+  margin-bottom: 20rpx;
+}
+.select-panel .options-list.data-v-07402310 {
+  max-height: 60vh;
+}
+.select-panel .options-list .option-item.data-v-07402310 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.select-panel .options-list .option-item .option-label.data-v-07402310 {
+  font-size: 30rpx;
+  color: #333;
+}
+.select-panel .options-list .option-item--selected .option-label.data-v-07402310 {
+  color: #2979ff;
+  font-weight: 500;
+}
+.select-panel .options-list .option-item.data-v-07402310:active {
+  background-color: #f9f9f9;
+}

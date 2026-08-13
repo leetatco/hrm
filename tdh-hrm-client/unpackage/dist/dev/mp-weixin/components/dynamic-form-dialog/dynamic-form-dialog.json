@@ -1,0 +1,16 @@
+{
+  "component": true,
+  "usingComponents": {
+    "u-input": "../../uni_modules/vk-uview-ui/components/u-input/u-input",
+    "u-form-item": "../../uni_modules/vk-uview-ui/components/u-form-item/u-form-item",
+    "uni-file-picker": "../../uni_modules/uni-file-picker/components/uni-file-picker/uni-file-picker",
+    "u-icon": "../../uni_modules/vk-uview-ui/components/u-icon/u-icon",
+    "u-button": "../../uni_modules/vk-uview-ui/components/u-button/u-button",
+    "u-empty": "../../uni_modules/vk-uview-ui/components/u-empty/u-empty",
+    "u-form": "../../uni_modules/vk-uview-ui/components/u-form/u-form",
+    "u-picker": "../../uni_modules/vk-uview-ui/components/u-picker/u-picker",
+    "u-search": "../../uni_modules/vk-uview-ui/components/u-search/u-search",
+    "u-loading": "../../uni_modules/vk-uview-ui/components/u-loading/u-loading",
+    "u-popup": "../../uni_modules/vk-uview-ui/components/u-popup/u-popup"
+  }
+}

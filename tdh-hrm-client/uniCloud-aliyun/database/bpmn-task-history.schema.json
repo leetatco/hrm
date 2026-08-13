@@ -1,0 +1,67 @@
+{
+  "bsonType": "object",
+  "required": ["_id", "task_id", "application_id", "operator_id", "operator_name", "action", "operation_time"],
+  "properties": {
+    "_id": {
+      "bsonType": "string",
+      "description": "记录ID"
+    },
+    "task_id": {
+      "bsonType": "string",
+      "description": "任务ID",
+      "foreignKey": "bpmn-task._id"
+    },
+    "application_id": {
+      "bsonType": "string",
+      "description": "申请ID",
+      "foreignKey": "bpmn-application-form._id"
+    },
+    "operator_id": {
+      "bsonType": "string",
+      "description": "操作人工号",
+      "foreignKey": "hrm-employees.employee_id",
+      "maxLength": 50
+    },
+    "operator_name": {
+      "bsonType": "string",
+      "description": "操作人姓名",
+      "maxLength": 50
+    },
+    "action": {
+      "bsonType": "string",
+      "description": "操作类型",
+      "enum": ["create", "claim", "complete", "transfer", "withdraw", "add_sign", "add_sign_complete", "confirm"]
+    },
+    "comment": {
+      "bsonType": "string",
+      "description": "处理意见",
+      "maxLength": 1000
+    },
+    "form_snapshot": {
+      "bsonType": "object",
+      "description": "表单快照"
+    },
+    "operation_time": {
+      "bsonType": "timestamp",
+      "description": "操作时间",
+      "defaultValue": { "$env": "now" }
+    },
+    "ip_address": {
+      "bsonType": "string",
+      "description": "IP地址",
+      "maxLength": 45
+    },
+    "user_agent": {
+      "bsonType": "string",
+      "description": "用户代理",
+      "maxLength": 500
+    }
+  },
+  "indexes": [
+    { "name": "task_id_index", "key": { "task_id": 1 } },
+    { "name": "application_id_index", "key": { "application_id": 1 } },
+    { "name": "operator_id_index", "key": { "operator_id": 1 } },
+    { "name": "operation_time_index", "key": { "operation_time": -1 } },
+    { "name": "action_index", "key": { "action": 1 } }
+  ]
+}

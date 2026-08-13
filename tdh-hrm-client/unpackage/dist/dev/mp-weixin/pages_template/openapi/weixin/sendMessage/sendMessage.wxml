@@ -1,0 +1,1 @@
+<view class="app data-v-f7adad06"><button class="data-v-f7adad06" bindtap="{{a}}">订阅一次消息1</button><button class="data-v-f7adad06" bindtap="{{b}}">订阅一次消息2</button><button class="data-v-f7adad06" bindtap="{{c}}">发送订阅消息</button><view class="data-v-f7adad06"><text class="data-v-f7adad06" space="ensp">{{d}}</text></view></view>

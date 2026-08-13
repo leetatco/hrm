@@ -1,0 +1,60 @@
+{
+	"bsonType": "object",
+	"required": ["late_min", "late_price", "clock_min", "clock_price"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"late_min": {
+			"title": "迟\/早退（分）",
+			"bsonType": "int",
+			"description": "迟\/早退（分）"
+		},
+		"late_price": {
+			"title": "元\/分",
+			"bsonType": "int",
+			"description": "元\/分"
+		},
+		"clock_min": {
+			"title": "未打卡（次）",
+			"bsonType": "int",
+			"description": "未打卡（次）"
+		},
+		"clock_price": {
+			"title": "元\/次",
+			"bsonType": "int",
+			"description": "元\/次"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

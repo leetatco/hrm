@@ -1,0 +1,305 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"company_name": {
+			"bsonType": "string",
+			"description": "企业名称"
+		},
+		"industry": {
+			"bsonType": "string",
+			"description": "所属行业"
+		},
+		"established_date": {
+			"bsonType": "date",
+			"description": "成立时间"
+		},
+		"registered_capital": {
+			"bsonType": "double",
+			"description": "注册资本(万元)"
+		},
+		"paid_in_capital": {
+			"bsonType": "double",
+			"description": "实收资本(万元)"
+		},
+		"address": {
+			"bsonType": "string",
+			"description": "公司地址"
+		},
+		"contact_person_info": {
+			"bsonType": "string",
+			"description": "对接人及电话、职务"
+		},
+		"business_nature": {
+			"bsonType": "string",
+			"description": "企业性质(一般纳税人/小微企业等)"
+		},
+		"enterprise_type": {
+			"bsonType": "string",
+			"description": "内资/台资/港资/中外合资/外资"
+		},
+		"listing_status": {
+			"bsonType": "string",
+			"description": "上市板块"
+		},
+		"qualifications": {
+			"bsonType": "string",
+			"description": "企业资质(国高/专精特新等)"
+		},
+		"basic_bank": {
+			"bsonType": "string",
+			"description": "基本户银行"
+		},
+		"total_employees": {
+			"bsonType": "int",
+			"description": "员工总数"
+		},
+		"monthly_payroll": {
+			"bsonType": "double",
+			"description": "月代发工资额(万元)"
+		},
+		"senior_cert_count": {
+			"bsonType": "int",
+			"description": "高级认证人数"
+		},
+		"mid_cert_count": {
+			"bsonType": "int",
+			"description": "中级认证人数"
+		},
+		"master_count": {
+			"bsonType": "int",
+			"description": "硕士人数"
+		},
+		"doctor_count": {
+			"bsonType": "int",
+			"description": "博士及以上人数"
+		},
+		"legal_person": {
+			"bsonType": "string",
+			"description": "法人"
+		},
+		"actual_controller": {
+			"bsonType": "string",
+			"description": "实际控制人"
+		},
+		"general_manager": {
+			"bsonType": "string",
+			"description": "总经理"
+		},
+		"core_personnel": {
+			"bsonType": "string",
+			"description": "核心人员"
+		},
+		"company_intro": {
+			"bsonType": "string",
+			"description": "公司介绍"
+		},
+		"shareholder_summary": {
+			"bsonType": "string",
+			"description": "股东情况简述"
+		},
+		"related_party_relationship": {
+			"bsonType": "string",
+			"description": "股东之间关系"
+		},
+		"controller_shareholding": {
+			"bsonType": "string",
+			"description": "实控人持股情况"
+		},
+		"copyrights": {
+			"bsonType": "int",
+			"description": "软件著作权数量"
+		},
+		"trademark_count": {
+			"bsonType": "int",
+			"description": "商标总数"
+		},
+		"brand_count": {
+			"bsonType": "int",
+			"description": "品牌数"
+		},
+		"proprietary_tech": {
+			"bsonType": "string",
+			"description": "专项技术"
+		},
+		"patent_detail": {
+			"bsonType": "string",
+			"description": "专利详情"
+		},
+		"rnd_staff_count": {
+			"bsonType": "int",
+			"description": "研发人数"
+		},
+		"rnd_investment_intro": {
+			"bsonType": "string",
+			"description": "研发投入介绍"
+		},
+		"tax_rating": {
+			"bsonType": "string",
+			"description": "税务评级"
+		},
+		"tax_intro": {
+			"bsonType": "string",
+			"description": "纳税介绍"
+		},
+		"external_guarantee_intro": {
+			"bsonType": "string",
+			"description": "对外担保介绍"
+		},
+		"overdue_intro": {
+			"bsonType": "string",
+			"description": "逾期介绍"
+		},
+		"pledged_deposit_intro": {
+			"bsonType": "string",
+			"description": "存单质押介绍"
+		},
+		"bank_acceptance_intro": {
+			"bsonType": "string",
+			"description": "银行承兑介绍"
+		},
+		"supply_chain_finance_intro": {
+			"bsonType": "string",
+			"description": "供应链金融介绍"
+		},
+		"procurement_intro": {
+			"bsonType": "string",
+			"description": "代采介绍"
+		},
+		"finance_lease_intro": {
+			"bsonType": "string",
+			"description": "融资租赁介绍"
+		},
+		"corporate_credit_query_half_year": {
+			"bsonType": "int",
+			"description": "企业半年内征信查询次数"
+		},
+		"corporate_credit_last_query_time": {
+			"bsonType": "date",
+			"description": "企业最近征信查询时间"
+		},
+		"corporate_credit_result": {
+			"bsonType": "string",
+			"description": "企业征信查询结果"
+		},
+		"actual_credit_query_half_year": {
+			"bsonType": "int",
+			"description": "实控人及配偶半年内征信查询次数"
+		},
+		"actual_credit_last_query_time": {
+			"bsonType": "date",
+			"description": "实控人及配偶最近征信查询时间"
+		},
+		"actual_credit_result": {
+			"bsonType": "string",
+			"description": "实控人及配偶征信查询结果"
+		},
+		"legal_credit_query_half_year": {
+			"bsonType": "int",
+			"description": "法人及配偶半年内征信查询次数"
+		},
+		"legal_credit_last_query_time": {
+			"bsonType": "date",
+			"description": "法人及配偶最近征信查询时间"
+		},
+		"legal_credit_result": {
+			"bsonType": "string",
+			"description": "法人及配偶征信查询结果"
+		},
+		"water_fee_last_year": {
+			"bsonType": "double",
+			"description": "水费近一年(万元)"
+		},
+		"water_fee_last_month": {
+			"bsonType": "double",
+			"description": "水费近一个月(万元)"
+		},
+		"electricity_fee_last_year": {
+			"bsonType": "double",
+			"description": "电费近一年(万元)"
+		},
+		"electricity_fee_last_month": {
+			"bsonType": "double",
+			"description": "电费近一个月(万元)"
+		},
+		"rent_last_year": {
+			"bsonType": "double",
+			"description": "租金近一年(万元)"
+		},
+		"rent_last_month": {
+			"bsonType": "double",
+			"description": "租金近一个月(万元)"
+		},
+		"next_year_business_intro": {
+			"bsonType": "string",
+			"description": "预计下年度经营情况介绍"
+		},
+		"planned_revenue": {
+			"bsonType": "double",
+			"description": "预计下年度营业收入(万元)"
+		},
+		"planned_netprofit": {
+			"bsonType": "double",
+			"description": "预计下年度净利润(万元)"
+		},
+		"new_financing_needs": {
+			"bsonType": "string",
+			"description": "新增融资需求"
+		},
+		"equity_investment_is_upstream_downstream": {
+			"bsonType": "bool",
+			"description": "股权投资是否上下游"
+		},
+		"equity_investment_amount": {
+			"bsonType": "double",
+			"description": "股权投资额(万元)"
+		},
+		"equity_investment_ratio": {
+			"bsonType": "double",
+			"description": "股权投资约占股权比(%)"
+		},
+		"equity_investment_intro": {
+			"bsonType": "string",
+			"description": "股权投资介绍"
+		},
+		"fixed_asset_investment_amount": {
+			"bsonType": "double",
+			"description": "固定资产拟投入额(万元)"
+		},
+		"fixed_asset_investment_source": {
+			"bsonType": "string",
+			"description": "固定资产投资资金来源"
+		},
+		"fixed_asset_investment_intro": {
+			"bsonType": "string",
+			"description": "固定资产投资介绍"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

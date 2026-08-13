@@ -1,0 +1,175 @@
+{
+	"bsonType": "object",
+	"required": ["_id", "form_type_code", "applicant_id", "applicant_name", "form_data"],
+	"properties": {
+		"_id": {
+			"bsonType": "string",
+			"description": "申请ID"
+		},
+		"form_type_code": {
+			"bsonType": "string",
+			"description": "表单类型code",
+			"foreignKey": "bpmn-form-type.code"
+		},
+		"process_definition_key": {
+			"bsonType": "string",
+			"description": "实际使用的流程定义key",
+			"foreignKey": "bpmn-definition.key"
+		},
+		"applicant_id": {
+			"bsonType": "string",
+			"title": "申请人ID",
+			"description": "申请人工号",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both",
+			"maxLength": 50
+		},
+		"applicant_name": {
+			"bsonType": "string",
+			"description": "申请人姓名",
+			"maxLength": 50
+		},
+		"applicant_department": {
+			"bsonType": "string",
+			"description": "申请人部门",
+			"maxLength": 100
+		},
+		"applicant_level": {
+			"bsonType": "string",
+			"description": "申请人职级",
+			"maxLength": 50
+		},
+		"applicant_roles": {
+			"bsonType": "array",
+			"description": "申请人角色",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "申请标题",
+			"maxLength": 200
+		},
+		"form_data": {
+			"bsonType": "object",
+			"description": "表单数据(JSON)"
+		},
+		"calculated_values": {
+			"bsonType": "object",
+			"description": "计算值",
+			"properties": {
+				"total_amount": {
+					"bsonType": "double",
+					"description": "总金额"
+				},
+				"total_days": {
+					"bsonType": "double",
+					"description": "总天数"
+				},
+				"matched_rule_id": {
+					"bsonType": "string",
+					"description": "匹配的条件规则ID"
+				}
+			}
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "审核状态",
+			"enum": ["draft", "pending", "approved", "rejected", "cancelled", "withdrawn"],
+			"defaultValue": "draft"
+		},
+		"process_status": {
+			"bsonType": "string",
+			"description": "处理状态",
+			"enum": ["pending", "completed"],
+			"defaultValue": "pending"
+		},
+		"current_task": {
+			"bsonType": "string",
+			"description": "当前环节",
+			"maxLength": 100
+		},
+		"import_status": {
+			"title": "汇入状态",
+			"bsonType": "int",
+			"description": "0=未汇入，1=已汇入，2=汇入失败，3=无需汇入",
+			"enum": [0, 1, 2, 3],
+			"defaultValue": 0
+		},
+		"import_time": {
+			"title": "汇入时间",
+			"bsonType": "timestamp",
+			"description": "执行汇入操作的时间"
+		},
+		"import_operator": {
+			"title": "汇入操作人",
+			"bsonType": "string",
+			"description": "执行汇入的用户ID",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"indexes": [{
+			"name": "applicant_index",
+			"key": {
+				"applicant_id": 1
+			}
+		},
+		{
+			"name": "form_type_index",
+			"key": {
+				"import_status": 1,
+				"form_type_code": 1
+			}
+		},
+		{
+			"name": "process_index",
+			"key": {
+				"process_definition_id": 1
+			}
+		},
+		{
+			"name": "status_index",
+			"key": {
+				"status": 1
+			}
+		},
+		{
+			"name": "create_date_index",
+			"key": {
+				"create_date": -1
+			}
+		},
+		{
+			"name": "applicant_status_index",
+			"key": {
+				"applicant_id": 1,
+				"status": 1
+			}
+		},
+		{
+			"name": "department_index",
+			"key": {
+				"applicant_department": 1
+			}
+		}
+	]
+}

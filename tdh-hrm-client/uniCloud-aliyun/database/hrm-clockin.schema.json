@@ -1,0 +1,63 @@
+{
+	"bsonType": "object",
+	"required": ["position", "type"],
+	"permission": {
+		"create": true,
+		"delete": false,
+		"read": true,
+		"update": true
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"employee_id": {
+		  "title": "员工工号",
+		  "bsonType": "string",
+		  "description": "关联员工表 employee_id",
+		  "trim": "both"
+		},
+		"position": {
+			"bsonType": "string",
+			"description": "定位地点名称",
+			"trim": "both"
+		},
+		"type": {
+			"bsonType": "string",
+			"description": "打卡类型 公司卡｜出差卡"
+		},
+		"remark": {
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"img": {
+			"bsonType": "string",
+			"description": "考勤图片",
+			"trim": "both"
+		},
+		"clockintime": {
+			"bsonType": "string",
+			"description": "打卡时间",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

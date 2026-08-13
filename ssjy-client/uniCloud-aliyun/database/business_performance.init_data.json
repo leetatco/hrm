@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "bp_2023",
+    "customer_id": "test_customer_001",
+    "year": 2023,
+    "is_audited": true,
+    "debt_ratio": 45.2,
+    "accounts_receivable": 320,
+    "accounts_payable": 180,
+    "fixed_assets_original": 1200,
+    "fixed_assets_net": 850,
+    "monetary_funds": 420,
+    "payment_terms": "60天",
+    "top1_customer_revenue": 860,
+    "top2_customer_revenue": 520,
+    "external_financial_revenue": 2850,
+    "external_financial_profit": 380,
+    "external_financial_netprofit": 325,
+    "internal_financial_revenue": 3200,
+    "internal_financial_totalprofit": 520,
+    "internal_financial_netprofit": 445,
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

@@ -1,0 +1,426 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+/* 保持原有样式，新增 .multi-line 和 .financial-detail 等类 */
+.detail-page.data-v-25465ad7 {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+.navbar.data-v-25465ad7 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  background-color: #007aff;
+  color: #ffffff;
+  padding: 0 32rpx;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+.navbar .navbar-left.data-v-25465ad7,
+.navbar .navbar-right.data-v-25465ad7 {
+  width: 80rpx;
+  display: flex;
+  align-items: center;
+}
+.navbar .navbar-title.data-v-25465ad7 {
+  font-size: 36rpx;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+.company-header.data-v-25465ad7 {
+  background-color: #007aff;
+  padding: 32rpx 32rpx 40rpx;
+  color: #ffffff;
+}
+.company-header .company-name.data-v-25465ad7 {
+  font-size: 40rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  line-height: 1.2;
+}
+.company-header .company-tags.data-v-25465ad7 {
+  display: flex;
+  gap: 16rpx;
+}
+.company-header .company-tags .tag.data-v-25465ad7 {
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.company-header .company-tags .tag.industry.data-v-25465ad7 {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.company-header .company-tags .tag.legal-person.data-v-25465ad7 {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+.section.data-v-25465ad7 {
+  background-color: #ffffff;
+  margin-top: 24rpx;
+  padding: 0 32rpx;
+}
+.section .section-title.data-v-25465ad7 {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  padding: 32rpx 0 24rpx;
+  border-bottom: 2rpx solid #007aff;
+  margin-bottom: 24rpx;
+}
+.section .section-content.data-v-25465ad7 {
+  padding-bottom: 32rpx;
+}
+.card.data-v-25465ad7 {
+  margin-bottom: 32rpx;
+}
+.card.data-v-25465ad7:last-child {
+  margin-bottom: 0;
+}
+.card .card-title.data-v-25465ad7 {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #666666;
+  margin-bottom: 20rpx;
+  padding-left: 12rpx;
+  border-left: 6rpx solid #007aff;
+}
+.card .card-content.data-v-25465ad7 {
+  background-color: #f9f9f9;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+.data-row.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  min-height: 88rpx;
+}
+.data-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.data-row .data-label.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #333333;
+  flex: 1;
+}
+.data-row .data-value.data-v-25465ad7 {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #007aff;
+  min-width: 200rpx;
+  text-align: right;
+}
+.data-row .data-value.tax.data-v-25465ad7 {
+  color: #ff6b35;
+}
+.data-row .data-label-group.data-v-25465ad7 {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.data-row .data-label-group .tax-type.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+.data-row .data-values.data-v-25465ad7 {
+  display: flex;
+  gap: 16rpx;
+  min-width: 200rpx;
+  justify-content: flex-end;
+}
+.data-row .data-values .value-tag.data-v-25465ad7 {
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
+  font-weight: 600;
+}
+.data-row .data-values .value-tag.capital.data-v-25465ad7 {
+  background-color: #d9f7be;
+  color: #389e0d;
+}
+.data-row .data-values .value-tag.ratio.data-v-25465ad7 {
+  background-color: #fff7e6;
+  color: #fa8c16;
+}
+.info-row.data-v-25465ad7 {
+  display: flex;
+  padding: 24rpx 0;
+}
+.info-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.info-row .info-label.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #666666;
+  width: 200rpx;
+}
+.info-row .info-value.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #333333;
+  flex: 1;
+  text-align: right;
+}
+.info-row.multi-line.data-v-25465ad7 {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.info-row.multi-line .info-label.data-v-25465ad7 {
+  width: auto;
+  margin-bottom: 12rpx;
+}
+.info-row.multi-line .info-value.data-v-25465ad7 {
+  text-align: left;
+  line-height: 1.4;
+}
+.loan-row.data-v-25465ad7 {
+  padding: 24rpx 0;
+}
+.loan-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.loan-row .loan-header.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.loan-row .loan-header .bank-name.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 600;
+}
+.loan-row .loan-header .loan-name.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #666666;
+  background-color: #f0f0f0;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+.loan-row .loan-data.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.loan-row .loan-data .loan-item.data-v-25465ad7 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.loan-row .loan-data .loan-item .loan-label.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 8rpx;
+}
+.loan-row .loan-data .loan-item .loan-value.data-v-25465ad7 {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.loan-row .loan-data .loan-item .loan-value.total.data-v-25465ad7 {
+  color: #007aff;
+}
+.loan-row .loan-data .loan-item .loan-value.used.data-v-25465ad7 {
+  color: #ff4d4f;
+}
+.loan-row .loan-data .loan-item .loan-value.rate.data-v-25465ad7 {
+  color: #52c41a;
+}
+.loan-row .loan-progress.data-v-25465ad7 {
+  height: 8rpx;
+  background-color: #f0f0f0;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+.loan-row .loan-progress .progress-bar.data-v-25465ad7 {
+  height: 100%;
+  background-color: #007aff;
+  border-radius: 4rpx;
+  transition: width 0.3s ease;
+}
+.loan-row .loan-footer.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20rpx;
+}
+.loan-row .loan-footer .loan-detail.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #999999;
+}
+.performance-row.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+}
+.performance-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.performance-row .performance-value.data-v-25465ad7 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 200rpx;
+}
+.performance-row .performance-value .revenue-label.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 4rpx;
+}
+.performance-row .performance-value .revenue-value.data-v-25465ad7 {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #13c2c2;
+}
+.financial-detail.data-v-25465ad7 {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx dashed #eeeeee;
+}
+.financial-detail .detail-row.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 0;
+}
+.financial-detail .detail-row .detail-label.data-v-25465ad7 {
+  font-size: 26rpx;
+  color: #666666;
+}
+.financial-detail .detail-row .detail-value.data-v-25465ad7 {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #333333;
+}
+.investment-row.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+}
+.investment-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.investment-row .investment-info.data-v-25465ad7 {
+  flex: 1;
+}
+.investment-row .investment-info .company-name.data-v-25465ad7 {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  display: block;
+  margin-bottom: 8rpx;
+}
+.investment-row .investment-info .investment-detail.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #999999;
+}
+.investment-row .investment-ratio.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #007aff;
+  font-weight: 600;
+  min-width: 120rpx;
+  text-align: right;
+}
+.property-row.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+}
+.property-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.property-row .property-info.data-v-25465ad7 {
+  display: flex;
+  flex-direction: column;
+}
+.property-row .property-info .property-type.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+.property-row .property-info .property-area.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #666666;
+}
+.property-row .property-location.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #999999;
+  max-width: 300rpx;
+  text-align: right;
+}
+.subsidy-row.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+}
+.subsidy-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.subsidy-row .subsidy-amount.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #52c41a;
+  font-weight: 600;
+  min-width: 200rpx;
+  text-align: right;
+}
+.lawsuit-row.data-v-25465ad7 {
+  padding: 24rpx 0;
+}
+.lawsuit-row.data-v-25465ad7:not(:last-child) {
+  border-bottom: 1rpx solid #eeeeee;
+}
+.lawsuit-row .lawsuit-info.data-v-25465ad7 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+.lawsuit-row .lawsuit-info .lawsuit-role.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #333333;
+  padding: 8rpx 16rpx;
+  background-color: #f0f0f0;
+  border-radius: 12rpx;
+}
+.lawsuit-row .lawsuit-info .lawsuit-amount.data-v-25465ad7 {
+  font-size: 28rpx;
+  color: #ff4d4f;
+  font-weight: 600;
+  min-width: 200rpx;
+  text-align: right;
+}
+.lawsuit-row .lawsuit-progress.data-v-25465ad7 {
+  font-size: 24rpx;
+  color: #999999;
+  padding-left: 80rpx;
+}

@@ -1,0 +1,1 @@
+"use strict";let e=[];exports.debounce=function(t,u=500,n=!0,l="default"){if(e[l]||(e[l]=null),null!==e[l]&&clearTimeout(e[l]),n){let n=!e[l];if(e[l]=setTimeout((()=>{e[l]=null}),u),n&&"function"==typeof t)return t()}else e[l]=setTimeout((()=>{if("function"==typeof t)return t()}),u)};

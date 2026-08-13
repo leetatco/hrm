@@ -1,0 +1,71 @@
+{
+	"bsonType": "object",
+	"required": ["_id", "name", "key", "xml"],
+	"properties": {
+		"_id": {
+			"bsonType": "string",
+			"description": "流程定义ID"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "流程名称",
+			"maxLength": 100
+		},
+		"key": {
+			"bsonType": "string",
+			"description": "流程KEY",
+			"maxLength": 50,
+			"unique": true
+		},
+		"xml": {
+			"bsonType": "string",
+			"description": "XML内容"
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "流程描述"
+		},
+		"category_id": {
+			"bsonType": "string",
+			"foreignKey": "bpmn-category.category_id",
+			"description": "流程分类"
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "状态",
+			"enum": ["draft", "active", "inactive"],
+			"defaultValue": "draft"
+		},
+		"tags": {
+			"bsonType": "array",
+			"title": "标签",
+			"description": "标签，用于快速筛选",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"version": {
+			"bsonType": "int",
+			"description": "版本号",
+			"defaultValue": 1
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

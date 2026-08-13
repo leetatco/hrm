@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "lawsuit_001",
+    "customer_id": "test_customer_001",
+    "party_type": "company",
+    "is_restricted": false,
+    "role": "原告",
+    "case_amount": 50,
+    "case_progress": "已和解",
+    "frozen_amount": 0,
+    "is_executed": false,
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

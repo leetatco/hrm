@@ -1,0 +1,1 @@
+<view class="use-loadmore padding-tb-sm dflex-c"><view wx:if="{{a}}" class="iconfont iconxiangqing animated rotate margin-right-sm ft-base"></view><text class="ft-dark">{{b}}</text></view>

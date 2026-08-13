@@ -1,0 +1,76 @@
+{
+  "bsonType": "object",
+  "required": [],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "存储文档 ID，系统自动生成"
+    },
+    "remedy_enabled": {
+      "title": "启用补卡功能",
+      "bsonType": "bool",
+      "description": "全局补卡开关",
+      "defaultValue": true
+    },
+    "remedy_days_limit": {
+      "title": "补卡申请时限(天)",
+      "bsonType": "int",
+      "description": "缺卡后多少天内可申请补卡，0表示无限制",
+      "defaultValue": 3
+    },
+    "remedy_max_per_month": {
+      "title": "每月补卡次数上限",
+      "bsonType": "int",
+      "description": "0表示无限制",
+      "defaultValue": 3
+    },
+    "require_attachment": {
+      "title": "需上传证明",
+      "bsonType": "bool",
+      "description": "申请补卡时是否强制上传附件",
+      "defaultValue": false
+    },
+    "oa_approval_template_code": {
+      "title": "OA审批模板",
+      "bsonType": "string",
+      "description": "关联OA系统的审批模板编码，为空则使用默认审批流",
+      "trim": "both"
+    },
+    "status": {
+      "title": "启用状态",
+      "bsonType": "bool",
+      "description": "true=启用，false=停用",
+      "defaultValue": true
+    },
+    "remark": {
+      "title": "备注",
+      "bsonType": "string",
+      "description": "备注信息",
+      "trim": "both"
+    },
+    "update_date": {
+      "title": "更新时间",
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updat_id": {
+      "title": "更新人",
+      "bsonType": "string",
+      "description": "更新人ID",
+      "trim": "both",
+      "foreignKey": "uni-id-users._id",
+      "forceDefaultValue": {
+        "$env": "uid"
+      }
+    }
+  },
+  "version": "0.0.1"
+}

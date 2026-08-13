@@ -1,0 +1,341 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+/* 添加文件名溢出处理 */
+.file-name.data-v-49798f59 {
+  flex: 1;
+  min-width: 0;
+  /* 关键：允许内容收缩 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 16rpx;
+}
+.file-preview-dialog.data-v-49798f59 {
+  padding: 20rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.preview-content.data-v-49798f59 {
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* 图片预览样式 */
+.image-preview .image-loading.data-v-49798f59,
+.image-preview .image-error.data-v-49798f59 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 500rpx;
+  background-color: #f8f9fa;
+}
+.image-preview .image-loading .loading-text.data-v-49798f59,
+.image-preview .image-loading .error-text.data-v-49798f59,
+.image-preview .image-error .loading-text.data-v-49798f59,
+.image-preview .image-error .error-text.data-v-49798f59 {
+  font-size: 28rpx;
+  color: #666666;
+  margin-top: 20rpx;
+}
+.image-preview .image-info.data-v-49798f59 {
+  padding: 24rpx 30rpx;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e4e7ed;
+}
+.image-preview .image-info .info-text.data-v-49798f59 {
+  display: block;
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+  word-break: break-all;
+}
+.image-preview .image-info .info-size.data-v-49798f59 {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* PDF预览样式 */
+.pdf-preview .pdf-container .pdf-header.data-v-49798f59 {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e4e7ed;
+}
+.pdf-preview .pdf-container .pdf-header .pdf-title.data-v-49798f59 {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: bold;
+  margin-left: 16rpx;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pdf-preview .pdf-container .pdf-content.data-v-49798f59 {
+  height: 600rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5;
+}
+.pdf-preview .pdf-container .pdf-content .pdf-preview-tip.data-v-49798f59 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pdf-preview .pdf-container .pdf-content .pdf-preview-tip .tip-text.data-v-49798f59 {
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 500;
+  margin-top: 24rpx;
+  margin-bottom: 12rpx;
+}
+.pdf-preview .pdf-container .pdf-content .pdf-preview-tip .tip-desc.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #666666;
+}
+.pdf-preview .pdf-container .pdf-content.data-v-49798f59 iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.pdf-preview .pdf-container .pdf-info.data-v-49798f59 {
+  padding: 24rpx 30rpx;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e4e7ed;
+}
+.pdf-preview .pdf-container .pdf-info .info-item.data-v-49798f59 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+.pdf-preview .pdf-container .pdf-info .info-item.data-v-49798f59:last-child {
+  margin-bottom: 0;
+}
+.pdf-preview .pdf-container .pdf-info .info-item .info-label.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #666666;
+  margin-left: 12rpx;
+  margin-right: 8rpx;
+}
+.pdf-preview .pdf-container .pdf-info .info-item .info-value.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+/* Office文档预览样式 */
+.office-preview .office-container .office-header.data-v-49798f59 {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e4e7ed;
+}
+.office-preview .office-container .office-header .office-title.data-v-49798f59 {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: bold;
+  margin-left: 16rpx;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.office-preview .office-container .office-content.data-v-49798f59 {
+  padding: 60rpx 30rpx;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+.office-preview .office-container .office-content .office-icon.data-v-49798f59 {
+  margin-bottom: 40rpx;
+}
+.office-preview .office-container .office-content .office-tip.data-v-49798f59 {
+  margin-bottom: 40rpx;
+}
+.office-preview .office-container .office-content .office-tip .tip-text.data-v-49798f59 {
+  display: block;
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+.office-preview .office-container .office-content .office-tip .tip-desc.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #666666;
+}
+.office-preview .office-container .office-content .office-actions.data-v-49798f59 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.office-preview .office-container .office-info.data-v-49798f59 {
+  padding: 24rpx 30rpx;
+  background-color: #ffffff;
+  border-top: 1px solid #e4e7ed;
+}
+.office-preview .office-container .office-info .info-item.data-v-49798f59 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+.office-preview .office-container .office-info .info-item.data-v-49798f59:last-child {
+  margin-bottom: 0;
+}
+.office-preview .office-container .office-info .info-item .info-label.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #666666;
+  margin-left: 12rpx;
+  margin-right: 8rpx;
+}
+.office-preview .office-container .office-info .info-item .info-value.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+/* 不支持预览样式 */
+.unsupported-preview .unsupported-container .unsupported-icon.data-v-49798f59 {
+  display: flex;
+  justify-content: center;
+  padding: 60rpx 30rpx 40rpx;
+  background-color: #f8f9fa;
+}
+.unsupported-preview .unsupported-container .unsupported-info.data-v-49798f59 {
+  padding: 0 30rpx 40rpx;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+.unsupported-preview .unsupported-container .unsupported-info .info-title.data-v-49798f59 {
+  display: block;
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+.unsupported-preview .unsupported-container .unsupported-info .info-desc.data-v-49798f59 {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 8rpx;
+}
+.unsupported-preview .unsupported-container .unsupported-info .info-suggestion.data-v-49798f59 {
+  font-size: 24rpx;
+  color: #999999;
+}
+.unsupported-preview .unsupported-container .file-info.data-v-49798f59 {
+  padding: 24rpx 30rpx;
+  background-color: #ffffff;
+  border-top: 1px solid #e4e7ed;
+}
+.unsupported-preview .unsupported-container .file-info .info-item.data-v-49798f59 {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+}
+.unsupported-preview .unsupported-container .file-info .info-item.data-v-49798f59:last-child {
+  margin-bottom: 0;
+}
+.unsupported-preview .unsupported-container .file-info .info-item .info-label.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #666666;
+  margin-left: 12rpx;
+  margin-right: 8rpx;
+  white-space: nowrap;
+}
+.unsupported-preview .unsupported-container .file-info .info-item .info-value.data-v-49798f59 {
+  font-size: 26rpx;
+  color: #333333;
+  word-break: break-all;
+}
+
+/* 加载失败样式 */
+.load-failed.data-v-49798f59 {
+  padding: 60rpx 30rpx;
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.load-failed.data-v-49798f59 .u-empty {
+  margin: 0;
+}
+
+/* 底部操作按钮样式 - 始终一行显示 */
+.dialog-footer.data-v-49798f59 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20rpx;
+  padding: 30rpx 0 0;
+  background-color: #ffffff;
+  border-top: 1px solid #e4e7ed;
+  margin-top: 20rpx;
+}
+.dialog-footer.data-v-49798f59 .u-button {
+  flex: 1;
+  /* 按钮平分剩余宽度 */
+  height: 70rpx;
+  font-size: 28rpx;
+  border-radius: 8rpx;
+}
+.dialog-footer.data-v-49798f59 .u-button--default {
+  background-color: #f8f9fa;
+  color: #333333;
+}
+.dialog-footer.data-v-49798f59 .u-button--primary {
+  background-color: #2979ff;
+  color: #ffffff;
+}
+
+/* 响应式设计：小屏幕下保持一行，不再改为列布局 */
+@media (max-width: 750px) {
+.file-preview-dialog.data-v-49798f59 {
+    padding: 10rpx;
+}
+.image-preview .image-info.data-v-49798f59,
+.pdf-preview .pdf-container .pdf-header.data-v-49798f59,
+.pdf-preview .pdf-container .pdf-info.data-v-49798f59,
+.office-preview .office-container .office-header.data-v-49798f59,
+.office-preview .office-container .office-info.data-v-49798f59,
+.unsupported-preview .unsupported-container .file-info.data-v-49798f59 {
+    padding: 20rpx;
+}
+.pdf-preview .pdf-container .pdf-content.data-v-49798f59 {
+    height: 500rpx;
+}
+
+  /* 小屏幕下按钮仍然一行，但按钮内部文字可能折行，通过调整字体或间距优化 */
+.dialog-footer.data-v-49798f59 {
+    gap: 15rpx;
+}
+.dialog-footer.data-v-49798f59 .u-button {
+    font-size: 26rpx;
+    height: 70rpx;
+    white-space: nowrap;
+}
+}
+/* 滚动条样式 */
+.file-preview-dialog.data-v-49798f59::-webkit-scrollbar {
+  width: 6rpx;
+}
+.file-preview-dialog.data-v-49798f59::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3rpx;
+}
+.file-preview-dialog.data-v-49798f59::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3rpx;
+}
+.file-preview-dialog.data-v-49798f59::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

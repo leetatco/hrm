@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "vk-components-dynamic-vk-data-table-sort": "/pages_plugs/system_uni/vk-components-dynamic-vk-data-table-sort"
+  }
+}

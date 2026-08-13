@@ -1,0 +1,61 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.u-dropdown.data-v-efa9add2 {
+  flex: 1;
+  width: 100%;
+  position: relative;
+}
+.u-dropdown__menu.data-v-efa9add2 {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  z-index: 11;
+  height: 80rpx;
+}
+.u-dropdown__menu__item.data-v-efa9add2 {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.u-dropdown__menu__item__text.data-v-efa9add2 {
+  font-size: 28rpx;
+  color: #606266;
+}
+.u-dropdown__menu__item__arrow.data-v-efa9add2 {
+  margin-left: 6rpx;
+  transition: transform 0.3s;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+}
+.u-dropdown__menu__item__arrow--rotate.data-v-efa9add2 {
+  transform: rotate(180deg);
+}
+.u-dropdown__content.data-v-efa9add2 {
+  position: absolute;
+  z-index: 8;
+  width: 100%;
+  left: 0px;
+  bottom: 0;
+  overflow: hidden;
+}
+.u-dropdown__content__mask.data-v-efa9add2 {
+  position: absolute;
+  z-index: 9;
+  background: rgba(0, 0, 0, 0.3);
+  width: 100%;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+.u-dropdown__content__popup.data-v-efa9add2 {
+  position: relative;
+  z-index: 10;
+  transition: all 0.3s;
+  transform: translate3D(0, -100%, 0);
+  overflow: hidden;
+}

@@ -1,0 +1,106 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"customer_id": {
+			"bsonType": "string",
+			"foreignKey": "customers._id",
+			"description": "关联客户ID"
+		},
+		"year": {
+			"bsonType": "int",
+			"description": "年份"
+		},
+		"is_audited": {
+			"bsonType": "bool",
+			"description": "是否审计"
+		},
+		"debt_ratio": {
+			"bsonType": "double",
+			"description": "资产负债率(%)"
+		},
+		"accounts_receivable": {
+			"bsonType": "double",
+			"description": "应收账款(万元)"
+		},
+		"accounts_payable": {
+			"bsonType": "double",
+			"description": "应付账款(万元)"
+		},
+		"fixed_assets_original": {
+			"bsonType": "double",
+			"description": "固定资产原值(万元)"
+		},
+		"fixed_assets_net": {
+			"bsonType": "double",
+			"description": "固定资产净值(万元)"
+		},
+		"monetary_funds": {
+			"bsonType": "double",
+			"description": "货币资金(万元)"
+		},
+		"payment_terms": {
+			"bsonType": "string",
+			"description": "账期"
+		},
+		"top1_customer_revenue": {
+			"bsonType": "double",
+			"description": "第一大客户营业额(万元)"
+		},
+		"top2_customer_revenue": {
+			"bsonType": "double",
+			"description": "第二大客户营业额(万元)"
+		},
+		"external_financial_revenue": {
+			"bsonType": "double",
+			"description": "外账营业收入(万元)"
+		},
+		"external_financial_profit": {
+			"bsonType": "double",
+			"description": "外账营业利润(万元)"
+		},
+		"external_financial_netprofit": {
+			"bsonType": "double",
+			"description": "外账净利润(万元)"
+		},
+		"internal_financial_revenue": {
+			"bsonType": "double",
+			"description": "内账营业收入(万元)"
+		},
+		"internal_financial_totalprofit": {
+			"bsonType": "double",
+			"description": "内账总利润(万元)"
+		},
+		"internal_financial_netprofit": {
+			"bsonType": "double",
+			"description": "内账净利润(万元)"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

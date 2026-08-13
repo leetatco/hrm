@@ -1,0 +1,1 @@
+"use strict";const t=require("../../../../../../common/vendor.js");exports.setCustomClientInfo=function(o){"[object Object]"===Object.prototype.toString.call(o)?t.wr.setCustomClientInfo({customInfo:o}):console.warn("setCustomClientInfo(data)的参数data必须是一个对象")};

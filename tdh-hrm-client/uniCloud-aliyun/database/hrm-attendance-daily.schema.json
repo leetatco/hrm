@@ -1,0 +1,96 @@
+{
+	"bsonType": "object",
+	"required": ["employee_id", "attendance_date"],
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string"
+		},
+		"attendance_date": {
+			"title": "考勤日期",
+			"bsonType": "string",
+			"description": "yyyy-MM-dd"
+		},
+		"shift_id": {
+			"title": "当天班次ID",
+			"bsonType": "string"
+		},
+		"shift_name": {
+			"title": "班次名称",
+			"bsonType": "string"
+		},
+		"schedule_type": {
+			"title": "排班类型",
+			"bsonType": "int",
+			"description": "1=工作日,2=休息日,3=节假日,4=调休工作日"
+		},
+		"clock_in": {
+			"title": "上班打卡时间",
+			"bsonType": "string",
+			"description": "HH:mm"
+		},
+		"clock_out": {
+			"title": "下班打卡时间",
+			"bsonType": "string"
+		},
+		"late_minutes": {
+			"title": "迟到分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"early_minutes": {
+			"title": "早退分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"absent_minutes": {
+			"title": "旷工分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"overtime_hours": {
+			"title": "加班小时数",
+			"bsonType": "double",
+			"defaultValue": 0
+		},
+		"leave_hours": {
+			"title": "请假小时数",
+			"bsonType": "double",
+			"defaultValue": 0
+		},
+		"trip_hours": {
+			"title": "出差小时数",
+			"bsonType": "double",
+			"defaultValue": 0
+		},
+		"compensatory_hours": {
+			"title": "调休小时数",
+			"bsonType": "double",
+			"defaultValue": 0
+		},
+		"remedy_flag": {
+			"title": "是否有补卡",
+			"bsonType": "bool",
+			"defaultValue": false
+		},
+		"attendance_status": {
+			"title": "考勤状态",
+			"bsonType": "int",
+			"description": "0=异常,1=正常,2=请假,3=出差,4=调休,5=旷工"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string"
+		}
+	}
+}

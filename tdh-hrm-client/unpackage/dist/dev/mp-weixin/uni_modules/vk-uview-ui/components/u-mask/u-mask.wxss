@@ -1,0 +1,19 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.u-mask.data-v-b3b508a8 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: transform 0.3s;
+}
+.u-mask-show.data-v-b3b508a8 {
+  opacity: 1;
+}
+.u-mask-zoom.data-v-b3b508a8 {
+  transform: scale(1.2, 1.2);
+}

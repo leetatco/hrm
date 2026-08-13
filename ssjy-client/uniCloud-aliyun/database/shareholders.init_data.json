@@ -1,0 +1,32 @@
+[
+  {
+    "_id": "share_001",
+    "customer_id": "test_customer_001",
+    "shareholder_name": "李强",
+    "subscribed_capital": 600,
+    "actual_capital": 600,
+    "ownership_ratio": 60,
+    "relationship_desc": "创始人",
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  },
+  {
+    "_id": "share_002",
+    "customer_id": "test_customer_001",
+    "shareholder_name": "王丽",
+    "subscribed_capital": 200,
+    "actual_capital": 200,
+    "ownership_ratio": 20,
+    "relationship_desc": "联合创始人",
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

@@ -1,0 +1,45 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.app.data-v-80ba51c3 {
+  padding: 30rpx;
+}
+.avatar-box.data-v-80ba51c3 {
+  display: flex;
+  justify-content: center;
+}
+.avatar-box .avatar-button.data-v-80ba51c3 {
+  border: 0;
+}
+.avatar-box .avatar-image-box.data-v-80ba51c3 {
+  width: 120rpx;
+  height: 120rpx;
+  background-color: #f3f3f3;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.avatar-box .avatar-image.data-v-80ba51c3 {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* 昵称 */
+.nickname-box.data-v-80ba51c3 {
+  margin-top: 40rpx;
+}
+.nickname-box .nickname.data-v-80ba51c3 {
+  margin-top: 16rpx;
+  width: 100%;
+  padding: 26rpx 20rpx;
+  border-radius: 10rpx;
+  background-color: #F8F7F8;
+}
+.nickname-box .input.data-v-80ba51c3 {
+  color: #080808;
+}

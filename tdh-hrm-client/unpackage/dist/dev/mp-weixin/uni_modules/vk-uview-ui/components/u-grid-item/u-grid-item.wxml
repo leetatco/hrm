@@ -1,0 +1,1 @@
+<view class="u-grid-item data-v-60e229e5" hover-class="{{c}}" hover-stay-time="{{200}}" bindtap="{{d}}" style="{{'background:' + e + ';' + ('width:' + f)}}"><view style="{{a}}" class="{{['u-grid-item-box', 'data-v-60e229e5', b]}}"><slot/></view></view>

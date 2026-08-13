@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "list-vk-data-table-sort": "/pages_plugs/system/menu/list-vk-data-table-sort",
+    "bind-permission": "/pages_plugs/system/menu/form/bindPermission",
+    "add-menu-by-json": "/pages_plugs/system/menu/form/addMenuByJson",
+    "add-plugin-menu": "/pages_plugs/system/menu/form/addPluginMenu"
+  }
+}

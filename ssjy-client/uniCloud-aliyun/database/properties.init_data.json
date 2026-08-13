@@ -1,0 +1,27 @@
+[
+  {
+    "_id": "prop_001",
+    "customer_id": "test_customer_001",
+    "owner_type": "company",
+    "property_type": "写字楼",
+    "location": "南山区科技园A座",
+    "area": 1200,
+    "mortgage_intro": "按揭购买，剩余本金",
+    "mortgage_balance": 800,
+    "mortgage_rate": 4.2,
+    "remaining_terms": 96,
+    "first_mortgage_balance": null,
+    "first_mortgage_rate": null,
+    "first_mortgage_due_date": null,
+    "second_mortgage_balance": null,
+    "second_mortgage_rate": null,
+    "second_mortgage_due_date": null,
+    "remarks": "评估价2500万元",
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

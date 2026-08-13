@@ -1,0 +1,427 @@
+{
+	"pages": [{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				"navigationStyle": "custom" 
+			}
+		},
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "登录页面"
+			}
+		},
+		{
+			"path": "pages/login/register",
+			"style": {
+				"navigationBarTitleText": "注册页面"
+			}
+		},
+		{
+			"path": "pages/login/forget",
+			"style": {
+				"navigationBarTitleText": "忘记密码页面"
+			}
+		},
+		{
+			"path": "pages/user/index",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		},
+		{
+			"path": "pages/contacts/index",
+			"style": {
+				"navigationBarTitleText": "通信录"
+			}
+		},
+		{
+			"path": "pages/notice/index",
+			"style": {
+				"navigationBarTitleText": "消息",
+				"navigationStyle": "custom"				
+			}
+		},
+		{
+			"path": "pages/functions/index",
+			"style": {
+				"navigationBarTitleText": "常用功能"
+			}
+		},
+		{
+			"path": "pages/opendb-notice/index",
+			"style": {
+				"navigationBarTitleText": "公告信息"
+			}
+		},
+		{
+			"path": "pages/setting/index",
+			"style": {
+				"navigationBarTitleText": "资料修改"
+			}
+		},
+		{
+			"path": "pages/pwd/update-password",
+			"style": {
+				"navigationBarTitleText": "修改密码"
+			}
+		},
+		{
+			"path": "pages/entry-forms/index",
+			"style": {
+				"navigationBarTitleText": "入职登记"
+			}
+		}
+	],
+	"tabBar": {
+		"color": "#7d7e80",
+		"selectedColor": "#2979ff",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "white",
+		"list": [{
+				"iconPath": "static/icon_home.png",
+				"selectedIconPath": "static/icon_home_sel.png",
+				"pagePath": "pages/index/index",
+				"text": "首页"
+			},
+			{
+				"iconPath": "static/icon_msg.png",
+				"selectedIconPath": "static/icon_msg_sel.png",
+				"pagePath": "pages/notice/index",
+				"text": "消息"
+
+			},
+			{
+				"iconPath": "static/icon_mailList.png",
+				"selectedIconPath": "static/icon_mailList_sel.png",
+				"pagePath": "pages/contacts/index",
+				"text": "通讯录"
+			},
+			{
+				"iconPath": "static/icon_user.png",
+				"selectedIconPath": "static/icon_user_sel.png",
+				"pagePath": "pages/user/index",
+				"text": "我的"
+			}
+		]
+	},
+	"subPackages": [{
+			"root": "pages/workflow",
+			"pages": [{
+				"path": "application-form/list",
+				"style": {
+					"navigationBarTitleText": "我的任务"
+				}
+			}, {
+				"path": "seal/index",
+				"style": {
+					"navigationBarTitleText": "用印申请"
+				}
+			}, {
+				"path": "miss-punch-apply/index",
+				"style": {
+					"navigationBarTitleText": "签卡申请"
+				}
+			}, {
+				"path": "transfer/index",
+				"style": {
+					"navigationBarTitleText": "调动申请"
+				}
+			}, {
+				"path": "recruitment/index",
+				"style": {
+					"navigationBarTitleText": "招聘申请"
+				}
+			}, {
+				"path": "leave/index",
+				"style": {
+					"navigationBarTitleText": "请假申请"
+				}
+			}, {
+				"path": "overtime/index",
+				"style": {
+					"navigationBarTitleText": "加班申请"
+				}
+			}, {
+				"path": "compensatory/index",
+				"style": {
+					"navigationBarTitleText": "调休申请"
+				}
+			}, {
+				"path": "business-trip/index",
+				"style": {
+					"navigationBarTitleText": "出差申请"
+				}
+			}, {
+				"path": "resignation/index",
+				"style": {
+					"navigationBarTitleText": "离职申请"
+				}
+			}, {
+				"path": "loan/index",
+				"style": {
+					"navigationBarTitleText": "借款申请"
+				}
+			}, {
+				"path": "reimbursement/index",
+				"style": {
+					"navigationBarTitleText": "报销申请"
+				}
+			}, {
+				"path": "work-clothes/index",
+				"style": {
+					"navigationBarTitleText": "工衣申请"
+				}
+			}, {
+				"path": "outing/index",
+				"style": {
+					"navigationBarTitleText": "外出申请"
+				}
+			}]
+		},
+
+		{
+			"root": "pages/clockin",
+			"pages": [{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "考勤打卡主页",
+						"enablePullDownRefresh": false
+					}
+				},
+				{
+					"path": "setting",
+					"style": {
+						"navigationBarTitleText": "考勤打卡设置",
+						"enablePullDownRefresh": true
+					}
+				},
+				{
+					"path": "setting_edit",
+					"style": {
+						"navigationBarTitleText": "考勤打卡设置表",
+						"enablePullDownRefresh": false
+					}
+				},
+				{
+					"path": "clockin",
+					"style": {
+						"navigationBarTitleText": "考勤打卡",
+						"enablePullDownRefresh": false
+					}
+				}
+			]
+		},		
+		{
+			"root": "pages/payslip",
+			"pages": [{
+				"path": "index",
+				"style": {
+					"navigationBarTitleText": "薪资列表"
+				}
+			},{
+				"path": "sign",
+				"style": {
+					"navigationBarTitleText": "薪资签名"
+				}
+			}]
+		},
+		{
+			"root": "pages_template",
+			"pages": [{
+					"path": "db-test/db-test",
+					"style": {
+						"navigationBarTitleText": "数据库API演示"
+					}
+				},
+				{
+					"path": "db-test/list/list",
+					"style": {
+						"navigationBarTitleText": "列表加载演示"
+					}
+				},
+				{
+					"path": "uni-id/index/index",
+					"style": {
+						"navigationBarTitleText": "【开箱即用】vk-uniCloud-router - 云函数路由模式 - uniCloud开发框架 - 已集成uni-id"
+					}
+				},
+				{
+					"path": "uni-id/password/password",
+					"style": {
+						"navigationBarTitleText": "密码"
+					}
+				},
+				{
+					"path": "uni-id/mobile/mobile",
+					"style": {
+						"navigationBarTitleText": "手机号"
+					}
+				},
+				{
+					"path": "uni-id/univerify/univerify",
+					"style": {
+						"navigationBarTitleText": "APP一键登录"
+					}
+				},
+				{
+					"path": "uni-id/weixin/weixin",
+					"style": {
+						"navigationBarTitleText": "微信"
+					}
+				},
+				{
+					"path": "uni-id/weixin/h5-weixin",
+					"style": {
+						"navigationBarTitleText": "微信公众号"
+					}
+				},
+				{
+					"path": "uni-id/weixin/set-user-info",
+					"style": {
+						"navigationBarTitleText": "设置基础信息"
+					}
+				},
+				{
+					"path": "uni-id/alipay/alipay",
+					"style": {
+						"navigationBarTitleText": "支付宝"
+					}
+				},
+				{
+					"path": "uni-id/qq/qq",
+					"style": {
+						"navigationBarTitleText": "QQ"
+					}
+				},
+				{
+					"path": "uni-id/util/util",
+					"style": {
+						"navigationBarTitleText": "其他"
+					}
+				},
+				{
+					"path": "uni-id/email/email",
+					"style": {
+						"navigationBarTitleText": "邮箱"
+					}
+				},
+				{
+					"path": "uni-id/login/index/index",
+					"style": {
+						"navigationBarTitleText": "登录"
+					}
+				},
+				{
+					"path": "uni-id/login/register/register",
+					"style": {
+						"navigationBarTitleText": "注册"
+					}
+				},
+				{
+					"path": "uni-id/login/forget/forget",
+					"style": {
+						"navigationBarTitleText": "找回密码"
+					}
+				},
+				{
+					"path": "vk-vuex/vk-vuex",
+					"style": {
+						"navigationBarTitleText": "vuex演示示例"
+					}
+				},
+				{
+					"path": "openapi/weixin/weixin",
+					"style": {
+						"navigationBarTitleText": "微信开放平台API"
+					}
+				},
+				{
+					"path": "openapi/weixin/msgSecCheck/msgSecCheck",
+					"style": {
+						"navigationBarTitleText": "文本安全检测"
+					}
+				},
+				{
+					"path": "openapi/weixin/imgSecCheck/imgSecCheck",
+					"style": {
+						"navigationBarTitleText": "图片安全检测"
+					}
+				},
+				{
+					"path": "openapi/weixin/sendMessage/sendMessage",
+					"style": {
+						"navigationBarTitleText": "发送订阅消息"
+					}
+				},
+				{
+					"path": "openapi/baidu/baidu",
+					"style": {
+						"navigationBarTitleText": "百度开放平台API"
+					}
+				},
+				{
+					"path": "openapi/qq/qq",
+					"style": {
+						"navigationBarTitleText": "qq开放接口"
+					}
+				},
+				{
+					"path": "openapi/qq/msgSecCheck/msgSecCheck",
+					"style": {}
+				},
+				{
+					"path": "openapi/qq/imgSecCheck/imgSecCheck",
+					"style": {}
+				},
+				{
+					"path": "openapi/douyin/douyin",
+					"style": {
+						"navigationBarTitleText": "抖音开放接口"
+					}
+				},
+				{
+					"path": "openapi/douyin/msgSecCheck/msgSecCheck",
+					"style": {}
+				},
+				{
+					"path": "openapi/douyin/imgSecCheck/imgSecCheck",
+					"style": {}
+				},
+				{
+					"path": "openapi/alipay/alipay",
+					"style": {
+						"navigationBarTitleText": "支付宝开放接口"
+					}
+				},
+				{
+					"path": "uni-id/test/test",
+					"style": {
+						"navigationStyle": "custom", // 隐藏系统导航栏
+						"navigationBarTextStyle": "white" // 状态栏字体为白色，只能为 white-白色，black-黑色 二选一
+					}
+				},
+				{
+					"path": "plugs/lucky-draw/lucky-draw",
+					"style": {
+						"navigationBarTitleText": "抽奖活动小助手"
+					}
+				}
+			]
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "",
+		// #ifndef MP-ALIPAY
+		"navigationBarBackgroundColor": "#F8F8F8",
+		// #endif
+		// #ifdef APP || WEB
+		"rpxCalcMaxDeviceWidth": 750,
+		"rpxCalcBaseDeviceWidth": 375,
+		"rpxCalcIncludeWidth": 750,
+		// #endif
+		"backgroundColor": "#F8F8F8"
+	}
+}

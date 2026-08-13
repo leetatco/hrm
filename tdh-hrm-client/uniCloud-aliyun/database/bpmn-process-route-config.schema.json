@@ -1,0 +1,103 @@
+{
+	"bsonType": "object",
+	"required": ["_id", "form_type_code", "process_definition_key", "priority"],
+	"properties": {
+		"_id": {
+			"bsonType": "string",
+			"description": "路由配置ID"
+		},
+		"form_type_code": {
+			"bsonType": "string",
+			"description": "表单类型code",
+			"foreignKey": "bpmn-form-type.code"
+		},
+		"process_definition_key": {
+			"bsonType": "string",
+			"description": "流程定义key",
+			"foreignKey": "bpmn-definition.key"
+		},
+		"condition_rule_code": {
+			"bsonType": "string",
+			"description": "条件规则code",
+			"foreignKey": "bpmn-condition-rule.code"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "路由配置名称",
+			"maxLength": 100
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "配置描述"
+		},
+		"priority": {
+			"bsonType": "int",
+			"description": "优先级",
+			"minimum": 1,
+			"defaultValue": 1
+		},
+		"config_context": {
+			"bsonType": "object",
+			"description": "配置上下文",
+			"properties": {
+				"pre_actions": {
+					"bsonType": "array",
+					"description": "流程启动前动作",
+					"items": {
+						"bsonType": "object",
+						"properties": {
+							"action_type": {
+								"bsonType": "string",
+								"description": "动作类型"
+							},
+							"config": {
+								"bsonType": "object",
+								"description": "动作配置"
+							}
+						}
+					}
+				},
+				"post_actions": {
+					"bsonType": "array",
+					"description": "流程结束后动作",
+					"items": {
+						"bsonType": "object"
+					}
+				},
+				"variables_mapping": {
+					"bsonType": "object",
+					"description": "变量映射配置"
+				}
+			}
+		},
+		"fallback": {
+			"bsonType": "bool",
+			"description": "是否为回退配置",
+			"defaultValue": false
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "状态",
+			"enum": ["active", "inactive"],
+			"defaultValue": "active"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

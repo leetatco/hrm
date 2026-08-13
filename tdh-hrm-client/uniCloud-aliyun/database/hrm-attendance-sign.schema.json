@@ -1,0 +1,89 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"rule_name": {
+			"title": "规则名称",
+			"bsonType": "string",
+			"description": "如‘默认打卡规则’，便于识别",
+			"trim": "both"
+		},
+		"sign_in_before_minutes": {
+			"title": "上班打卡提前窗口(分钟)",
+			"bsonType": "int",
+			"description": "距上班时间多久前可打上班卡，如60表示提前1小时",
+			"defaultValue": 60
+		},
+		"sign_in_after_minutes": {
+			"title": "上班打卡延后窗口(分钟)",
+			"bsonType": "int",
+			"description": "超过此时间视为缺卡，如30表示上班后30分钟内必须打卡",
+			"defaultValue": 30
+		},
+		"sign_out_before_minutes": {
+			"title": "下班打卡提前窗口(分钟)",
+			"bsonType": "int",
+			"description": "距下班时间多久前可打下班卡",
+			"defaultValue": 30
+		},
+		"sign_out_after_minutes": {
+			"title": "下班打卡延后窗口(分钟)",
+			"bsonType": "int",
+			"description": "超过下班后多久仍可打下班卡，0表示只能在下班后",
+			"defaultValue": 120
+		},
+		"multi_punch_strategy": {
+			"title": "多次打卡处理策略",
+			"bsonType": "int",
+			"description": "1=取最早一次作为签到，取最晚一次作为签退；2=取最早和最早；3=取最晚和最晚",
+			"defaultValue": 1,
+			"enum": [1, 2, 3]
+		},
+		"missing_punch_min_work_minutes": {
+			"title": "缺卡最小工作分钟数",
+			"bsonType": "int",
+			"description": "当天工作时长不足此分钟数时不记缺卡（如当天只上班1小时则忽略）",
+			"defaultValue": 0
+		},
+		"status": {
+			"title": "启用状态",
+			"bsonType": "bool",
+			"description": "true=启用，false=停用",
+			"defaultValue": true
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注信息",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

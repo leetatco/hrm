@@ -1,0 +1,41 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.u-notice-bar.data-v-d63e9e4b {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  padding: 18rpx 24rpx;
+  overflow: hidden;
+}
+.u-swiper.data-v-d63e9e4b {
+  font-size: 26rpx;
+  height: 32rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+  margin-left: 12rpx;
+}
+.u-swiper-item.data-v-d63e9e4b {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  overflow: hidden;
+}
+.u-news-item.data-v-d63e9e4b {
+  overflow: hidden;
+}
+.u-right-icon.data-v-d63e9e4b {
+  margin-left: 12rpx;
+  display: inline-flex;
+  align-items: center;
+}
+.u-left-icon.data-v-d63e9e4b {
+  display: inline-flex;
+  align-items: center;
+}

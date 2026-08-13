@@ -1,0 +1,24 @@
+/* index.wxss */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  gap: 20rpx;
+}
+
+.result {
+  margin-top: 30rpx;
+  padding: 20rpx;
+  background-color: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+  width: 100%;
+  text-align: center;
+}
+
+.result text {
+  display: block;
+  margin-top: 10rpx;
+}

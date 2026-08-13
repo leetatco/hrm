@@ -1,0 +1,51 @@
+{
+	"bsonType": "object",
+	"required": ["position_id", "position_name"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"position_id": {
+			"title": "职位代码",
+			"bsonType": "string",
+			"description": "职位唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"position_name": {
+			"title": "职位名称",
+			"bsonType": "string",
+			"description": "职位名称",
+			"trim": "both"
+		},
+		"job_level": {
+			"title": "职级",
+			"bsonType": "int",
+			"description": "数值越大越靠后"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

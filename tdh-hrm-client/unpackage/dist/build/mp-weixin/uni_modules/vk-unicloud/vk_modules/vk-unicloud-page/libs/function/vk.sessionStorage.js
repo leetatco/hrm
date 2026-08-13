@@ -1,0 +1,1 @@
+"use strict";const n={setSessionStorageSync:function(n,o=""){console.warn("非H5环境不支持此API")},getSessionStorageSync:function(n){console.warn("非H5环境不支持此API")},removeSessionStorageSync:function(n){console.warn("非H5环境不支持此API")},clearSessionStorageSync:function(n){console.warn("非H5环境不支持此API")}};exports.storage=n;

@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "add-update": "/pages_plugs/system/app-upgrade-center/form/addUpdate"
+  }
+}

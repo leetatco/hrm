@@ -1,0 +1,122 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.return-handle-dialog.data-v-4ba48fac {
+  padding: 20rpx;
+}
+.return-handle-dialog.data-v-4ba48fac .approve-header-detail {
+  background-color: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+.return-handle-dialog.data-v-4ba48fac .detail-section {
+  margin-bottom: 20rpx;
+  padding: 30rpx;
+  background-color: #ffffff;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+.return-handle-dialog.data-v-4ba48fac .detail-section:last-child {
+  margin-bottom: 0;
+}
+
+/* 单选框组样式 */
+.radio-row.data-v-4ba48fac {
+  margin-bottom: 20rpx;
+}
+.radio-row.data-v-4ba48fac:last-child {
+  margin-bottom: 0;
+}
+.radio-row.data-v-4ba48fac .u-radio {
+  padding: 10rpx 0;
+}
+.radio-row.data-v-4ba48fac .u-radio .u-radio__label {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+/* 表单样式 */
+.data-v-4ba48fac .u-form .u-form-item {
+  padding: 30rpx 0;
+}
+.data-v-4ba48fac .u-form .u-form-item .u-form-item__body {
+  padding: 0;
+}
+.data-v-4ba48fac .u-form .u-form-item .u-form-item__body__left__content__label {
+  font-size: 28rpx;
+  color: #333333;
+  font-weight: 500;
+}
+.data-v-4ba48fac .u-form .u-form-item .u-input {
+  background-color: #f8f9fa;
+  border-radius: 8rpx;
+}
+.data-v-4ba48fac .u-form .u-form-item .u-input .u-input__content {
+  padding: 20rpx 24rpx;
+}
+.data-v-4ba48fac .u-form .u-form-item .u-textarea {
+  background-color: #f8f9fa;
+  border-radius: 8rpx;
+}
+.data-v-4ba48fac .u-form .u-form-item .u-textarea .u-textarea__field {
+  padding: 20rpx 24rpx;
+  min-height: 120rpx;
+}
+
+/* 对话框底部按钮样式 */
+.dialog-footer.data-v-4ba48fac {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30rpx 0;
+  background-color: #ffffff;
+}
+.dialog-footer.data-v-4ba48fac .u-button {
+  font-size: 28rpx;
+  border-radius: 8rpx;
+}
+.dialog-footer.data-v-4ba48fac .u-button--default {
+  background-color: #f8f9fa;
+  color: #333333;
+}
+.dialog-footer.data-v-4ba48fac .u-button--primary {
+  background-color: #2979ff;
+  color: #ffffff;
+}
+
+/* 响应式设计 */
+@media (max-width: 750px) {
+.return-handle-dialog.data-v-4ba48fac {
+    padding: 10rpx;
+}
+.return-handle-dialog.data-v-4ba48fac .detail-section {
+    padding: 20rpx;
+}
+.dialog-footer.data-v-4ba48fac {
+    flex-direction: column;
+}
+.dialog-footer.data-v-4ba48fac .u-button {
+    width: 100% !important;
+    margin-bottom: 20rpx;
+    margin-right: 0 !important;
+}
+.dialog-footer.data-v-4ba48fac .u-button:last-child {
+    margin-bottom: 0;
+}
+}
+/* 滚动条样式 */
+.return-handle-dialog.data-v-4ba48fac::-webkit-scrollbar {
+  width: 6rpx;
+}
+.return-handle-dialog.data-v-4ba48fac::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3rpx;
+}
+.return-handle-dialog.data-v-4ba48fac::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3rpx;
+}
+.return-handle-dialog.data-v-4ba48fac::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

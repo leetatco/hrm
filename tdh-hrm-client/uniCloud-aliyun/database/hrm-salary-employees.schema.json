@@ -1,0 +1,82 @@
+{
+	"bsonType": "object",
+	"required": ["employee_id", "salary", "salary_type", "confirm_id"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "身份证号码唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-attendance-detail.card",
+			"trim": "both"
+		},
+		"salary_type": {
+			"bsonType": "int",
+			"title": "工资类型",
+			"description": "工资类型：1 月薪 2 日薪 3 时薪",
+			"defaultValue": 1,
+			"enum": [{
+				"text": "月薪",
+				"value": 1
+			}, {
+				"text": "日薪",
+				"value": 2
+			}, {
+				"text": "时薪",
+				"value": 3
+			}]
+		},
+		"salary": {
+			"title": "综合工资",
+			"bsonType": "int",
+			"description": "综合工资"
+		},
+		"confirm_id": {
+			"bsonType": "string",
+			"title": "确认人",
+			"foreignKey": "hrm-attendance-detail.card",
+			"description": "确认人",
+			"trim": "both"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

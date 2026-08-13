@@ -1,0 +1,40 @@
+"use strict";
+const common_vendor = require("../../../common/vendor.js");
+let vk = common_vendor.index.vk;
+const _sfc_main = {
+  data() {
+    return {
+      activity_id: "685b95a6e9f982fde4835c85"
+      // 活动ID，具体活动ID请在vk-admin后台-系统设置-抽奖活动中查看，如有疑问，可联系QQ：370725567
+    };
+  },
+  onLoad(options) {
+    vk = common_vendor.index.vk;
+  },
+  methods: {
+    navigateToLuckyDraw(path) {
+      vk.navigateToLuckyDraw({
+        path
+      });
+    }
+  }
+};
+function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  return {
+    a: common_vendor.o(($event) => $options.navigateToLuckyDraw(`pages/activity/detail/detail?_id=${$data.activity_id}`), "4a"),
+    b: common_vendor.o(($event) => $options.navigateToLuckyDraw(`pages/activity/user-list/user-list?_id=${$data.activity_id}`), "74"),
+    c: common_vendor.o(($event) => $options.navigateToLuckyDraw(`pages/activity/win-user-list/win-user-list?_id=${$data.activity_id}`), "36"),
+    d: common_vendor.o(($event) => $options.navigateToLuckyDraw(`pages/activity/share/share?_id=${$data.activity_id}`), "44"),
+    e: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/index/add"), "b3"),
+    f: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/user/my-add/list"), "86"),
+    g: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/user/my-in/list"), "b3"),
+    h: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/user/my-win/list"), "7e"),
+    i: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/index/mys"), "ab"),
+    j: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/index/index"), "e0"),
+    k: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/pub/help/index"), "35"),
+    l: common_vendor.o(($event) => $options.navigateToLuckyDraw("pages/user/api-key/list"), "75")
+  };
+}
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-28a10d68"]]);
+wx.createPage(MiniProgramPage);
+//# sourceMappingURL=../../../../.sourcemap/mp-weixin/pages_template/plugs/lucky-draw/lucky-draw.js.map

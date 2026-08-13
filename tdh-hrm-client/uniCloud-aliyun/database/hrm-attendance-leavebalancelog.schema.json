@@ -1,0 +1,90 @@
+{
+  "bsonType": "object",
+  "required": ["employee_id", "leave_type_id", "year", "change_type", "change_amount"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "存储文档 ID，系统自动生成"
+    },
+    "employee_id": {
+      "title": "员工工号",
+      "bsonType": "string",
+      "description": "关联员工表 employee_id",
+      "trim": "both"
+    },
+    "leave_type_id": {
+      "title": "假期类型",
+      "bsonType": "string",
+      "description": "关联假期类型表的 leave_code",
+      "trim": "both"
+    },
+    "year": {
+      "title": "年度",
+      "bsonType": "int",
+      "description": "额度所属年度"
+    },
+    "change_type": {
+      "title": "变动类型",
+      "bsonType": "int",
+      "description": "1=初始化，2=自动发放，3=手工增加，4=请假扣减，5=手工扣减，6=过期清零，7=其他调整",
+      "enum": [1, 2, 3, 4, 5, 6, 7]
+    },
+    "change_amount": {
+      "title": "变动额度(小时)",
+      "bsonType": "int",
+      "description": "正数为增加，负数为减少"
+    },
+    "before_balance": {
+      "title": "变动前额度",
+      "bsonType": "int",
+      "description": "变动前的可用额度"
+    },
+    "after_balance": {
+      "title": "变动后额度",
+      "bsonType": "int",
+      "description": "变动后的可用额度"
+    },
+    "ref_id": {
+      "title": "关联业务单号",
+      "bsonType": "string",
+      "description": "如请假申请单ID、加班单ID等，便于追溯",
+      "trim": "both"
+    },
+    "ref_type": {
+      "title": "关联业务类型",
+      "bsonType": "string",
+      "description": "如 leave、overtime、manual_adjust",
+      "trim": "both"
+    },
+    "remark": {
+      "title": "备注",
+      "bsonType": "string",
+      "description": "备注信息",
+      "trim": "both"
+    },
+    "update_date": {
+      "title": "操作时间",
+      "bsonType": "timestamp",
+      "description": "变动发生时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updat_id": {
+      "title": "操作人",
+      "bsonType": "string",
+      "description": "操作人ID",
+      "trim": "both",
+      "foreignKey": "uni-id-users._id",
+      "forceDefaultValue": {
+        "$env": "uid"
+      }
+    }
+  },
+  "version": "0.0.1"
+}

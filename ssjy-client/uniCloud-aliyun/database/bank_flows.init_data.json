@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "bf_001",
+    "customer_id": "test_customer_001",
+    "bank_name": "招商银行",
+    "half_year_total_flow": 1850,
+    "update_date": 1742400000000,
+    "updat_id": "001"
+  },
+  {
+    "_id": "bf_002",
+    "customer_id": "test_customer_001",
+    "bank_name": "中国银行",
+    "half_year_total_flow": 720,
+    "update_date": 1742400000000,
+    "updat_id": "001"
+  }
+]

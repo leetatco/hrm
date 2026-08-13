@@ -1,0 +1,111 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "cards", "dorm_id"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤日期",
+			"bsonType": "date",
+			"description": "考勤日期"
+		},
+		"empids": {
+			"title": "员工号码组",
+			"bsonType": "array",
+			"description": "员工号码组"
+		},
+		"cards": {
+			"title": "员工身份证号码组",
+			"bsonType": "array",
+			"description": "员工身份证号码组"
+		},
+		"dorm_id": {
+			"title": "房号",
+			"bsonType": "string",
+			"description": "房号",
+			"foreignKey": "hrm-dorm.dorm_id"
+		},
+		"last_month_water": {
+			"title": "上月数",
+			"bsonType": "double",
+			"description": "上月数"
+		},
+		"current_month_water": {
+			"title": "本月数",
+			"bsonType": "double",
+			"description": "本月数"
+		},
+		"unit_price_water": {
+			"title": "单价",
+			"bsonType": "double",
+			"description": "单价"
+		},
+		"water_cost": {
+			"title": "水费",
+			"bsonType": "double",
+			"description": "水费"
+		},
+		"last_month_electricity": {
+			"title": "上月数",
+			"bsonType": "double",
+			"description": "上月数"
+		},
+		"current_month_electricity": {
+			"title": "本月数",
+			"bsonType": "double",
+			"description": "本月数"
+		},
+		"unit_price_electricity": {
+			"title": "单价",
+			"bsonType": "double",
+			"description": "单价"
+		},
+		"electricity_cost": {
+			"title": "电费",
+			"bsonType": "double",
+			"description": "电费"
+		},
+		"total_cost": {
+			"title": "总计(元)",
+			"bsonType": "double",
+			"description": "总计(元)"
+		},
+		"share_cost": {
+			"title": "分摊(元\/人)",
+			"bsonType": "double",
+			"description": "分摊(元\/人)"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

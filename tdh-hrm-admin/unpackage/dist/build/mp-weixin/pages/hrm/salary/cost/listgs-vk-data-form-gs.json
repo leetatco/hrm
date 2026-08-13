@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "listgs-vk-data-form-gs": "/pages/hrm/salary/cost/listgs-vk-data-form-gs"
+  }
+}

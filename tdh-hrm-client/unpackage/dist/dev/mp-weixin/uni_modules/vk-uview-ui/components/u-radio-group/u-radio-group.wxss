@@ -1,0 +1,9 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.u-radio-group.flex-end.data-v-1d03092d {
+  display: inline-flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}

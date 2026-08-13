@@ -1,0 +1,54 @@
+{
+	"bsonType": "object",
+	"required": ["employee_id", "overtime_date", "total_hours", "overtime_type"],
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string"
+		},
+		"oa_instance_id": {
+			"title": "OA申请ID",
+			"bsonType": "string"
+		},
+		"overtime_date": {
+			"title": "加班日期",
+			"bsonType": "string"
+		},
+		"total_hours": {
+			"title": "加班小时数",
+			"bsonType": "double"
+		},
+		"overtime_type": {
+			"title": "加班类型",
+			"bsonType": "string",
+			"enum": ["paid", "compensatory"]
+		},
+		"morning_range": {
+			"title": "上午时段",
+			"bsonType": "object"
+		},
+		"afternoon_range": {
+			"title": "下午时段",
+			"bsonType": "object"
+		},
+		"import_status": {
+			"title": "汇入状态",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string"
+		}
+	}
+}

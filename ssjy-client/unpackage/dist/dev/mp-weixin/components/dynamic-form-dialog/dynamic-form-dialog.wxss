@@ -1,0 +1,215 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.dynamic-form-wrapper .form-container.data-v-2b16f33b {
+  padding: 30rpx;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.dynamic-form-wrapper .form-group.data-v-2b16f33b {
+  margin-bottom: 40rpx;
+}
+.dynamic-form-wrapper .form-group .group-title.data-v-2b16f33b {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  padding-bottom: 10rpx;
+  border-bottom: 1px solid #e4e7ed;
+  color: #303133;
+}
+.dynamic-form-wrapper .form-buttons.data-v-2b16f33b {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 40rpx;
+  padding-top: 20rpx;
+  border-top: 1px solid #e4e7ed;
+}
+.dynamic-form-wrapper .form-buttons .u-button.data-v-2b16f33b {
+  margin-left: 20rpx;
+  margin-bottom: 10rpx;
+}
+.dynamic-form-wrapper .form-buttons .u-button.data-v-2b16f33b:first-child {
+  margin-left: 0;
+}
+.dynamic-form-wrapper .custom-form-item.data-v-2b16f33b {
+  margin-bottom: 30rpx;
+}
+.dynamic-form-wrapper .custom-form-item .u-form-item__body.data-v-2b16f33b {
+  padding: 0;
+}
+.dynamic-form-wrapper .textarea-form-item .u-form-item__body .u-input.data-v-2b16f33b {
+  width: 100%;
+}
+.dynamic-form-wrapper .file-form-item .u-form-item__body.data-v-2b16f33b {
+  width: 100%;
+}
+.dynamic-form-wrapper .array-form-item .u-form-item__body.data-v-2b16f33b {
+  width: 100%;
+}
+.dynamic-form-wrapper .file-upload-container.data-v-2b16f33b {
+  width: 100%;
+}
+.dynamic-form-wrapper .file-upload-container .upload-button.data-v-2b16f33b {
+  margin-bottom: 20rpx;
+}
+.dynamic-form-wrapper .file-upload-container .file-list.data-v-2b16f33b {
+  margin-top: 20rpx;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item.data-v-2b16f33b {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  background: #f8f9fa;
+  border-radius: 8rpx;
+  border: 1px solid #e4e7ed;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item .file-info.data-v-2b16f33b {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item .file-info .file-icon.data-v-2b16f33b {
+  color: #409eff;
+  margin-right: 16rpx;
+  font-size: 32rpx;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item .file-info .file-name.data-v-2b16f33b {
+  flex: 1;
+  color: #303133;
+  font-size: 28rpx;
+  width: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 16rpx;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item .file-info .file-size.data-v-2b16f33b {
+  color: #909399;
+  font-size: 24rpx;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item .file-actions.data-v-2b16f33b {
+  display: flex;
+  align-items: center;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item .file-actions .u-button.data-v-2b16f33b {
+  margin-left: 16rpx;
+  font-size: 24rpx;
+}
+.dynamic-form-wrapper .file-upload-container .file-list .file-item .file-actions .u-button.delete-btn.data-v-2b16f33b {
+  color: #f56c6c;
+}
+.dynamic-form-wrapper .array-table-container.data-v-2b16f33b {
+  border: 1px solid #e4e7ed;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+.dynamic-form-wrapper .array-table-container .array-table-header.data-v-2b16f33b {
+  background: #f8f9fa;
+  padding: 20rpx;
+  border-bottom: 1px solid #e4e7ed;
+}
+.dynamic-form-wrapper .array-table-container .array-table-header .table-actions.data-v-2b16f33b {
+  display: flex;
+  justify-content: space-between;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body.data-v-2b16f33b {
+  padding: 20rpx;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row.data-v-2b16f33b {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 8rpx;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row.data-v-2b16f33b:last-child {
+  margin-bottom: 0;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-header.data-v-2b16f33b {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 10rpx;
+  border-bottom: 1px dashed #dcdfe6;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-header .row-index.data-v-2b16f33b {
+  font-weight: bold;
+  color: #303133;
+  font-size: 28rpx;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-header .row-actions.data-v-2b16f33b {
+  display: flex;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-header .row-actions .u-button.data-v-2b16f33b {
+  margin-left: 10rpx;
+  font-size: 24rpx;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-fields.data-v-2b16f33b {
+  display: flex;
+  flex-wrap: wrap;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-fields .sub-field.data-v-2b16f33b {
+  margin-right: 20rpx;
+  margin-bottom: 20rpx;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-fields .sub-field .sub-field-label.data-v-2b16f33b {
+  font-size: 24rpx;
+  color: #606266;
+  margin-bottom: 10rpx;
+}
+.dynamic-form-wrapper .array-table-container .array-table-body .array-table-row .row-fields .sub-field .sub-field-input.data-v-2b16f33b {
+  min-width: 200rpx;
+}
+.dynamic-form-wrapper .array-table-container .empty-tips.data-v-2b16f33b {
+  padding: 40rpx 20rpx;
+  text-align: center;
+  color: #909399;
+  font-size: 28rpx;
+}
+.dynamic-form-wrapper .remote-select-popup .popup-header.data-v-2b16f33b,
+.dynamic-form-wrapper .cascader-popup .popup-header.data-v-2b16f33b {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1px solid #e4e7ed;
+}
+.dynamic-form-wrapper .remote-select-popup .popup-header .popup-title.data-v-2b16f33b,
+.dynamic-form-wrapper .cascader-popup .popup-header .popup-title.data-v-2b16f33b {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #303133;
+}
+.dynamic-form-wrapper .remote-select-popup .popup-content.data-v-2b16f33b,
+.dynamic-form-wrapper .cascader-popup .popup-content.data-v-2b16f33b {
+  padding: 30rpx;
+}
+.dynamic-form-wrapper .u-form-item.data-v-2b16f33b {
+  margin-bottom: 30rpx;
+}

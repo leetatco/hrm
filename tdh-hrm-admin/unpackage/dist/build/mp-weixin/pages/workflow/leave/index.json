@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "dynamic-form-dialog": "/components/dynamic-form-dialog/dynamic-form-dialog",
+    "simulate-handle-dialog": "/components/simulate-handle-dialog/simulate-handle-dialog",
+    "file-preview-dialog": "/components/file-preview-dialog/file-preview-dialog",
+    "approve-header-detail": "/components/approve-header-detail/approve-header-detail"
+  }
+}

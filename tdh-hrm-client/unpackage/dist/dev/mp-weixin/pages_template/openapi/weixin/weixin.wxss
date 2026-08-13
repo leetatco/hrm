@@ -1,0 +1,15 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.content.data-v-d5581505 {
+  padding: 30rpx;
+}
+.content button.data-v-d5581505 {
+  margin-bottom: 30rpx;
+}
+.tips.data-v-d5581505 {
+  font-size: 28rpx;
+  color: #999999;
+  margin-bottom: 32rpx;
+}

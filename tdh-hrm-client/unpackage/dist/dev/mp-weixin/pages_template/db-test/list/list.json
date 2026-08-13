@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "列表加载演示",
+  "usingComponents": {
+    "u-search": "../../../uni_modules/vk-uview-ui/components/u-search/u-search",
+    "u-empty": "../../../uni_modules/vk-uview-ui/components/u-empty/u-empty",
+    "u-loadmore": "../../../uni_modules/vk-uview-ui/components/u-loadmore/u-loadmore"
+  }
+}

@@ -1,0 +1,32 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.content.data-v-49a977d6 {
+  padding: 15px;
+}
+.content input.data-v-49a977d6 {
+  height: 46px;
+  border: solid 1px #DDDDDD;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  padding: 0px 15px;
+}
+.content button.data-v-49a977d6 {
+  margin-bottom: 15px;
+}
+.content navigator.data-v-49a977d6 {
+  display: inline-block;
+  color: #007AFF;
+  border-bottom: solid 1px #007AFF;
+  font-size: 16px;
+  line-height: 24px;
+  margin-bottom: 15px;
+}
+.tips.data-v-49a977d6 {
+  text-align: center;
+  line-height: 20px;
+  font-size: 14px;
+  color: #999999;
+  margin-bottom: 20px;
+}

@@ -1,0 +1,17 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+@keyframes _show-90f419cf {
+0% {
+    opacity: 0;
+}
+100% {
+    opacity: 1;
+}
+}
+.data-v-90f419cf:host {
+  display: block;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}

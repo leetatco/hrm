@@ -1,0 +1,83 @@
+{
+	"bsonType": "object",
+	"required": ["leave_code", "leave_name"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"leave_code": {
+			"title": "假期代码",
+			"bsonType": "string",
+			"description": "唯一标识，如 annual、sick，不可修改",
+			"trim": "both"
+		},
+		"leave_name": {
+			"title": "假期名称",
+			"bsonType": "string",
+			"description": "中文名称，如年假、病假、事假",
+			"trim": "both"
+		},
+		"is_paid": {
+			"title": "是否带薪",
+			"bsonType": "bool",
+			"description": "请假期间是否计算工资",
+			"defaultValue": true
+		},
+		"affect_attendance": {
+			"title": "是否影响全勤",
+			"bsonType": "bool",
+			"description": "此类型请假是否扣除全勤奖",
+			"defaultValue": true
+		},
+		"has_quota": {
+			"title": "是否有额度",
+			"bsonType": "bool",
+			"description": "是否需要额度控制（如年假、调休有额度，事假无）",
+			"defaultValue": false
+		},
+		"min_unit": {
+			"title": "最小请假单位",
+			"bsonType": "int",
+			"description": "1=天，2=半天，3=小时",
+			"enum": [1, 2, 3],
+			"defaultValue": 1
+		},
+		"status": {
+			"title": "启用状态",
+			"bsonType": "bool",
+			"description": "true=启用，false=停用",
+			"defaultValue": true
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注信息",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

@@ -1,0 +1,201 @@
+{
+	"bsonType": "object",
+	"required": [
+		"employee_name", "card"
+	],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"employee_name": {
+			"title": "员工姓名",
+			"bsonType": "string",
+			"description": "员工姓名",
+			"trim": "both"
+		},
+		"bank_card": {
+			"bsonType": "string",
+			"title": "银行卡号",
+			"description": "银行卡号",
+			"trim": "both"
+		},
+		"bank_id": {
+			"title": "银行名称",
+			"bsonType": "string",
+			"foreignKey": "hrm-bank.bank_id",
+			"description": "银行名称",
+			"trim": "both"
+		},
+		"location_id": {
+			"title": "开户地",
+			"bsonType": "string",
+			"foreignKey": "hrm-banklocation.location_id",
+			"description": "开户地",
+			"trim": "both"
+		},
+		"gender": {
+			"bsonType": "int",
+			"title": "性别",
+			"description": "用户性别：1 男性 2 女性",
+			"enum": [{
+					"text": "男",
+					"value": 1
+				},
+				{
+					"text": "女",
+					"value": 2
+				}
+			]
+		},
+		"nation_id": {
+			"title": "民族",
+			"bsonType": "string",
+			"foreignKey": "opendb-nation-china._id",
+			"description": "民族",
+			"trim": "both"
+		},
+
+		"mobile": {
+			"bsonType": "string",
+			"title": "手机号码",
+			"description": "手机号码",
+			"trim": "both"
+		},
+		"educational_id": {
+			"title": "学历",
+			"bsonType": "string",
+			"foreignKey": "hrm-educational.educational_id",
+			"description": "学历",
+			"trim": "both"
+		},
+		"stay": {
+			"bsonType": "int",
+			"title": "住宿",
+			"description": "住宿：1 是 2 否",
+			"enum": [{
+					"text": "是",
+					"value": 1
+				},
+				{
+					"text": "否",
+					"value": 2
+				}
+			]
+		},
+		"card": {
+			"bsonType": "string",
+			"title": "身份证号码",
+			"description": "身份证号码",
+			"trim": "both"
+		},
+		"birth_date": {
+			"title": "出生日期",
+			"bsonType": "timestamp",
+			"description": "出生日期"
+		},
+		"birth_month": {
+			"title": "出生月份",
+			"bsonType": "int",
+			"description": "出生月份"
+		},
+		"age": {
+			"title": "年龄",
+			"bsonType": "int",
+			"description": "年龄"
+		},
+		"expiration_date": {
+			"bsonType": "string",
+			"title": "身份证有效期限",
+			"description": "身份证有效期限",
+			"trim": "both"
+		},
+		"card_location": {
+			"bsonType": "string",
+			"title": "户口所在地",
+			"description": "户口所在地",
+			"trim": "both"
+		},
+		"emergency_contact": {
+			"bsonType": "string",
+			"title": "紧急联系人",
+			"description": "紧急联系人",
+			"trim": "both"
+		},
+		"emergency_mobile": {
+			"bsonType": "string",
+			"title": "紧急联系人电话",
+			"description": "紧急联系人电话",
+			"trim": "both"
+		},
+		"marital_status": {
+			"bsonType": "int",
+			"description": "婚姻状况：1 已婚 2 未婚",
+			"title": "婚姻状况",
+			"enum": [{
+					"text": "已婚",
+					"value": 1
+				},
+				{
+					"text": "未婚",
+					"value": 2
+				}
+			]
+		},
+		"no_crime": {
+			"bsonType": "int",
+			"description": "无犯罪证明：1 有 2 无",
+			"title": "无犯罪证明",
+			"enum": [{
+					"text": "有",
+					"value": 1
+				},
+				{
+					"text": "无",
+					"value": 2
+				}
+			]
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"avatar": {
+			"bsonType": "string",
+			"title": "头像地址",
+			"description": "头像地址",
+			"trim": "both"
+		},
+		"file_attachments": {
+			"bsonType": "file",
+			"title": "证明文件",
+			"description": "员工证明文件"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

@@ -1,0 +1,49 @@
+/* 全屏遮罩 */
+.toast-mask.data-v-63769bba {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: transparent;
+		z-index: 9999;
+}
+.toast-content.data-v-63769bba {
+		display: flex;
+		flex-direction: column;
+		/* 关键：让文本块垂直排列居中 */
+		align-items: center;
+		justify-content: center;
+		min-width: 200rpx;
+		padding: 40rpx 40rpx;
+		background-color: rgba(0, 0, 0, 0.75);
+		border-radius: 12rpx;
+		transform: rotate(90deg);
+		white-space: nowrap;
+}
+.loading-box.data-v-63769bba,
+	.icon-box.data-v-63769bba,
+	.text-box.data-v-63769bba {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 16rpx;
+}
+.icon-text.data-v-63769bba {
+		font-size: 36rpx;
+		color: #ffffff;
+		font-weight: bold;
+		display: block;
+}
+.toast-text.data-v-63769bba {
+		display: block;
+		text-align: center;
+		color: #ffffff;
+		font-size: 33rpx;
+		white-space: nowrap;
+		/* 不要设置 line-height */
+}

@@ -1,0 +1,119 @@
+{
+  "bsonType": "object",
+  "required": ["shift_name", "shift_type", "start_time", "end_time"],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "存储文档 ID，系统自动生成"
+    },
+    "shift_name": {
+      "title": "班次名称",
+      "bsonType": "string",
+      "description": "如‘早班’、‘晚班’、‘行政班’",
+      "trim": "both"
+    },
+    "shift_type": {
+      "title": "班次类型",
+      "bsonType": "int",
+      "description": "1=固定班次，2=弹性班次",
+      "enum": [1, 2]
+    },
+    "start_time": {
+      "title": "上班时间",
+      "bsonType": "string",
+      "description": "格式 HH:mm，如 09:00",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "end_time": {
+      "title": "下班时间",
+      "bsonType": "string",
+      "description": "格式 HH:mm，如 18:00，跨天班次可填次日时间",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "is_cross_day": {
+      "title": "是否跨天",
+      "bsonType": "bool",
+      "description": "下班时间是否在第二天，如夜班 20:00-08:00",
+      "defaultValue": false
+    },
+    "flexible_start_earliest": {
+      "title": "弹性最早签到",
+      "bsonType": "string",
+      "description": "仅弹性班次有效，最早可打卡时间，格式 HH:mm",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "flexible_start_latest": {
+      "title": "弹性核心上班时间",
+      "bsonType": "string",
+      "description": "弹性班次必须在此时前签到，为核心工作时段开始",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "flexible_end_earliest": {
+      "title": "弹性核心下班时间",
+      "bsonType": "string",
+      "description": "弹性班次必须在此时后签退，为核心工作时段结束",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "flexible_end_latest": {
+      "title": "弹性最晚签退",
+      "bsonType": "string",
+      "description": "仅弹性班次有效，最晚可打卡时间",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "rest_start_time": {
+      "title": "休息开始时间",
+      "bsonType": "string",
+      "description": "如午休开始时间 12:00",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "rest_end_time": {
+      "title": "休息结束时间",
+      "bsonType": "string",
+      "description": "如午休结束时间 13:00",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "rest_duration": {
+      "title": "休息时长(分钟)",
+      "bsonType": "int",
+      "description": "自动计算，也可手工填写",
+      "defaultValue": 0
+    },
+    "status": {
+      "title": "启用状态",
+      "bsonType": "int",
+      "description": "1=启用，0=停用",
+      "enum": [0, 1],
+      "defaultValue": 1
+    },
+    "remark": {
+      "title": "备注",
+      "bsonType": "string",
+      "description": "备注信息",
+      "trim": "both"
+    },
+    "update_date": {
+      "title": "更新时间",
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": {
+        "$env": "now"
+      }
+    },
+    "updat_id": {
+      "title": "更新人",
+      "bsonType": "string",
+      "description": "更新人ID",
+      "trim": "both",
+      "foreignKey": "uni-id-users._id",
+      "forceDefaultValue": {
+        "$env": "uid"
+      }
+    }
+  },
+  "version": "0.0.1"
+}

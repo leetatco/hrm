@@ -1,0 +1,100 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "employee_id", "standard_type", "standard", "first_month", "second_month"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤日期",
+			"bsonType": "date",
+			"description": "考勤日期"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"card": {
+					"title": "身份证号码",
+					"bsonType": "string",
+					"description": "身份证号码唯一标识，不可修改，不允许重复",
+					"trim": "both"
+				},
+		"standard_type": {
+			"bsonType": "int",
+			"title": "标准类型",
+			"description": "标准类型：1 月薪 2 日薪",
+			"defaultValue": 1,
+			"enum": [{
+				"text": "月薪",
+				"value": 1
+			}, {
+				"text": "日薪",
+				"value": 2
+			}]
+		},
+		"standard": {
+			"title": "放假标准",
+			"bsonType": "int",
+			"description": "放假标准"
+		},
+		"first_month": {
+			"title": "第一月",
+			"bsonType": "int",
+			"description": "第一月",
+			"trim": "both"
+		},
+		"second_month": {
+			"title": "第二月",
+			"bsonType": "int",
+			"description": "第二月",
+			"trim": "both"
+		},
+		"total": {
+			"title": "合计",
+			"bsonType": "int",
+			"description": "合计",
+			"trim": "both"
+		},
+		"amount": {
+			"title": "补贴金额",
+			"bsonType": "double",
+			"description": "补贴金额",
+			"trim": "both"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

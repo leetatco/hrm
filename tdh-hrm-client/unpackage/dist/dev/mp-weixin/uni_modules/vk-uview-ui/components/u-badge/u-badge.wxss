@@ -1,0 +1,42 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.u-badge.data-v-f84de764 {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 12px;
+  padding: 2px 4px;
+  border-radius: 50px;
+  z-index: 9;
+}
+.u-badge--bg--primary.data-v-f84de764 {
+  background-color: #2979ff;
+}
+.u-badge--bg--error.data-v-f84de764 {
+  background-color: #fa3534;
+}
+.u-badge--bg--success.data-v-f84de764 {
+  background-color: #19be6b;
+}
+.u-badge--bg--info.data-v-f84de764 {
+  background-color: #909399;
+}
+.u-badge--bg--warning.data-v-f84de764 {
+  background-color: #ff9900;
+}
+.u-badge-dot.data-v-f84de764 {
+  height: 8px;
+  width: 8px;
+  border-radius: 50px;
+  line-height: 1;
+}
+.u-badge-mini.data-v-f84de764 {
+  transform: scale(0.8);
+  transform-origin: center center;
+}
+.u-info.data-v-f84de764 {
+  background-color: #909399;
+  color: #fff;
+}

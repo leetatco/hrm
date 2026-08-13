@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "bind-role": "/pages_plugs/system/user/form/bindRole",
+    "reset-password": "/pages_plugs/system/user/form/resetPassword",
+    "set-authorized-app-login": "/pages_plugs/system/user/form/setAuthorizedAppLogin"
+  }
+}

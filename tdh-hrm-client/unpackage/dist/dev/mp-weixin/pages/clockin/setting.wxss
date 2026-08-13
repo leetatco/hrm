@@ -1,0 +1,130 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+page.data-v-1e2e1e82, .container.data-v-1e2e1e82 {
+  min-height: 100%;
+  background: #f8f9fc;
+}
+
+/* 提示卡片 */
+.hint-card.data-v-1e2e1e82 {
+  margin-bottom: 24rpx;
+  background: #fff9e6;
+  border-radius: 24rpx;
+  border-left: 8rpx solid #ff9f43;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04), 0 2rpx 4rpx rgba(0, 0, 0, 0.02);
+}
+.hint-card__inner.data-v-1e2e1e82 {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 28rpx;
+}
+.hint-card__text.data-v-1e2e1e82 {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #b95f00;
+  line-height: 1.4;
+}
+
+/* 打卡点卡片 */
+.order-item.data-v-1e2e1e82 {
+  margin-bottom: 24rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  transition: transform 0.2s;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04), 0 2rpx 4rpx rgba(0, 0, 0, 0.02);
+}
+.order-item.data-v-1e2e1e82:active {
+  transform: scale(0.99);
+}
+.order-item__content.data-v-1e2e1e82 {
+  padding: 28rpx;
+}
+.goods-area.data-v-1e2e1e82 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+.w-full.data-v-1e2e1e82 {
+  flex: 1;
+}
+.info-row.data-v-1e2e1e82 {
+  display: flex;
+  margin-bottom: 20rpx;
+  line-height: 1.5;
+}
+.info-row.data-v-1e2e1e82:last-child {
+  margin-bottom: 0;
+}
+.info-label.data-v-1e2e1e82 {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #6c7a8a;
+  flex-shrink: 0;
+}
+.info-value.data-v-1e2e1e82 {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1f2f3a;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+/* 编辑/删除图标区 */
+.action-icons.data-v-1e2e1e82 {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  flex-shrink: 0;
+}
+.icon-btn.data-v-1e2e1e82 {
+  padding: 8rpx;
+  border-radius: 40rpx;
+  background: #f5f7fa;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.icon-btn.data-v-1e2e1e82:active {
+  background: #e8edf2;
+  transform: scale(0.92);
+}
+
+/* 底部浮动按钮 */
+.fixed-btn.data-v-1e2e1e82 {
+  position: fixed;
+  bottom: 40rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+}
+.add-btn.data-v-1e2e1e82 {
+  background: linear-gradient(135deg, #2d8cff, #1a6ad0);
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 48rpx;
+  border-radius: 60rpx;
+  box-shadow: 0 8rpx 20rpx rgba(45, 140, 255, 0.3);
+  transition: all 0.2s;
+}
+.add-btn.data-v-1e2e1e82:active {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx rgba(45, 140, 255, 0.4);
+}
+.add-btn text.data-v-1e2e1e82 {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 2rpx;
+}
+.data-v-1e2e1e82 .use-loadmore {
+  margin: 30rpx 0 100rpx;
+  color: #99a9bf;
+}

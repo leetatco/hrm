@@ -1,0 +1,10 @@
+(global["webpackJsonp"]=global["webpackJsonp"]||[]).push([["pages_plugs/system_uni/uni-id-files/form/preview"],{"06a8":function(t,e,n){"use strict";n.d(e,"b",(function(){return i})),n.d(e,"c",(function(){return a})),n.d(e,"a",(function(){}));var i=function(){var t=this.$createElement;this._self._c},a=[]},baad:function(t,e,n){"use strict";n.r(e);var i=n("d6ca"),a=n.n(i);for(var u in i)["default"].indexOf(u)<0&&function(t){n.d(e,t,(function(){return i[t]}))}(u);e["default"]=a.a},bada:function(t,e,n){"use strict";n.r(e);var i=n("06a8"),a=n("baad");for(var u in a)["default"].indexOf(u)<0&&function(t){n.d(e,t,(function(){return a[t]}))}(u);var o=n("828b"),c=Object(o["a"])(a["default"],i["b"],i["c"],!1,null,"35408e70",null,!1,i["a"],void 0);e["default"]=c.exports},d6ca:function(t,e,n){"use strict";(function(t){var n;Object.defineProperty(e,"__esModule",{value:!0}),e.default=void 0;t.vk;var i={props:{value:{type:Object,default:function(){return{show:!1,mode:"",item:{}}}}},data:function(){return{page:{title:"预览",submitText:"确定",cancelText:"关闭",showCancel:!0,top:"2vh",width:"600px"},styleCom:{}}},mounted:function(){n=this,n.init()},methods:{init:function(){var t=n,e=t.value;n.$emit("input",e)},onOpen:function(){n=this;var t=n.value.item,e=t.width,i=t.height,a=void 0===i?700:i,u=(t.type,e),o=a;a>700&&(o=700,u=e/a*700),n.styleCom={width:"".concat(u,"px"),height:"".concat(o,"px")},n.page.width=n.styleCom.width,n.$set(n.value.item,"play",!0)},onClose:function(){n.$set(n.value.item,"play",!1)}},watch:{"value.show":{handler:function(t,e){t?this.onOpen():this.onClose()}}},computed:{}};e.default=i}).call(this,n("df3c")["default"])}}]);
+;(global["webpackJsonp"] = global["webpackJsonp"] || []).push([
+    'pages_plugs/system_uni/uni-id-files/form/preview-create-component',
+    {
+        'pages_plugs/system_uni/uni-id-files/form/preview-create-component':(function(module, exports, __webpack_require__){
+            __webpack_require__('df3c')['createComponent'](__webpack_require__("bada"))
+        })
+    },
+    [['pages_plugs/system_uni/uni-id-files/form/preview-create-component']]
+]);

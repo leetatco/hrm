@@ -1,0 +1,370 @@
+{
+	"bsonType": "object",
+	"required": [
+		"employee_id", "employee_name", "card", "birth_date", "department_id", "hire_date", "position_id"
+	],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"center_id": {
+			"title": "中心代码",
+			"bsonType": "string",
+			"foreignKey": "hrm-center.center_id",
+			"description": "中心代码",
+			"trim": "both"
+		},
+		"point_id": {
+			"title": "分点代码",
+			"bsonType": "string",
+			"foreignKey": "hrm-point.point_id",
+			"description": "分点代码",
+			"trim": "both"
+		},
+		"employee_name": {
+			"title": "员工姓名",
+			"bsonType": "string",
+			"description": "员工姓名",
+			"trim": "both"
+		},
+		"bank_card": {
+			"bsonType": "string",
+			"title": "银行卡号",
+			"description": "银行卡号",
+			"trim": "both"
+		},
+		"bank_id": {
+			"title": "银行名称",
+			"bsonType": "string",
+			"foreignKey": "hrm-bank.bank_id",
+			"description": "银行名称",
+			"trim": "both"
+		},
+		"location_id": {
+			"title": "开户地",
+			"bsonType": "string",
+			"foreignKey": "hrm-banklocation.location_id",
+			"description": "开户地",
+			"trim": "both"
+		},
+		"gender": {
+			"bsonType": "int",
+			"title": "性别",
+			"description": "用户性别：1 男性 2 女性",			
+			"enum": [{
+					"text": "男",
+					"value": 1
+				},
+				{
+					"text": "女",
+					"value": 2
+				}
+			]
+		},
+		"nation_id": {
+			"title": "民族",
+			"bsonType": "string",
+			"foreignKey": "opendb-nation-china._id",
+			"description": "民族",
+			"trim": "both"
+		},
+		"department_id": {
+			"title": "所属部门",
+			"bsonType": "string",
+			"foreignKey": "hrm-departments.department_id",
+			"description": "所属部门",
+			"trim": "both"
+		},
+		"manager_id": {
+			"title": "上级主管",
+			"bsonType": "string",
+			"description": "上级主管工号",
+			"trim": "both",
+			"foreignKey": "hrm-employees.employee_id"
+		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"foreignKey": "hrm-companys.company_id",
+			"description": "所属公司",
+			"trim": "both"
+		},
+		"position_id": {
+			"title": "职位名称",
+			"bsonType": "string",
+			"foreignKey": "hrm-positions.position_id",
+			"description": "职位名称",
+			"trim": "both"
+		},
+		"hire_date": {
+			"title": "入职日期",
+			"bsonType": "timestamp",
+			"description": "入职日期",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"resign_date": {
+			"title": "离职日期",
+			"bsonType": "timestamp",
+			"description": "离职日期"
+		},
+		"mobile": {
+			"bsonType": "string",
+			"title": "手机号码",
+			"description": "手机号码",
+			"trim": "both"
+		},
+		"educational_id": {
+			"title": "学历",
+			"bsonType": "string",
+			"foreignKey": "hrm-educational.educational_id",
+			"description": "学历",
+			"trim": "both"
+		},
+		"insurance_id": {
+			"title": "保险",
+			"bsonType": "string",
+			"foreignKey": "hrm-insurance.insurance_id",
+			"description": "保险",
+			"trim": "both"
+		},
+		"stay": {
+			"bsonType": "int",
+			"title": "住宿",
+			"description": "住宿：1 是 2 否",			
+			"enum": [{
+					"text": "是",
+					"value": 1
+				},
+				{
+					"text": "否",
+					"value": 2
+				}
+			]
+		},
+		"contract_id": {
+			"title": "合同是否签订",
+			"bsonType": "string",
+			"foreignKey": "hrm-contract.contract_id",
+			"description": "合同是否签订",
+			"trim": "both"
+		},
+		"contract_date": {
+			"title": "合同到期日",
+			"bsonType": "timestamp",
+			"description": "合同到期日"
+		},
+		"contract_desc": {
+			"title": "合同签订情况",
+			"bsonType": "string",
+			"description": "合同签订情况",
+			"trim": "both"
+		},
+		"registration": {
+			"bsonType": "int",
+			"title": "档案是否登记",
+			"description": "1 是 2 否",			
+			"enum": [{
+					"text": "是",
+					"value": 1
+				},
+				{
+					"text": "否",
+					"value": 2
+				}
+			]
+		},
+		"card": {
+			"bsonType": "string",
+			"title": "身份证号码",
+			"description": "身份证号码",
+			"trim": "both"
+		},
+		"birth_date": {
+			"title": "出生日期",
+			"bsonType": "timestamp",
+			"description": "出生日期"
+		},
+		"birth_month": {
+			"title": "出生月份",
+			"bsonType": "int",
+			"description": "出生月份"
+		},
+		"age": {
+			"title": "年龄",
+			"bsonType": "int",
+			"description": "年龄"
+		},
+		"expiration_date": {
+			"bsonType": "string",
+			"title": "身份证有效期限",
+			"description": "身份证有效期限",
+			"trim": "both"
+		},
+		"card_location": {
+			"bsonType": "string",
+			"title": "户口所在地",
+			"description": "户口所在地",
+			"trim": "both"
+		},
+		"emergency_contact": {
+			"bsonType": "string",
+			"title": "紧急联系人",
+			"description": "紧急联系人",
+			"trim": "both"
+		},
+		"emergency_mobile": {
+			"bsonType": "string",
+			"title": "紧急联系人电话",
+			"description": "紧急联系人电话",
+			"trim": "both"
+		},
+		"internal_id": {
+			"bsonType": "string",
+			"title": "内部介绍人",
+			"foreignKey": "hr-employees.employee_id",
+			"description": "内部介绍人",
+			"trim": "both"
+		},
+		"handover_person_id": {
+			"bsonType": "string",
+			"title": "交接人",
+			"foreignKey": "hr-employees.employee_id",
+			"description": "交接人",
+			"trim": "both"
+		},
+		"marital_status": {
+			"bsonType": "int",
+			"description": "婚姻状况：1 已婚 2 未婚",
+			"title": "婚姻状况",			
+			"enum": [{
+					"text": "已婚",
+					"value": 1
+				},
+				{
+					"text": "未婚",
+					"value": 2
+				}
+			]
+		},
+		"no_crime": {
+			"bsonType": "int",
+			"description": "无犯罪证明：1 有 2 无",
+			"title": "无犯罪证明",			
+			"enum": [{
+					"text": "有",
+					"value": 1
+				},
+				{
+					"text": "无",
+					"value": 2
+				}
+			]
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"avatar": {
+			"bsonType": "string",
+			"title": "头像地址",
+			"description": "头像地址",
+			"trim": "both"
+		},
+		"avatar_file": {
+			"bsonType": "file",
+			"title": "头像文件",
+			"description": "用file类型方便使用uni-file-picker组件"
+		},
+		"file_attachments": {
+			"bsonType": "file",
+			"title": "证明文件",
+			"description": "员工证明文件"
+		},
+		"rest_type": {
+			"bsonType": "int",
+			"description": "休息类型：1 单休 2 双休 3 大小周",
+			"title": "休息类型",
+			"enum": [{
+					"text": "单休",
+					"value": 1
+				},
+				{
+					"text": "双休",
+					"value": 2
+				},
+				{
+					"text": "大小周",
+					"value": 3
+				}
+			]
+		},
+		"type_id": {
+			"title": "离职类型",
+			"bsonType": "string",
+			"foreignKey": "hrm-resigntypes.type_id",
+			"description": "离职类型",
+			"trim": "both"
+		},
+		"resign_desc": {
+			"title": "离职原因",
+			"bsonType": "string",
+			"description": "离职原因",
+			"trim": "both"
+		},
+		"status": {
+			"bsonType": "int",
+			"description": "用户状态：1 在职 2 离职",
+			"title": "用户状态",
+			"defaultValue": 1,
+			"enum": [{
+					"text": "在职",
+					"value": 1
+				},
+				{
+					"text": "离职",
+					"value": 2
+				}
+			]
+		},
+		"expected_salary": {
+			"title": "意向工资",
+			"bsonType": "int",
+			"description": "意向工资"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

@@ -1,0 +1,107 @@
+{
+  "bsonType": "object",
+  "required": ["_id", "process_definition_id", "application_id"],
+  "properties": {
+    "_id": {
+      "bsonType": "string",
+      "description": "实例ID"
+    },
+    "process_definition_id": {
+      "bsonType": "string",
+      "description": "流程定义ID",
+      "foreignKey": "bpmn-definition._id"
+    },
+    "application_id": {
+      "bsonType": "string",
+      "description": "申请表单ID",
+      "foreignKey": "bpmn-application-form._id"
+    },
+    "business_key": {
+      "bsonType": "string",
+      "description": "业务KEY",
+      "maxLength": 100
+    },
+    "start_time": {
+      "bsonType": "timestamp",
+      "description": "开始时间",
+      "defaultValue": {
+        "$env": "now"
+      }
+    },
+    "end_time": {
+      "bsonType": "timestamp",
+      "description": "结束时间"
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "状态",
+      "enum": ["active", "completed", "terminated", "suspended"],
+      "defaultValue": "active"
+    },
+    "current_tasks": {
+      "bsonType": "array",
+      "description": "当前任务",
+      "items": {
+        "bsonType": "object",
+        "properties": {
+          "task_id": {
+            "bsonType": "string",
+            "description": "任务ID"
+          },
+          "task_name": {
+            "bsonType": "string",
+            "description": "任务名称"
+          },
+          "assignee": {
+            "bsonType": "string",
+            "description": "处理人ID"
+          },
+          "create_time": {
+            "bsonType": "timestamp",
+            "description": "创建时间"
+          }
+        }
+      }
+    },
+	"simulation_result":{
+		"bsonType": "object",
+		"description": "试算结果"
+	},
+    "variables": {
+      "bsonType": "object",
+      "description": "流程变量"
+    }
+  },
+  "indexes": [
+    {
+      "name": "process_index",
+      "key": {
+        "process_definition_id": 1
+      }
+    },
+    {
+      "name": "application_index",
+      "key": {
+        "application_id": 1
+      }
+    },
+    {
+      "name": "status_index",
+      "key": {
+        "status": 1
+      }
+    },
+    {
+      "name": "business_key_index",
+      "key": {
+        "business_key": 1
+      }
+    },
+    {
+      "name": "start_time_index",
+      "key": {
+        "start_time": -1
+      }
+    }
+  ]
+}

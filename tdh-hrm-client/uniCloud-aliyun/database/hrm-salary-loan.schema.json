@@ -1,0 +1,78 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "employee_id", "loan_date", "loan_amount"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤日期",
+			"bsonType": "date",
+			"description": "考勤日期"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "身份证号码唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"loan_date": {
+			"title": "借款日期",
+			"bsonType": "timestamp",
+			"description": "借款日期",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"loan_amount": {
+			"title": "借款金额",
+			"bsonType": "int",
+			"description": "借款金额",
+			"trim": "both"
+		},
+		"repayment_amount": {
+			"title": "还款金额",
+			"bsonType": "int",
+			"description": "还款金额",
+			"trim": "both"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

@@ -1,0 +1,23 @@
+{
+  "navigationBarTitleText": "我的任务",
+  "usingComponents": {
+    "dynamic-form-dialog": "../../../components/dynamic-form-dialog/dynamic-form-dialog",
+    "file-preview-dialog": "../../../components/file-preview-dialog/file-preview-dialog",
+    "approve-header-detail": "../../../components/approve-header-detail/approve-header-detail",
+    "return-handle-dialog": "../../../components/return-handle-dialog/return-handle-dialog",
+    "approve-handle-dialog": "../../../components/approve-handle-dialog/approve-handle-dialog",
+    "u-dropdown-item": "../../../uni_modules/vk-uview-ui/components/u-dropdown-item/u-dropdown-item",
+    "u-dropdown": "../../../uni_modules/vk-uview-ui/components/u-dropdown/u-dropdown",
+    "u-icon": "../../../uni_modules/vk-uview-ui/components/u-icon/u-icon",
+    "u-button": "../../../uni_modules/vk-uview-ui/components/u-button/u-button",
+    "u-tag": "../../../uni_modules/vk-uview-ui/components/u-tag/u-tag",
+    "u-empty": "../../../uni_modules/vk-uview-ui/components/u-empty/u-empty",
+    "u-loadmore": "../../../uni_modules/vk-uview-ui/components/u-loadmore/u-loadmore",
+    "u-popup": "../../../uni_modules/vk-uview-ui/components/u-popup/u-popup",
+    "u-radio": "../../../uni_modules/vk-uview-ui/components/u-radio/u-radio",
+    "u-radio-group": "../../../uni_modules/vk-uview-ui/components/u-radio-group/u-radio-group",
+    "u-form-item": "../../../uni_modules/vk-uview-ui/components/u-form-item/u-form-item",
+    "u-form": "../../../uni_modules/vk-uview-ui/components/u-form/u-form",
+    "u-input": "../../../uni_modules/vk-uview-ui/components/u-input/u-input"
+  }
+}

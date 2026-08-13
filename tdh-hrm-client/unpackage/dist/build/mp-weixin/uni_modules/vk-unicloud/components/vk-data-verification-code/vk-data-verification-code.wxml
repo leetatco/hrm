@@ -1,0 +1,1 @@
+<view class="vk-data-verification-code"><view bindtap="{{c}}" style="{{d}}"><block wx:if="{{$slots.d}}"><slot name="d"></slot><slot/></block><block wx:else>{{a}}</block></view></view>

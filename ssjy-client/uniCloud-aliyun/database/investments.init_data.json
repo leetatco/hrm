@@ -1,0 +1,21 @@
+[
+  {
+    "_id": "inv_001",
+    "customer_id": "test_customer_001",
+    "investor_type": "company",
+    "is_holding": true,
+    "company_name": "测试云数据有限公司",
+    "registered_capital": 300,
+    "paid_in_capital": 300,
+    "main_business": "大数据分析",
+    "investment_ratio": 80,
+    "is_shell": false,
+    "profit_intro": "2024年净利润80万元",
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

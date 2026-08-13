@@ -1,0 +1,57 @@
+{
+	"bsonType": "object",
+	"required": ["employee_id", "leave_date", "leave_type", "total_hours"],
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string"
+		},
+		"oa_instance_id": {
+			"title": "OA申请ID",
+			"bsonType": "string"
+		},
+		"leave_date": {
+			"title": "请假日期",
+			"bsonType": "string"
+		},
+		"leave_type": {
+			"title": "假期类型代码",
+			"bsonType": "string"
+		},
+		"total_hours": {
+			"title": "请假小时数",
+			"bsonType": "double"
+		},
+		"morning_range": {
+			"title": "上午时段",
+			"bsonType": "array"
+		},
+		"afternoon_range": {
+			"title": "下午时段",
+			"bsonType": "array"
+		},
+		"reason": {
+			"title": "备注",
+			"bsonType": "string"
+		},
+		"import_status": {
+			"title": "汇入状态",
+			"bsonType": "int",
+			"defaultValue": 1
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string"
+		}
+	}
+}

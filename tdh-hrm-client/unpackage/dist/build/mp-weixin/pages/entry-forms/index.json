@@ -1,0 +1,20 @@
+{
+  "navigationBarTitleText": "入职登记",
+  "usingComponents": {
+    "file-preview-dialog": "../../components/file-preview-dialog/file-preview-dialog",
+    "u-search": "../../uni_modules/vk-uview-ui/components/u-search/u-search",
+    "u-icon": "../../uni_modules/vk-uview-ui/components/u-icon/u-icon",
+    "u-button": "../../uni_modules/vk-uview-ui/components/u-button/u-button",
+    "u-empty": "../../uni_modules/vk-uview-ui/components/u-empty/u-empty",
+    "u-loadmore": "../../uni_modules/vk-uview-ui/components/u-loadmore/u-loadmore",
+    "u-input": "../../uni_modules/vk-uview-ui/components/u-input/u-input",
+    "u-form-item": "../../uni_modules/vk-uview-ui/components/u-form-item/u-form-item",
+    "u-radio": "../../uni_modules/vk-uview-ui/components/u-radio/u-radio",
+    "u-radio-group": "../../uni_modules/vk-uview-ui/components/u-radio-group/u-radio-group",
+    "u-input-select": "../../components/u-input-select/u-input-select",
+    "u-select": "../../uni_modules/vk-uview-ui/components/u-select/u-select",
+    "uni-file-picker": "../../uni_modules/uni-file-picker/components/uni-file-picker/uni-file-picker",
+    "u-form": "../../uni_modules/vk-uview-ui/components/u-form/u-form",
+    "u-popup": "../../uni_modules/vk-uview-ui/components/u-popup/u-popup"
+  }
+}

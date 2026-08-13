@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "找回密码",
+  "usingComponents": {
+    "vk-data-verification-code": "../../../../uni_modules/vk-unicloud/components/vk-data-verification-code/vk-data-verification-code"
+  }
+}

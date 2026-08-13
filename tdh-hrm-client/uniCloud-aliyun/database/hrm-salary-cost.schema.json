@@ -1,0 +1,78 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "card"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤日期",
+			"bsonType": "date",
+			"description": "考勤日期"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "身份证号码唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"reward_cost": {
+			"title": "奖励",
+			"bsonType": "int",
+			"description": "奖励"
+		},
+		"punish_cost": {
+			"title": "惩罚",
+			"bsonType": "int",
+			"description": "惩罚"
+		},
+		"agency_fee": {
+			"title": "介绍费",
+			"bsonType": "number",
+			"description": "介绍费"
+		},
+		"other_cost": {
+			"title": "其它费用",
+			"bsonType": "number",
+			"description": "其它费用"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

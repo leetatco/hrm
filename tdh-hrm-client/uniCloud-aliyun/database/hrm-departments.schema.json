@@ -1,0 +1,77 @@
+{
+	"bsonType": "object",
+	"required": ["department_id", "department_name", "company_id", "location"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"department_id": {
+			"title": "部门代码",
+			"bsonType": "string",
+			"description": "部门唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"department_name": {
+			"title": "部门名称",
+			"bsonType": "string",
+			"description": "部门名称",
+			"trim": "both"
+		},
+		"department_manager_id": {
+			"title": "部门主管",
+			"bsonType": "string",
+			"description": "部门主管工号",
+			"trim": "both",
+			"foreignKey": "hrm-employees.employee_id"
+		},
+		"parent_department_id": {
+			"title": "上级部门代码",
+			"bsonType": "string",
+			"description": "上级部门代码（如果为顶级部门则为空）",
+			"trim": "both"
+		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"description": "所属公司",
+			"foreignKey": "hrm-companys.company_id",
+			"trim": "both"
+		},
+		"location": {
+			"title": "办公地点",
+			"bsonType": "string",
+			"description": "部门办公地点",
+			"trim": "both"
+		},
+		"sort": {
+			"title": "排序",
+			"bsonType": "int",
+			"description": "数值越大越靠后"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

@@ -1,0 +1,81 @@
+{
+	"bsonType": "object",
+	"required": ["employee_id", "leave_type_id", "year", "total_quota"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "关联员工表 employee_id",
+			"trim": "both"
+		},
+		"leave_type_id": {
+			"title": "假期类型",
+			"bsonType": "string",
+			"description": "关联假期类型表的 leave_code",
+			"trim": "both"
+		},
+		"year": {
+			"title": "年度",
+			"bsonType": "int",
+			"description": "如 2026"
+		},
+		"total_quota": {
+			"title": "总额度(小时)",
+			"bsonType": "int",
+			"description": "可用假期总时长，单位为小时或天，由假期类型最小单位决定",
+			"defaultValue": 0
+		},
+		"used_quota": {
+			"title": "已用额度(小时)",
+			"bsonType": "int",
+			"description": "已使用的假期时长",
+			"defaultValue": 0
+		},
+		"adjust_reason": {
+			"title": "调整原因",
+			"bsonType": "string",
+			"description": "手工调整时的备注原因",
+			"trim": "both"
+		},
+		"status": {
+			"title": "启用状态",
+			"bsonType": "bool",
+			"description": "true=启用，false=停用",
+			"defaultValue": true
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注信息",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

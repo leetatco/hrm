@@ -1,0 +1,38 @@
+[
+  {
+    "_id": "loan_001",
+    "customer_id": "test_customer_001",
+    "loan_type": "company",
+    "bank_name": "招商银行",
+    "credit_or_mortgage": "信用",
+    "loan_name": "科创贷",
+    "total_limit": 500,
+    "credit_start_date": {
+      "$date": "2024-01-01T00:00:00Z"
+    },
+    "credit_end_date": {
+      "$date": "2025-12-31T00:00:00Z"
+    },
+    "loan_term": "1年",
+    "actual_amount": 300,
+    "loan_start_date": {
+      "$date": "2024-03-01T00:00:00Z"
+    },
+    "loan_end_date": {
+      "$date": "2025-02-28T00:00:00Z"
+    },
+    "annual_rate": 3.8,
+    "collateral": "无",
+    "guarantor": "李强",
+    "is_overdue": false,
+    "subsidy_amount": 5,
+    "monthly_repayment": 25.5,
+    "other_notes": "",
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

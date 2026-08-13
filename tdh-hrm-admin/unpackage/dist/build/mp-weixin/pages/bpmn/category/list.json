@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "list-vk-data-table-sort": "/pages/bpmn/category/list-vk-data-table-sort"
+  }
+}

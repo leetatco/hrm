@@ -1,0 +1,60 @@
+{
+	"bsonType": "object",
+	"required": ["_id", "name", "code", "form_schema"],
+	"properties": {
+		"_id": {
+			"bsonType": "string",
+			"title": "表单类型ID",
+			"description": "表单类型ID"
+		},
+		"name": {
+			"bsonType": "string",
+			"title": "表单类型名称",
+			"description": "表单类型名称",
+			"maxLength": 100
+		},
+		"code": {
+			"bsonType": "string",
+			"title": "表单类型编码",
+			"description": "表单类型编码",
+			"maxLength": 50,
+			"unique": true
+		},
+		"description": {
+			"bsonType": "string",
+			"title": "描述",
+			"description": "描述",
+			"maxLength": 500
+		},
+		"form_schema": {
+			"bsonType": "object",
+			"title": "表单结构定义",
+			"description": "表单结构定义"
+		},
+		"status": {
+			"bsonType": "string",
+			"title": "状态",
+			"description": "状态",
+			"enum": ["active", "inactive"],
+			"defaultValue": "active"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

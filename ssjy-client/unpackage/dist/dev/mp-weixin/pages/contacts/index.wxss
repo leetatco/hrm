@@ -1,0 +1,436 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.container.data-v-822bb6ce {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
+  padding-bottom: 120rpx;
+  box-sizing: border-box;
+}
+
+/* 隐藏滚动条 */
+scroll-view.data-v-822bb6ce ::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* 确保滚动容器隐藏滚动条 */
+.filter-scroll.data-v-822bb6ce,
+.contacts-list.data-v-822bb6ce,
+.index-scroll.data-v-822bb6ce {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.search-box.data-v-822bb6ce {
+  padding: 0 40rpx 30rpx;
+}
+.filter-section.data-v-822bb6ce {
+  padding: 0 40rpx 30rpx;
+}
+.filter-section .filter-scroll.data-v-822bb6ce {
+  white-space: nowrap;
+}
+.filter-section .filter-scroll .filter-tags.data-v-822bb6ce {
+  display: inline-flex;
+  gap: 20rpx;
+}
+.filter-section .filter-scroll .filter-tags .filter-tag.data-v-822bb6ce {
+  padding: 16rpx 32rpx;
+  background-color: #f8f9fa;
+  border-radius: 40rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+.filter-section .filter-scroll .filter-tags .filter-tag text.data-v-822bb6ce {
+  font-size: 26rpx;
+  color: #666666;
+  white-space: nowrap;
+}
+.filter-section .filter-scroll .filter-tags .filter-tag.active.data-v-822bb6ce {
+  background: linear-gradient(135deg, #2979ff, #4dabff);
+}
+.filter-section .filter-scroll .filter-tags .filter-tag.active text.data-v-822bb6ce {
+  color: #ffffff;
+}
+.filter-section .filter-scroll .filter-tags .filter-tag.active .u-icon.data-v-822bb6ce {
+  color: #ffffff !important;
+}
+.content.data-v-822bb6ce {
+  display: flex;
+  height: calc(100vh - 400rpx);
+  padding: 0 40rpx;
+  box-sizing: border-box;
+  /* 部门视图 */
+}
+.content .letter-index.data-v-822bb6ce {
+  width: 60rpx;
+  margin-right: 20rpx;
+}
+.content .letter-index .index-scroll.data-v-822bb6ce {
+  height: 100%;
+  background: transparent;
+}
+.content .letter-index .index-scroll .index-item.data-v-822bb6ce {
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4rpx;
+}
+.content .letter-index .index-scroll .index-item text.data-v-822bb6ce {
+  font-size: 24rpx;
+  color: #999999;
+}
+.content .letter-index .index-scroll .index-item.active text.data-v-822bb6ce {
+  color: #2979ff;
+  font-weight: bold;
+}
+.content .contacts-list.data-v-822bb6ce {
+  flex: 1;
+  height: 100%;
+}
+.content .contacts-list .letter-header.data-v-822bb6ce {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  background-color: #ffffff;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.content .contacts-list .letter-header .letter-title.data-v-822bb6ce {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333333;
+}
+.content .contacts-list .letter-header .letter-count.data-v-822bb6ce {
+  font-size: 24rpx;
+  color: #999999;
+}
+.content .contacts-list .contacts-group .contact-item.data-v-822bb6ce {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  background-color: #ffffff;
+}
+.content .contacts-list .contacts-group .contact-item.data-v-822bb6ce:last-child {
+  border-bottom: none;
+}
+.content .contacts-list .contacts-group .contact-item .contact-avatar.data-v-822bb6ce {
+  position: relative;
+  margin-right: 24rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-avatar .online-status.data-v-822bb6ce {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 2rpx solid #ffffff;
+}
+.content .contacts-list .contacts-group .contact-item .contact-avatar .online-status.online.data-v-822bb6ce {
+  background-color: #19be6b;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info.data-v-822bb6ce {
+  flex: 1;
+  min-width: 0;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-main.data-v-822bb6ce {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-main .contact-name.data-v-822bb6ce {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-right: 8rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-main .star-icon.data-v-822bb6ce {
+  margin-right: 8rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-main .contact-position.data-v-822bb6ce {
+  font-size: 24rpx;
+  color: #999999;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-detail.data-v-822bb6ce {
+  display: flex;
+  flex-direction: column;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-detail .contact-department.data-v-822bb6ce {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 4rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-detail .contact-phone.data-v-822bb6ce {
+  font-size: 24rpx;
+  color: #999999;
+}
+.content .contacts-list .contacts-group .contact-item .contact-actions.data-v-822bb6ce {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-actions .action-btn.data-v-822bb6ce {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  transition: all 0.3s;
+}
+.content .contacts-list .contacts-group .contact-item .contact-actions .action-btn.data-v-822bb6ce:active {
+  transform: scale(0.95);
+}
+.content .contacts-list .contacts-group .contact-item .contact-actions .action-btn.phone.data-v-822bb6ce {
+  background-color: #f0f7ff;
+}
+.content .department-list.data-v-822bb6ce {
+  width: 100%;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item {
+  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-head {
+  padding: 30rpx;
+  background-color: #ffffff;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-head .dept-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-head .dept-title .dept-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333333;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-head .dept-title .dept-count {
+  font-size: 26rpx;
+  color: #999999;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body {
+  background-color: #fafbfc;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item:last-child {
+  border-bottom: none;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item .member-avatar {
+  margin-right: 20rpx;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item .member-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item .member-info .member-name {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 4rpx;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item .member-info .member-position {
+  font-size: 24rpx;
+  color: #999999;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item .member-actions .action-btn {
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f7ff;
+}
+
+/* 其他视图（全部、最近联系、星标联系人） */
+.content:not([v-if]) .contacts-list .contact-item.data-v-822bb6ce {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+  background-color: #ffffff;
+}
+.content:not([v-if]) .contacts-list .contact-item.data-v-822bb6ce:last-child {
+  border-bottom: none;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-avatar.data-v-822bb6ce {
+  position: relative;
+  margin-right: 24rpx;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-avatar .online-status.data-v-822bb6ce {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 2rpx solid #ffffff;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-avatar .online-status.online.data-v-822bb6ce {
+  background-color: #19be6b;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-info.data-v-822bb6ce {
+  flex: 1;
+  min-width: 0;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-info .contact-main.data-v-822bb6ce {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-info .contact-main .contact-name.data-v-822bb6ce {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333333;
+  margin-right: 8rpx;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-info .contact-main .star-icon.data-v-822bb6ce {
+  margin-right: 8rpx;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-info .contact-detail.data-v-822bb6ce {
+  display: flex;
+  flex-direction: column;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-info .contact-detail .contact-department.data-v-822bb6ce {
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 4rpx;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-info .contact-detail .contact-position.data-v-822bb6ce {
+  font-size: 24rpx;
+  color: #999999;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-actions.data-v-822bb6ce {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-actions .action-btn.data-v-822bb6ce {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  transition: all 0.3s;
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-actions .action-btn.data-v-822bb6ce:active {
+  transform: scale(0.95);
+}
+.content:not([v-if]) .contacts-list .contact-item .contact-actions .action-btn.phone.data-v-822bb6ce {
+  background-color: #f0f7ff;
+}
+.letter-tip.data-v-822bb6ce {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.letter-tip .letter-tip-text.data-v-822bb6ce {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* 响应式调整 */
+@media (max-width: 750px) {
+.header.data-v-822bb6ce {
+    padding: 60rpx 30rpx 20rpx;
+}
+.header .header-title.data-v-822bb6ce {
+    font-size: 40rpx;
+}
+.search-box.data-v-822bb6ce,
+.filter-section.data-v-822bb6ce,
+.content.data-v-822bb6ce {
+    padding-left: 30rpx;
+    padding-right: 30rpx;
+}
+.filter-section .filter-scroll .filter-tags .filter-tag.data-v-822bb6ce {
+    padding: 14rpx 28rpx;
+}
+.filter-section .filter-scroll .filter-tags .filter-tag text.data-v-822bb6ce {
+    font-size: 24rpx;
+}
+.content.data-v-822bb6ce {
+    height: calc(100vh - 380rpx);
+}
+.content .letter-index.data-v-822bb6ce {
+    width: 50rpx;
+    margin-right: 15rpx;
+}
+.content .contacts-list .contacts-group .contact-item.data-v-822bb6ce {
+    padding: 24rpx 0;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-main .contact-name.data-v-822bb6ce {
+    font-size: 28rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-info .contact-detail .contact-department.data-v-822bb6ce {
+    font-size: 24rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-actions.data-v-822bb6ce {
+    gap: 15rpx;
+}
+.content .contacts-list .contacts-group .contact-item .contact-actions .action-btn.data-v-822bb6ce {
+    width: 50rpx;
+    height: 50rpx;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-head {
+    padding: 24rpx;
+}
+.content .department-list.data-v-822bb6ce .u-collapse .u-collapse-item .u-collapse-body .dept-members .member-item {
+    padding: 20rpx 24rpx;
+}
+}

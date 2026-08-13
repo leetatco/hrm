@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "approve-header-detail": "/components/approve-header-detail/approve-header-detail"
+  }
+}

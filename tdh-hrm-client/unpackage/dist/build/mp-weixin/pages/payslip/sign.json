@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "薪资签名",
+  "usingComponents": {
+    "picker-color": "./pickerColor",
+    "custom-toast": "../../components/custom-toast/custom-toast"
+  }
+}

@@ -1,0 +1,385 @@
+{
+	"pages": [{
+			"path": "pages/index/index"
+		},
+		{
+			"path": "pages/login/index",
+			"style": {
+				"topWindow": false,
+				"leftWindow": false,
+				"navigationBarTitleText": "登录"
+			}
+		},
+		{
+			"path": "pages/opendb-banner/list"
+		},
+		{
+			"path": "pages/opendb-notice/list"
+		},
+		{
+			"path": "pages/common-functions/list"
+		}
+	],
+	"subPackages": [{
+			"root": "pages/hrm",
+			"pages": [{
+					"path": "company/list"
+				},
+				{
+					"path": "company-filter/list"
+				},
+				{
+					"path": "department/list"
+				},
+				{
+					"path": "position/list"
+				},
+				{
+					"path": "dorm/list"
+				},
+				{
+					"path": "resigntype/list"
+				},
+				{
+					"path": "report/list"
+				},
+				{
+					"path": "employee/list"
+				},
+				{
+					"path": "employee/resignlist"
+				},
+				{
+					"path": "employee/transferlist"
+				},
+				{
+					"path": "entry-forms/list"
+				},
+				{
+					"path": "salary/list1"
+				},
+				{
+					"path": "salary/list2"
+				},
+				{
+					"path": "salary/listc"
+				},
+				{
+					"path": "salary/uni/list"
+				},
+				{
+					"path": "salary/cost/list"
+				},
+				{
+					"path": "salary/cost/listwe"
+				},
+				{
+					"path": "salary/cost/listsb"
+				},
+				{
+					"path": "salary/cost/listgs"
+				},
+				{
+					"path": "salary/cost/listfree"
+				},
+				{
+					"path": "salary/cost/listrefer"
+				},
+				{
+					"path": "salary/cost/listclothes"
+				},
+				{
+					"path": "salary/cost/listcompanysb"
+				},
+				{
+					"path": "salary/cost/listloan"
+				},
+				{
+					"path": "salary/overtime/list"
+				},
+				{
+					"path": "salary/lateclock/list"
+				},
+				{
+					"path": "salary/employees/list"
+				},
+				{
+					"path": "salary/payslip/list"
+				},
+				{
+					"path": "salary/payslip/listCheck"
+				},
+				{
+					"path": "attendance/approve/listhrs"
+				},
+				{
+					"path": "attendance/approve/listhrc"
+				},
+				{
+					"path": "attendance/list"
+				},
+				{
+					"path": "attendance/work-calendar/list"
+				},
+				{
+					"path": "attendance/attendance-params/list"
+				},
+				{
+					"path": "attendance/attendance-shift/list"
+				},
+				{
+					"path": "attendance/attendance-sign/list"
+				},
+				{
+					"path": "attendance/attendance-leave/list"
+				},
+				{
+					"path": "attendance/attendance-seniority/list"
+				},
+				{
+					"path": "attendance/attendance-comprule/list"
+				},
+				{
+					"path": "attendance/attendance-overtimerule/list"
+				},
+				{
+					"path": "attendance/attendance-leavebalance/list"
+				},
+				{
+					"path": "attendance/attendance-leavebalancelog/list"
+				},
+				{
+					"path": "attendance/attendance-group/list"
+				},
+				{
+					"path": "attendance/attendance-schedule/list"
+				},
+				{
+					"path": "attendance/attendance-remedyrule/list"
+				},
+				{
+					"path": "attendance/attendance-abnormalrule/list"
+				},
+				{
+					"path": "attendance/attendance-outrule/list"
+				},
+				{
+					"path": "attendance/attendance-clockin-set/list"
+				},
+				{
+					"path": "attendance/attendance-clockin/list"
+				},
+				{
+					"path": "attendance/attendance-oaimport/list"
+				},
+				{
+					"path": "attendance/attendance-oaimportconfig/list"
+				},
+				{
+					"path": "attendance/attendance-overtimerecord/list"
+				},
+				{
+					"path": "attendance/attendance-leaverecord/list"
+				},
+				{
+					"path": "attendance/attendance-triprecord/list"
+				},
+				{
+					"path": "attendance/attendance-compensatoryrecord/list"
+				},
+				{
+					"path": "attendance/daily/list"
+				},
+				{
+					"path": "bank/list"
+				},
+				{
+					"path": "banklocation/list"
+				},
+				{
+					"path": "center/list"
+				},
+				{
+					"path": "contract/list"
+				},
+				{
+					"path": "insurance/list"
+				},
+				{
+					"path": "educational/list"
+				},
+				{
+					"path": "nation/list"
+				},
+				{
+					"path": "point/list"
+				}
+			]
+		},
+		{
+			"root": "pages/bpmn",
+			"pages": [
+				//表单设定
+				//{"path": "definition-xml/list"},已起用，因bpmn.js后端签核引擎要架设专用服务器
+				{
+					"path": "definition/list"
+				},
+				{
+					"path": "category/list"
+				},
+				{
+					"path": "condition-rule/list"
+				},
+				{
+					"path": "form-type/list"
+				},
+				{
+					"path": "instance/list"
+				},
+				{
+					"path": "process-route-config/list"
+				},
+				{
+					"path": "task/list"
+				},
+				{
+					"path": "task-history/list"
+				},
+				{
+					"path": "application-form/list"
+				}
+			]
+		},
+		{
+			"root": "pages/workflow",
+			"pages": [
+				//表单签核流程workflow
+				{
+					"path": "seal/index"
+				},
+				{
+					"path": "transfer/index"
+				},
+				{
+					"path": "miss-punch-record/index"
+				},
+				{
+					"path": "recruitment/index"
+				},
+				{
+					"path": "leave/index"
+				},
+				{
+					"path": "overtime/index"
+				},
+				{
+					"path": "business-trip/index"
+				},
+				{
+					"path": "compensatory/index"
+				},
+				{
+					"path": "resignation/index"
+				},
+				{
+					"path": "loan/index"
+				},
+				{
+					"path": "reimbursement/index"
+				},
+				{
+					"path": "work-clothes/index"
+				},
+				{
+					"path": "outing/index"
+				}
+			]
+		},
+		{
+			"root": "pages_plugs",
+			"pages": [{
+					"path": "error/404",
+					"style": {
+						"navigationBarTitleText": "页面不存在"
+					}
+				},
+				{
+					"path": "error/403",
+					"style": {
+						"navigationBarTitleText": "无权访问"
+					}
+				},
+				{
+					"path": "error/500",
+					"style": {
+						"navigationBarTitleText": "服务器出错了"
+					}
+				},
+				{
+					"path": "system/user/list"
+				},
+				{
+					"path": "system/role/list"
+				},
+				{
+					"path": "system/permission/list"
+				},
+				{
+					"path": "system/menu/list"
+				},
+				{
+					"path": "system/app/list"
+				},
+				{
+					"path": "system/app-upgrade-center/list"
+				},
+				{
+					"path": "system_uni/vk-global-data"
+				},
+				{
+					"path": "system_uni/uni-id-log"
+				},
+				{
+					"path": "system_uni/opendb-admin-log"
+				},
+				{
+					"path": "system_uni/vk-components-dynamic"
+				},
+				{
+					"path": "system_uni/uni-id-files/list"
+				},
+				{
+					"path": "system_uni/vk-pay-orders"
+				},
+				{
+					"path": "system_uni/vk-ws-connection"
+				},
+				{
+					"path": "system_uni/vk-error-log"
+				}
+			]
+		}
+	],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "管理后台",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"topWindow": {
+		"path": "windows/topWindow",
+		"style": {
+			"height": "100px"
+		},
+		"matchMedia": {
+			"minWidth": 0
+		}
+	},
+	"leftWindow": {
+		"path": "windows/leftWindow",
+		"style": {
+			"width": "240px"
+		}
+	}
+}

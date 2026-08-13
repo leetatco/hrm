@@ -1,0 +1,74 @@
+{
+  "bsonType": "object",
+  "required": [],
+  "permission": {
+    "read": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "存储文档 ID，系统自动生成"
+    },
+    "out_office_cancel_absence": {
+      "title": "外勤抵消缺勤",
+      "bsonType": "bool",
+      "description": "当天有外勤申请时，是否不记旷工/缺卡",
+      "defaultValue": true
+    },
+    "out_office_cancel_late": {
+      "title": "外勤抵消迟到",
+      "bsonType": "bool",
+      "description": "当天有外勤申请时，是否不记迟到",
+      "defaultValue": false
+    },
+    "out_office_cancel_early": {
+      "title": "外勤抵消早退",
+      "bsonType": "bool",
+      "description": "当天有外勤申请时，是否不记早退",
+      "defaultValue": false
+    },
+    "business_trip_cancel_absence": {
+      "title": "出差抵消缺勤",
+      "bsonType": "bool",
+      "description": "当天有出差申请且覆盖全天时，是否不记旷工/缺卡",
+      "defaultValue": true
+    },
+    "business_trip_cancel_late": {
+      "title": "出差抵消迟到",
+      "bsonType": "bool",
+      "description": "出差时段覆盖上午时，是否不记迟到",
+      "defaultValue": true
+    },
+    "business_trip_cancel_early": {
+      "title": "出差抵消早退",
+      "bsonType": "bool",
+      "description": "出差时段覆盖下午时，是否不记早退",
+      "defaultValue": true
+    },
+    "status": {
+      "title": "启用状态",
+      "bsonType": "bool",
+      "description": "true=启用，false=停用",
+      "defaultValue": true
+    },
+    "remark": {
+      "title": "备注",
+      "bsonType": "string",
+      "trim": "both"
+    },
+    "update_date": {
+      "title": "更新时间",
+      "bsonType": "timestamp",
+      "forceDefaultValue": { "$env": "now" }
+    },
+    "updat_id": {
+      "title": "更新人",
+      "bsonType": "string",
+      "foreignKey": "uni-id-users._id",
+      "forceDefaultValue": { "$env": "uid" }
+    }
+  },
+  "version": "0.0.1"
+}

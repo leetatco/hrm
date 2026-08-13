@@ -1,0 +1,66 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"customer_id": {
+			"bsonType": "string",
+			"foreignKey": "customers._id",
+			"description": "关联客户ID"
+		},
+		"party_type": {
+			"bsonType": "string",
+			"description": "诉讼主体: company/actual_controller_spouse"
+		},
+		"is_restricted": {
+			"bsonType": "bool",
+			"description": "是否限高"
+		},
+		"role": {
+			"bsonType": "string",
+			"description": "被告/原告"
+		},
+		"case_amount": {
+			"bsonType": "double",
+			"description": "标的额(万元)"
+		},
+		"case_progress": {
+			"bsonType": "string",
+			"description": "诉讼进展"
+		},
+		"frozen_amount": {
+			"bsonType": "double",
+			"description": "保全/冻结额(万元)"
+		},
+		"is_executed": {
+			"bsonType": "bool",
+			"description": "是否执行"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

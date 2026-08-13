@@ -1,0 +1,57 @@
+{
+  "bsonType": "object",
+  "required": ["title", "content", "type", "status", "publish_date"],
+  "permission": {
+    "read": true,
+    "create": false,
+    "update": false,
+    "delete": false
+  },
+  "properties": {
+    "_id": { "description": "ID，系统自动生成" },
+    "title": { "bsonType": "string", "description": "公告标题", "maxLength": 200, "trim": "both" },
+    "content": { "bsonType": "string", "description": "公告内容（支持富文本）" },
+    "type": {
+      "bsonType": "string",
+      "description": "公告类型",
+      "enum": ["system", "activity", "policy", "notice", "other"],
+      "default": "system"
+    },
+    "type_label": {
+      "bsonType": "string",
+      "description": "类型显示名（冗余字段，方便前端展示）"
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "状态: draft(草稿), published(已发布), offline(已下架)",
+      "enum": ["draft", "published", "offline"],
+      "default": "draft"
+    },
+    "is_top": { "bsonType": "bool", "description": "是否置顶", "default": false },
+    "publish_date": { "bsonType": "date", "description": "发布时间" },
+    "effective_start_date": { "bsonType": "date", "description": "生效开始时间" },
+    "effective_end_date": { "bsonType": "date", "description": "生效结束时间" },    
+    "view_count": { "bsonType": "int", "description": "阅读量", "default": 0, "minimum": 0 },
+    "like_count": { "bsonType": "int", "description": "点赞数", "default": 0, "minimum": 0 },
+    "publisher_id": {
+      "bsonType": "string",
+      "description": "发布人ID",
+      "foreignKey": "uni-id-users._id"
+    },
+    "publisher_name": { "bsonType": "string", "description": "发布人姓名（冗余）" },
+    "update_date": {
+      "title": "更新时间",
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": { "$env": "now" }
+    },
+    "updat_id": {
+      "title": "更新人",
+      "bsonType": "string",
+      "description": "更新人ID",
+      "trim": "both",
+      "foreignKey": "uni-id-users._id",
+      "forceDefaultValue": { "$env": "uid" }
+    }
+  }
+}

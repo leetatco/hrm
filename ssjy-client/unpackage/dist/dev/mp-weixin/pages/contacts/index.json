@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "通信录",
+  "usingComponents": {
+    "u-search": "../../uni_modules/vk-uview-ui/components/u-search/u-search",
+    "u-icon": "../../uni_modules/vk-uview-ui/components/u-icon/u-icon",
+    "u-avatar": "../../uni_modules/vk-uview-ui/components/u-avatar/u-avatar",
+    "u-collapse-item": "../../uni_modules/vk-uview-ui/components/u-collapse-item/u-collapse-item",
+    "u-collapse": "../../uni_modules/vk-uview-ui/components/u-collapse/u-collapse",
+    "u-tabbar": "../../uni_modules/vk-uview-ui/components/u-tabbar/u-tabbar"
+  }
+}

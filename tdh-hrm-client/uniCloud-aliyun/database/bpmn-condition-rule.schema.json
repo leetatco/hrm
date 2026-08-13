@@ -1,0 +1,118 @@
+{
+	"bsonType": "object",
+	"required": ["_id", "name", "rule_expression"],
+	"properties": {
+		"_id": {
+			"bsonType": "string",
+			"description": "条件规则ID"
+		},
+		"code": {
+			"bsonType": "string",
+			"title": "规则编码",
+			"description": "规则编码",
+			"maxLength": 50,
+			"unique": true
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "规则名称",
+			"maxLength": 100
+		},
+		"description": {
+			"bsonType": "string",
+			"description": "规则描述"
+		},
+		"rule_expression": {
+			"bsonType": "object",
+			"description": "规则表达式",
+			"properties": {
+				"type": {
+					"bsonType": "string",
+					"description": "规则类型",
+					"enum": ["simple", "composite"]
+				},
+				"form_type_code": {
+					"bsonType": "string",
+					"description": "表单类型"					
+				},
+				"conditions": {
+					"bsonType": "array",
+					"description": "条件列表",
+					"items": {
+						"bsonType": "object",
+						"properties": {
+							"field": {
+								"bsonType": "string",
+								"description": "字段名"
+							},
+							"operator": {
+								"bsonType": "string",
+								"description": "操作符",
+								"enum": ["eq", "ne", "gt", "gte", "lt", "lte", "in", "not_in", "contains", "regex"]
+							},
+							"value": {
+								"bsonType": "any",
+								"description": "比较值"
+							},
+							"value_type": {
+								"bsonType": "string",
+								"description": "值类型",
+								"enum": ["constant", "variable", "expression"]
+							}
+						}
+					}
+				},
+				"logic": {
+					"bsonType": "string",
+					"description": "逻辑关系",
+					"enum": ["and", "or"],
+					"defaultValue": "and"
+				}
+			}
+		},
+		"scope": {
+			"bsonType": "object",
+			"description": "规则适用范围",
+			"properties": {
+				"companies": {
+					"bsonType": "array",
+					"description": "适用的公司",
+					"items": {
+						"bsonType": "string"
+					}
+				},
+				"departments": {
+					"bsonType": "array",
+					"description": "适用的部门",
+					"items": {
+						"bsonType": "string"
+					}
+				}
+			}
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "状态",
+			"enum": ["active", "inactive"],
+			"defaultValue": "active"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

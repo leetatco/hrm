@@ -1,0 +1,146 @@
+{
+  "bsonType": "object",
+  "required": ["name", "key", "nodes"],
+  "properties": {
+    "_id": { "bsonType": "string" },
+    "name": {
+      "bsonType": "string",
+      "title": "流程名称",
+      "maxLength": 100
+    },
+    "key": {
+      "bsonType": "string",
+      "title": "流程KEY",
+      "maxLength": 50
+    },
+    "version": {
+      "bsonType": "int",
+      "title": "版本号",
+      "defaultValue": 1
+    },
+    "description": {
+      "bsonType": "string",
+      "title": "流程描述"
+    },
+    "nodes": {
+      "bsonType": "array",
+      "title": "流程节点定义",
+      "items": {
+        "bsonType": "object",
+        "required": ["node_key", "node_name", "node_type"],
+        "properties": {
+          "node_key": {
+            "bsonType": "string",
+            "description": "节点唯一标识"
+          },
+          "node_name": {
+            "bsonType": "string",
+            "description": "节点名称"
+          },
+          "node_type": {
+            "bsonType": "string",
+            "description": "节点类型",
+            "enum": ["start", "end", "userTask", "approval", "review", "gateway"]
+          },
+          "assignee_type": {
+            "bsonType": "string",
+            "description": "负责人类型",
+            "enum": ["user", "role", "department", "variable", "previous"]
+          },
+          "assignee_value": {
+            "bsonType": "string",
+            "description": "负责人值"
+          },
+          "candidate_users": {
+            "bsonType": "array",
+            "description": "候选用户列表",
+            "items": { "bsonType": "string" }
+          },
+          "candidate_roles": {
+            "bsonType": "array",
+            "description": "候选角色列表",
+            "items": { "bsonType": "string" }
+          },
+          "candidate_departments": {
+            "bsonType": "array",
+            "description": "候选部门列表",
+            "items": { "bsonType": "string" }
+          },
+          "required_approvals": {
+            "bsonType": "int",
+            "description": "需要同意的数量",
+            "defaultValue": 1
+          },
+          "time_limit": {
+            "bsonType": "int",
+            "description": "时间限制(小时)"
+          },
+          "actions": {
+            "bsonType": "array",
+            "description": "节点可用操作",
+            "items": {
+              "bsonType": "string",
+              "enum": ["approve", "reject", "return", "transfer", "add_sign"]
+            }
+          },
+          "form_schema": {
+            "bsonType": "object",
+            "description": "节点专用表单"
+          },
+          "next_nodes": {
+            "bsonType": "array",
+            "description": "下一节点配置",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "node_key": { "bsonType": "string" },
+                "condition_rule_code": {
+                  "bsonType": "string",
+                  "description": "条件规则编码"
+                },
+                "default_path": {
+                  "bsonType": "bool",
+                  "description": "是否默认路径",
+                  "defaultValue": false
+                }
+              }
+            }
+          },
+          "properties": {
+            "bsonType": "object",
+            "description": "扩展属性"
+          }
+        }
+      }
+    },
+    "category_id": {
+      "bsonType": "string",
+      "foreignKey": "bpmn-category.category_id",
+      "description": "流程分类"
+    },
+    "status": {
+      "bsonType": "string",
+      "enum": ["draft", "active", "inactive"],
+      "defaultValue": "draft"
+    },
+    "tags": {
+      "bsonType": "array",
+      "title": "标签",
+      "items": { "bsonType": "string" }
+    },
+    "update_date": {
+      "title": "更新时间",
+      "bsonType": "timestamp",
+      "description": "更新时间",
+      "forceDefaultValue": { "$env": "now" }
+    },
+    "updat_id": {
+      "title": "更新人",
+      "bsonType": "string",
+      "description": "更新人ID",
+      "trim": "both",
+      "foreignKey": "uni-id-users._id",
+      "forceDefaultValue": { "$env": "uid" }
+    }
+  }
+}

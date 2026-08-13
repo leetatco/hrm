@@ -1,0 +1,1 @@
+<view class="content data-v-d45676aa"><button class="data-v-d45676aa" type="default" bindtap="{{a}}">营业执照识别</button><button class="data-v-d45676aa" type="default" bindtap="{{b}}">身份证识别</button><view class="data-v-d45676aa"><text class="data-v-d45676aa" space="ensp">{{c}}</text></view></view>

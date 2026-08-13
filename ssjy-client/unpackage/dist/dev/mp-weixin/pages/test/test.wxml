@@ -1,0 +1,1 @@
+<view class="app data-v-727d09f0"><input class="data-v-727d09f0" type="number" placeholder="请输入数字" value="{{a}}" bindinput="{{b}}"/><input class="data-v-727d09f0" type="number" placeholder="请输入数字" value="{{c}}" bindinput="{{d}}"/><button class="data-v-727d09f0" type="default" bindtap="{{e}}">计算</button><view class="data-v-727d09f0"> 计算结果：{{f}}</view></view>

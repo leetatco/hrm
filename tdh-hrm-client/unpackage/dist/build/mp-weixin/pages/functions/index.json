@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "常用功能",
+  "usingComponents": {
+    "u-search": "../../uni_modules/vk-uview-ui/components/u-search/u-search",
+    "u-badge": "../../uni_modules/vk-uview-ui/components/u-badge/u-badge",
+    "u-grid-item": "../../uni_modules/vk-uview-ui/components/u-grid-item/u-grid-item",
+    "u-grid": "../../uni_modules/vk-uview-ui/components/u-grid/u-grid",
+    "u-empty": "../../uni_modules/vk-uview-ui/components/u-empty/u-empty",
+    "u-loadmore": "../../uni_modules/vk-uview-ui/components/u-loadmore/u-loadmore"
+  }
+}

@@ -1,0 +1,1 @@
+<view class="app data-v-7191a072"><button class="data-v-7191a072" bindtap="{{a}}">上传图片,并检测图片是否违规</button><text class="data-v-7191a072" space="ensp">{{b}}</text></view>

@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "考勤打卡主页",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-icon": "../../uni_modules/vk-uview-ui/components/u-icon/u-icon",
+    "u-empty": "../../uni_modules/vk-uview-ui/components/u-empty/u-empty",
+    "uni-file-picker": "../../uni_modules/uni-file-picker/components/uni-file-picker/uni-file-picker",
+    "u-calendar": "../../uni_modules/vk-uview-ui/components/u-calendar/u-calendar"
+  }
+}

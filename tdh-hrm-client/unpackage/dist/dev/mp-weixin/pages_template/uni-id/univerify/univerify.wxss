@@ -1,0 +1,21 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.content.data-v-60cd0d30 {
+  padding: 15px;
+}
+.content button.data-v-60cd0d30 {
+  margin-bottom: 15px;
+}
+.tips.data-v-60cd0d30 {
+  text-align: left;
+  line-height: 20px;
+  font-size: 14px;
+  color: #999999;
+  margin-bottom: 20px;
+}
+.code.data-v-60cd0d30 {
+  overflow-x: hidden;
+  font-size: 24rpx;
+}

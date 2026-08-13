@@ -1,0 +1,94 @@
+{
+	"bsonType": "object",
+	"required": ["rest_type", "total_salary", "base_salary", "performance_salary", "overtime_fee"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"total_salary": {
+			"title": "综合工资",
+			"bsonType": "int",
+			"description": "综合工资"
+		},
+		"rest_type": {
+			"bsonType": "int",
+			"description": "休息类型：1 单休 2 双休 3 大小周",
+			"title": "休息类型",
+			"enum": [{
+				"text": "单休",
+				"value": 1
+			}, {
+				"text": "双休",
+				"value": 2
+			}, {
+				"text": "大小周",
+				"value": 3
+			}]
+		},
+		"base_salary": {
+			"title": "基本工资",
+			"bsonType": "int",
+			"description": "基本工资"
+		},
+		"performance_salary": {
+			"title": "绩效工资",
+			"bsonType": "int",
+			"description": "绩效工资"
+		},
+		"overtime_fee": {
+			"title": "固定加班",
+			"bsonType": "int",
+			"description": "固定加班"
+		},
+		"penalty_fund": {
+			"title": "社保补偿金",
+			"bsonType": "int",
+			"description": "社保补偿金"
+		},
+		"housing_fund": {
+			"title": "公积补偿金",
+			"bsonType": "int",
+			"description": "公积补偿金"
+		},
+		"annual_allowance": {
+			"title": "年度补偿金",
+			"bsonType": "int",
+			"description": "年度补偿金"
+		},
+		"floating_bonus": {
+			"title": "浮动奖励",
+			"bsonType": "int",
+			"description": "浮动奖励"
+		},
+		"confidentiality_fee": {
+			"title": "保密费",
+			"bsonType": "int",
+			"description": "保密费"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

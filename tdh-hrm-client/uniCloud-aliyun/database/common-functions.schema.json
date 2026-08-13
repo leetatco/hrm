@@ -1,0 +1,67 @@
+{
+	"bsonType": "object",
+	"required": ["name", "route"],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "功能名称",
+			"maxLength": 50,
+			"trim": "both"
+		},
+		"imgUrl": {
+			"bsonType": "file",
+			"fileMediaType": "image",
+			"description": "图标文件（图片）"
+		},
+		"route": {
+			"bsonType": "string",
+			"description": "路由路径",
+			"maxLength": 200,
+			"trim": "both"
+		},
+		"sort": {
+			"bsonType": "int",
+			"description": "排序序号（数字越小越靠前）",
+			"default": 0,
+			"minimum": 0
+		},
+		"status": {
+			"bsonType": "string",
+			"description": "状态: enabled(启用), disabled(停用)",
+			"enum": ["enabled", "disabled"],
+			"default": "enabled"
+		},
+		"remark": {
+			"bsonType": "string",
+			"description": "备注",
+			"maxLength": 200
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

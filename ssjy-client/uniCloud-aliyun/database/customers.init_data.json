@@ -1,0 +1,70 @@
+[
+  {
+    "_id": "test_customer_001",
+    "company_name": "测试科技有限公司",
+    "industry": "软件和信息技术服务业",
+    "established_date": {
+      "$date": "2015-03-12T00:00:00Z"
+    },
+    "registered_capital": 1000,
+    "paid_in_capital": 800,
+    "address": "深圳市南山区科技园",
+    "contact_person_info": "张经理 13800138000 财务总监",
+    "business_nature": "一般纳税人",
+    "enterprise_type": "内资企业",
+    "listing_status": "新三板",
+    "qualifications": "国高认证,专精新认证",
+    "basic_bank": "招商银行深圳分行",
+    "total_employees": 120,
+    "monthly_payroll": 45.5,
+    "senior_cert_count": 8,
+    "mid_cert_count": 22,
+    "master_count": 15,
+    "doctor_count": 3,
+    "legal_person": "李强",
+    "actual_controller": "李强",
+    "general_manager": "王丽",
+    "core_personnel": "张伟,刘芳",
+    "company_intro": "专注于企业级SaaS服务，拥有自主研发的ERP平台",
+    "shareholder_summary": "李强出资600万占60%，王丽出资200万占20%，其他股东20%",
+    "related_party_relationship": "无关联关系",
+    "controller_shareholding": "60%",
+    "copyrights": 28,
+    "trademark_count": 12,
+    "brand_count": 3,
+    "proprietary_tech": "低代码开发平台",
+    "patent_detail": "发明授权：3项，实用新型：10项，外观设计：2项，发明公布：5项",
+    "rnd_staff_count": 45,
+    "rnd_investment_intro": "每年研发投入占营收15%以上",
+    "tax_rating": "A",
+    "tax_intro": "连续三年纳税信用A级",
+    "external_guarantee_intro": "无对外担保",
+    "overdue_intro": "无逾期",
+    "pledged_deposit_intro": "无存单质押",
+    "bank_acceptance_intro": "已开立银行承兑汇票500万元",
+    "supply_chain_finance_intro": "无",
+    "procurement_intro": "无",
+    "finance_lease_intro": "无",
+    "corporate_credit_query_half_year": 2,
+    "corporate_credit_last_query_time": {
+      "$date": "2025-02-10T00:00:00Z"
+    },
+    "corporate_credit_result": "无不良记录",
+    "actual_credit_query_half_year": 1,
+    "actual_credit_last_query_time": {
+      "$date": "2025-01-15T00:00:00Z"
+    },
+    "actual_credit_result": "良好",
+    "legal_credit_query_half_year": 1,
+    "legal_credit_last_query_time": {
+      "$date": "2025-01-15T00:00:00Z"
+    },
+    "legal_credit_result": "良好",
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

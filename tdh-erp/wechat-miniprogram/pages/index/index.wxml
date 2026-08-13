@@ -1,0 +1,19 @@
+<!--index.wxml-->
+<view class="container">
+  <u-button type="primary" bindtap="getUserInfo">获取用户信息</u-button>
+  <u-button type="success" bindtap="callCloudFunction">调用云函数</u-button>
+  <u-button type="warning" bindtap="queryDatabase">查询数据库</u-button>
+  
+  <view class="result" wx:if="{{userInfo}}">
+    <u-avatar :src="userInfo.avatarUrl" size="80"></u-avatar>
+    <text>{{userInfo.nickName}}</text>
+  </view>
+  
+  <view class="result" wx:if="{{cloudResult}}">
+    <text>云函数结果: {{cloudResult}}</text>
+  </view>
+  
+  <view class="result" wx:if="{{dbResult}}">
+    <text>数据库查询结果: {{dbResult}}</text>
+  </view>
+</view>

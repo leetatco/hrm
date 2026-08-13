@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "薪资列表",
+  "usingComponents": {
+    "u-empty": "../../uni_modules/vk-uview-ui/components/u-empty/u-empty"
+  }
+}

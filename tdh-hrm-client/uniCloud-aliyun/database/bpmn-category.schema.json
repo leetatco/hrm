@@ -1,0 +1,63 @@
+{
+	"bsonType": "object",
+	"required": ["category_id", "category_name"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"category_id": {
+			"title": "分类代码",
+			"bsonType": "string",
+			"description": "分类唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"category_name": {
+			"title": "分类名称",
+			"bsonType": "string",
+			"description": "分类名称",
+			"trim": "both"
+		},
+		"parent_category_id": {
+			"title": "父级分类",
+			"bsonType": "string",
+			"description": "父级分类",
+			"trim": "both"
+		},
+		"sort": {
+			"title": "排序",
+			"bsonType": "int",
+			"description": "数值越大越靠后"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

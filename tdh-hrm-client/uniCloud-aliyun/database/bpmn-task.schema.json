@@ -1,0 +1,113 @@
+{
+  "bsonType": "object",
+  "required": ["_id", "instance_id", "application_id", "task_name", "status"],
+  "properties": {
+    "_id": {
+      "bsonType": "string",
+      "description": "任务ID"
+    },
+    "instance_id": {
+      "bsonType": "string",
+      "description": "实例ID",
+      "foreignKey": "bpmn-instance._id"
+    },
+    "application_id": {
+      "bsonType": "string",
+      "description": "申请表单ID",
+      "foreignKey": "bpmn-application-form._id"
+    },
+    "task_key": {
+      "bsonType": "string",
+      "description": "任务KEY",
+      "maxLength": 100
+    },
+    "task_name": {
+      "bsonType": "string",
+      "description": "任务名称",
+      "maxLength": 100
+    },
+    "assignee": {
+      "bsonType": "string",
+      "description": "处理人ID",
+      "maxLength": 50
+    },
+    "assignee_name": {
+      "bsonType": "string",
+      "description": "处理人姓名",
+      "maxLength": 50
+    },
+    "candidate_users": {
+      "bsonType": "array",
+      "description": "候选用户",
+      "items": { "bsonType": "string" }
+    },
+    "candidate_groups": {
+      "bsonType": "array",
+      "description": "候选组",
+      "items": { "bsonType": "string" }
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "状态",
+      "enum": ["pending", "completed", "cancelled", "transferred", "waiting_add_sign"],
+      "defaultValue": "pending"
+    },
+    "action": {
+      "bsonType": "string",
+      "description": "操作",
+      "enum": ["approve", "reject", "transfer", "withdraw", "back", "add_sign", "add_sign_complete", "confirm"]
+    },
+    "comment": {
+      "bsonType": "string",
+      "description": "审批意见",
+      "maxLength": 1000
+    },
+    "task_data": {
+      "bsonType": "object",
+      "description": "任务数据"
+    },
+    "create_time": {
+      "bsonType": "timestamp",
+      "description": "创建时间",
+      "defaultValue": { "$env": "now" }
+    },
+    "complete_time": {
+      "bsonType": "timestamp",
+      "description": "完成时间"
+    },
+    "due_date": {
+      "bsonType": "timestamp",
+      "description": "截止时间"
+    },
+    "parent_task_id": {
+      "bsonType": "string",
+      "description": "父任务ID（加签场景）"
+    },
+    "is_add_sign": {
+      "bsonType": "bool",
+      "description": "是否为加签任务"
+    },
+    "required_approvals": {
+      "bsonType": "int",
+      "description": "会签所需同意数"
+    },
+    "current_approvals": {
+      "bsonType": "int",
+      "description": "当前同意数"
+    },
+    "participants": {
+      "bsonType": "array",
+      "description": "会签参与人",
+      "items": { "bsonType": "string" }
+    }
+  },
+  "indexes": [
+    { "name": "instance_index", "key": { "instance_id": 1 } },
+    { "name": "application_index", "key": { "application_id": 1 } },
+    { "name": "assignee_index", "key": { "assignee": 1 } },
+    { "name": "status_index", "key": { "status": 1 } },
+    { "name": "due_date_index", "key": { "due_date": 1 } },
+    { "name": "create_time_index", "key": { "create_time": -1 } },
+    { "name": "assignee_status_index", "key": { "assignee": 1, "status": 1 } }
+  ]
+}

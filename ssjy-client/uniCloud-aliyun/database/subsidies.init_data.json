@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "sub_001",
+    "customer_id": "test_customer_001",
+    "grant_date": {
+      "$date": "2024-06-15T00:00:00Z"
+    },
+    "project_name": "高新技术企业培育资助",
+    "grant_amount": 50,
+    "grant_target": "公司",
+    "grant_intro": "深圳市科创委拨付",
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]

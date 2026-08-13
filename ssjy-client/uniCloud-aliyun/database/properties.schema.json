@@ -1,0 +1,98 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"customer_id": {
+			"bsonType": "string",
+			"foreignKey": "customers._id",
+			"description": "关联客户ID"
+		},
+		"owner_type": {
+			"bsonType": "string",
+			"description": "房产归属: company/actual_controller_spouse/related_person"
+		},
+		"property_type": {
+			"bsonType": "string",
+			"description": "房产性质: 厂房/商铺/公寓/写字楼/住宅/自建房"
+		},
+		"location": {
+			"bsonType": "string",
+			"description": "位置"
+		},
+		"area": {
+			"bsonType": "double",
+			"description": "面积(㎡)"
+		},
+		"mortgage_intro": {
+			"bsonType": "string",
+			"description": "按揭介绍"
+		},
+		"mortgage_balance": {
+			"bsonType": "double",
+			"description": "按揭未结清额(万元)"
+		},
+		"mortgage_rate": {
+			"bsonType": "double",
+			"description": "按揭年化利率(%)"
+		},
+		"remaining_terms": {
+			"bsonType": "int",
+			"description": "尚余期数"
+		},
+		"first_mortgage_balance": {
+			"bsonType": "double",
+			"description": "一押未结清额(万元)"
+		},
+		"first_mortgage_rate": {
+			"bsonType": "double",
+			"description": "一押年化利率(%)"
+		},
+		"first_mortgage_due_date": {
+			"bsonType": "date",
+			"description": "一押到期日"
+		},
+		"second_mortgage_balance": {
+			"bsonType": "double",
+			"description": "二押未结清额(万元)"
+		},
+		"second_mortgage_rate": {
+			"bsonType": "double",
+			"description": "二押年化利率(%)"
+		},
+		"second_mortgage_due_date": {
+			"bsonType": "date",
+			"description": "二押到期日"
+		},
+		"remarks": {
+			"bsonType": "string",
+			"description": "备注"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

@@ -1,0 +1,83 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "employee_id"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤日期",
+			"bsonType": "date",
+			"description": "考勤日期"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "身份证号码唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"last_month_sb": {
+			"title": "上月社保",
+			"bsonType": "double",
+			"description": "上月社保,保留2位小数"
+		},
+		"last_month_dk": {
+			"title": "上月社保代扣部份",
+			"bsonType": "double",
+			"description": "上月社保代扣部份,保留2位小数"
+		},
+		"this_month_sb": {
+			"title": "本月社保",
+			"bsonType": "double",
+			"description": "本月社保,保留2位小数"
+		},
+		"this_month_dk": {
+			"title": "本月社保代扣部份",
+			"bsonType": "double",
+			"description": "本月社保代扣部份,保留2位小数"
+		},
+		"dkgs": {
+			"title": "代扣个税",
+			"bsonType": "double",
+			"description": "代扣个税"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

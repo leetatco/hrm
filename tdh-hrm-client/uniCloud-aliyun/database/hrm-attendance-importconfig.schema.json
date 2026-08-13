@@ -1,0 +1,40 @@
+{
+  "bsonType": "object",
+  "required": [],
+  "permission": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": false
+  },
+  "properties": {
+    "_id": {
+      "description": "存储文档 ID，系统自动生成"
+    },
+    "import_codes": {
+      "title": "需要汇入的OA表单类型",
+      "bsonType": "array",
+      "description": "来自OA表单类型的code列表",
+      "items": {
+        "bsonType": "string"
+      }
+    },
+    "remark": {
+      "title": "备注",
+      "bsonType": "string",
+      "trim": "both"
+    },
+    "update_date": {
+      "title": "更新时间",
+      "bsonType": "timestamp",
+      "forceDefaultValue": { "$env": "now" }
+    },
+    "updat_id": {
+      "title": "更新人",
+      "bsonType": "string",
+      "foreignKey": "uni-id-users._id",
+      "forceDefaultValue": { "$env": "uid" }
+    }
+  },
+  "version": "0.0.1"
+}

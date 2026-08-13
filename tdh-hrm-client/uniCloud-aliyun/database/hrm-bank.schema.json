@@ -1,0 +1,46 @@
+{
+	"bsonType": "object",
+	"required": ["bank_id", "bank_name"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"bank_id": {
+			"title": "银行代码",
+			"bsonType": "string",
+			"description": "银行代码唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"bank_name": {
+			"title": "银行名称",
+			"bsonType": "string",
+			"description": "银行名称",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

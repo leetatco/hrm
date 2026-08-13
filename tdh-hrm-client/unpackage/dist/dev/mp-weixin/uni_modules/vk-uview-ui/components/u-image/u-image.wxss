@@ -1,0 +1,26 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+.u-image.data-v-6ff2fb1e {
+  position: relative;
+  transition: opacity 0.5s ease-in-out;
+}
+.u-image__image.data-v-6ff2fb1e {
+  width: 100%;
+  height: 100%;
+}
+.u-image__loading.data-v-6ff2fb1e, .u-image__error.data-v-6ff2fb1e {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  color: #909399;
+  font-size: 46rpx;
+}

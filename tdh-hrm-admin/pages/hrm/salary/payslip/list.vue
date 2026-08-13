@@ -1,0 +1,1841 @@
+<template>
+	<view class="page-body">
+		<!-- 页面内容开始 -->
+
+		<!-- 表格搜索组件开始 -->
+		<vk-data-table-query v-model="queryForm1.formData" :columns="queryForm1.columns"
+			@search="search"></vk-data-table-query>
+		<!-- 表格搜索组件结束 -->
+
+		<!-- 自定义按钮区域开始 -->
+		<view>
+			<el-row>
+				<el-upload style="display: inline-block;margin-left: 20rpx;margin-right: 20rpx;" accept=".xlsx, .xls"
+					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-add')" :auto-upload="false" :limit="1"
+					:show-file-list="false" :on-change="handleChange" :file-list="fileList" action="">
+					<el-button type="success" size="small" icon="el-icon-upload2">导入excel</el-button>
+				</el-upload>
+				<el-button type="primary" size="small" icon="el-icon-edit-outline"
+					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-add')" @click="exportExcelAll"> 导出全部
+				</el-button>
+				<el-button type="primary" size="small" icon="el-icon-tickets" @click="exportExcelModel"
+					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-add')"> 下载模版
+				</el-button>
+				<el-button type="danger" size="small" icon="el-icon-delete" @click="deleteAll" v-if="$hasRole('admin')">
+					删除考勤日期数据
+				</el-button>
+			</el-row>
+		</view>
+		<!-- 自定义按钮区域结束 -->
+
+		<!-- 表格组件开始 -->
+		<vk-data-table ref="table1" :action="table1.action" :columns="table1.columns" :query-form-param="queryForm1"
+			:right-btns="table1.rightBtns" :selection="true" :row-no="false" :pagination="true" @update="updateBtn"
+			@delete="deleteBtn" @current-change="currentChange" @selection-change="selectionChange"
+			:page-sizes="pageSizes"></vk-data-table></vk-data-table>
+		<!-- 表格组件结束 -->
+
+		<!-- 添加或编辑的弹窗开始 -->
+		<vk-data-dialog v-model="form1.props.show" :title="form1.props.title" width="800px" mode="form"
+			:close-on-click-modal="false">
+			<vk-data-form v-model="form1.data" :rules="form1.props.rules" :action="form1.props.action"
+				:form-type="form1.props.formType" :before-action="form1.props.beforeAction"
+				:columns='form1.props.columns' label-width="110px" @success="form1.props.show = false;refresh();"
+				:inline="true" :columnsNumber="2"></vk-data-form>
+		</vk-data-dialog>
+		<!-- 添加或编辑的弹窗结束 -->
+
+		<!-- 页面内容结束 -->
+	</view>
+</template>
+
+<script>
+	import myfn from '../../../../common/function/myPubFunction';
+
+	let vk = uni.vk; // vk实例
+	let originalForms = {}; // 表单初始化数据
+	const colWidth = 200;
+	let nowy = new Date(vk.pubfn.getOffsetTime(new Date(), {
+		mode: "before", // after 之后 before 之前
+	})).getFullYear();
+
+	let nowm = new Date(vk.pubfn.getOffsetTime(new Date(), {
+		mode: "before", // after 之后 before 之前
+	})).getMonth();
+
+	let nowm1 = nowm > 9 ? nowm : `0${nowm}`;
+	const nowym = vk.myfn.normalizeMonth(`${nowy}-${nowm1}`);
+	export default {
+		data() {
+			// 页面数据变量
+			return {
+				pageSizes: [1, 5, 10, 20, 50, 100, 500, 1000],
+				fileList: [],
+				sumList: [],
+				// 页面是否请求中或加载中
+				loading: false,
+				// init请求返回的数据
+				data: {
+
+				},
+				// 表格相关开始 -----------------------------------------------------------
+				table1: {
+					// 表格数据请求地址
+					action: "admin/hrm/salary/sys/payslip/getList",
+					//按钮显示
+					rightBtns: [{
+							mode: 'detail_auto',
+							title: '详细',
+							show: (item) => {
+								return this.$hasRole('admin') || this.$hasPermission('hrm-salary-payslip-view')
+							}
+						},
+						{
+							mode: 'update',
+							title: '编辑',
+							show: (item) => {
+								return this.$hasRole('admin') || this.$hasPermission('hrm-salary-payslip-edit')
+							}
+						},
+						{
+							mode: 'delete',
+							title: '删除',
+							show: (item) => {
+								return this.$hasRole('admin') || this.$hasPermission('hrm-salary-payslip-delete')
+							}
+						}
+					],
+					// 表格字段显示规则
+					columns: [{
+							"key": "attendance_ym",
+							"title": "考勤日期",
+							"type": "date",
+							"dateType": "date",
+							"fixed": true,
+							"valueFormat": "yyyy-MM",
+							"format": "yyyy-MM"
+						}, {
+							"key": "total_salary",
+							"title": "综合",
+							"type": "number",
+							"show": ["none"],
+							"fixed": true,
+							"width": colWidth - 100
+						},
+						{
+							"key": "rest_type",
+							"title": "制",
+							"fixed": true,
+							"type": "text",
+							"show": ["none"],
+							"width": colWidth - 100
+						},
+						{
+							"key": "attendance_ym_key",
+							"title": "月份",
+							"type": "text",
+							"fixed": true,
+							"width": colWidth - 100
+						},
+						{
+							"key": "signature_url",
+							"title": "签名",
+							"type": "image",
+							"fixed": true,
+							"width": colWidth - 100
+						},
+						{
+							"key": "employee_name",
+							"title": "姓名",
+							"type": "text",
+							"fixed": true,
+							"width": colWidth - 100
+						},
+						{
+							"key": "card",
+							"title": "身份证号码",
+							"type": "text",
+							"fixed": true,
+							"width": colWidth - 30
+						},
+						{
+							"key": "department_name",
+							"title": "部门",
+							"fixed": true,
+							"type": "text",
+							"width": colWidth
+						},
+						{
+							"key": "position_name",
+							"title": "岗位",
+							"type": "text",
+							"width": colWidth - 100
+						},
+						{
+							"key": "hire_date",
+							"title": "入职日期",
+							"type": "date",
+							"dateType": "date",
+							"valueFormat": "yyyy-MM-dd",
+							"width": colWidth - 100
+						},
+						{
+							"key": "resign_date",
+							"title": "离职日期",
+							"type": "text",
+							"width": colWidth - 100
+						},
+						{
+							"key": "base_salary",
+							"title": "基本工资",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "performance_salary",
+							"title": "绩效工资",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "overtime_fee",
+							"title": "固定加班",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "penalty_fund",
+							"title": "社保补偿金",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "housing_fund",
+							"title": "公积补偿金",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "annual_allowance",
+							"title": "年度补偿金",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "floating_bonus",
+							"title": "浮动奖励",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "confidentiality_fee",
+							"title": "保密费",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "work_days",
+							"title": "应勤天数",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "real_days",
+							"title": "实际出勤",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "gross_salary",
+							"title": "应发工资",
+							"type": "number",
+							"width": colWidth - 50
+						},
+						{
+							"key": "overtime_cost",
+							"title": "加班费",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "free_cost",
+							"title": "放假补助",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "grant",
+							"title": "补助",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "agency_fee",
+							"title": "介绍费",
+							"type": "text",
+							"width": colWidth - 100
+						},
+						{
+							"key": "other_cost",
+							"title": "其它",
+							"type": "text",
+							"width": colWidth - 50
+						},
+						{
+							"key": "we_cost",
+							"title": "水电",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "clothes_cost",
+							"title": "工衣",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "earlytime_cost",
+							"title": "迟到早退",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "missed_cost",
+							"title": "未打卡",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "loan_cost",
+							"title": "借款",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "this_month_sb",
+							"title": "本月社保",
+							"type": "number",
+							"width": colWidth - 50
+						},
+						{
+							"key": "this_month_dk",
+							"title": "本月代扣部份",
+							"type": "number",
+							"width": colWidth - 50
+						},
+						{
+							"key": "dkgs",
+							"title": "代扣个税",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "real_salary",
+							"title": "实发工资",
+							"type": "number",
+							"width": colWidth - 50
+						},
+						// {
+						// 	"key": "comment",
+						// 	"title": "备注",
+						// 	"type": "text",
+						// 	"width": colWidth,
+						// 	"show": ["detail"]
+						// },
+						{
+							"key": "company_sb",
+							"title": "公司部份社保",
+							"type": "number",
+							"width": colWidth - 50
+						},
+						{
+							"key": "company_gjj",
+							"title": "公司部份公积金",
+							"type": "number",
+							"width": colWidth - 50
+						},
+						{
+							"key": "last_month_sb",
+							"title": "下月社保",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							"key": "last_month_gjj",
+							"title": "下月公积金",
+							"type": "number",
+							"width": colWidth - 100
+						},
+						{
+							key: "status",
+							title: "状态",
+							type: "tag",
+							width: colWidth - 100,
+							data: [{
+									value: 1,
+									label: "已签名",
+									tagType: "success"
+								},
+								{
+									value: 0,
+									label: "未签名",
+									tagType: "warning"
+								}
+							]
+						},
+						{
+							"key": "update_date",
+							"title": "更新时间",
+							"type": "time",
+							"width": colWidth,
+							"show": ["detail"]
+						},
+						{
+							"key": "users.nickname",
+							"title": "更新人",
+							"type": "text",
+							"width": colWidth,
+							"show": ["detail"]
+						}
+					],
+					// 多选框选中的值
+					multipleSelection: [],
+					// 当前高亮的记录
+					selectItem: ""
+				},
+				// 表格相关结束 -----------------------------------------------------------
+				// 表单相关开始 -----------------------------------------------------------
+				// 查询表单请求数据
+				queryForm1: {
+					// 查询表单数据源，可在此设置默认值
+					formData: {
+						attendance_ym: nowym,
+						status: 0
+					},
+					// 查询表单的字段规则 fieldName:指定数据库字段名,不填默认等于key
+					columns: [{
+							key: "attendance_ym",
+							title: "考勤日期",
+							type: "date",
+							dateType: "date",
+							valueFormat: "yyyy-MM",
+							format: "yyyy-MM",
+							"width": colWidth
+						}, {
+							key: "card",
+							title: "",
+							type: "table-select",
+							placeholder: "选择员工",
+							action: "admin/hrm/salary/sys/payslip/getList",
+							multiple: false,
+							columns: [{
+									key: "employee_name",
+									title: "员工姓名",
+									type: "text",
+									nameKey: true
+								},
+								{
+									key: "card",
+									title: "身份证号码",
+									type: "text",
+									idKey: true
+
+								}
+							],
+							queryColumns: [{
+									key: "employee_name",
+									title: "员工姓名",
+									type: "text",
+									width: 150,
+									mode: "%%"
+								},
+								{
+									key: "card",
+									title: "身份证号码",
+									type: "text",
+									width: 150,
+									mode: "%%"
+								}
+
+							]
+						},
+						{
+							key: "status",
+							title: "状态",
+							type: "select",
+							width: colWidth - 50,
+							data: [{
+									value: 0,
+									label: "未签名"
+								},
+								{
+									value: 1,
+									label: "已签名"
+								}
+							],
+							mode: "="
+						},
+
+					]
+				},
+				form1: {
+					// 表单请求数据，此处可以设置默认值
+					data: {},
+					// 表单属性
+					props: {
+						// 表单请求地址
+						action: "",
+						// 表单字段显示规则
+						columns: [{
+								key: "attendance_ym",
+								title: "考勤日期",
+								type: "date",
+								dateType: "date",
+								disabled: true,
+								valueFormat: "yyyy-MM",
+								format: "yyyy-MM",
+								"width": colWidth
+
+							}, {
+								key: "card",
+								title: "姓名",
+								type: "table-select",
+								disabled: true,
+								placeholder: "选择员工",
+								action: "admin/hrm/salary/sys/payslip/getList",
+								multiple: false,
+								columns: [{
+										key: "employee_name",
+										title: "员工姓名",
+										type: "text",
+										nameKey: true
+									},
+									{
+										key: "card",
+										title: "身份证号码",
+										type: "text",
+										idKey: true
+
+									}
+								],
+								queryColumns: [{
+										key: "employee_name",
+										title: "员工姓名",
+										type: "text",
+										width: 150,
+										mode: "%%"
+									},
+									{
+										key: "card",
+										title: "身份证号码",
+										type: "text",
+										width: 150,
+										mode: "%%"
+									}
+
+								]
+							},
+							{
+								"key": "total_salary",
+								"title": "综合",
+								"type": "number",
+								disabled: true,
+								"width": colWidth
+							},
+							{
+								"key": "base_salary",
+								"title": "基本工资",
+								"type": "number",
+								disabled: true,
+								"width": colWidth
+							},
+							{
+								"key": "performance_salary",
+								"title": "绩效工资",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "overtime_fee",
+								"title": "固定加班",
+								"type": "number",
+								disabled: true,
+								"width": colWidth
+							},
+							{
+								"key": "penalty_fund",
+								"title": "社保补偿金",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "housing_fund",
+								"title": "公积补偿金",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "annual_allowance",
+								"title": "年度补偿金",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "floating_bonus",
+								"title": "浮动奖励",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "confidentiality_fee",
+								"title": "保密费",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "work_days",
+								"title": "应勤天数",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "real_days",
+								"title": "实际出勤",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "gross_salary",
+								"title": "应发工资",
+								disabled: true,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "overtime_cost",
+								"title": "加班费",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								"width": colWidth
+							},
+							{
+								"key": "free_cost",
+								"title": "放假补助",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								precision: 2,
+								step: 0.01,
+								"width": colWidth
+							},
+							{
+								"key": "grant",
+								"title": "补助",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								"width": colWidth
+							},
+							{
+								"key": "agency_fee",
+								"title": "介绍费",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								"width": colWidth
+							},
+							{
+								"key": "other_cost",
+								"title": "其它",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								precision: 2,
+								step: 0.01,
+								"width": colWidth
+							},
+							{
+								"key": "we_cost",
+								"title": "水电",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								precision: 2,
+								step: 0.01,
+								"width": colWidth
+							},
+							{
+								"key": "clothes_cost",
+								"title": "工衣",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								"width": colWidth
+							},
+							{
+								"key": "earlytime_cost",
+								"title": "迟到早退",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								"width": colWidth
+							},
+							{
+								"key": "missed_cost",
+								"title": "未打卡",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								"width": colWidth
+							},
+							{
+								"key": "loan_cost",
+								"title": "借款",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								"width": colWidth
+							},
+							{
+								"key": "this_month_sb",
+								"title": "本月社保",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								precision: 2,
+								step: 0.01,
+								"width": colWidth
+							},
+							{
+								"key": "this_month_dk",
+								"title": "本月代扣部份",
+								min: -10000,
+								controls: true,
+								precision: 2,
+								step: 0.01,
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "dkgs",
+								"title": "代扣个税",
+								"type": "number",
+								min: -10000,
+								controls: true,
+								precision: 2,
+								step: 0.01,
+								"width": colWidth
+							},
+							{
+								"key": "real_salary",
+								"title": "实发工资",
+								"type": "number",
+								disabled: true,
+								"width": colWidth
+							},
+							{
+								"key": "company_sb",
+								"title": "公司部份社保",
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "company_gjj",
+								"title": "公司部份公积金",
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "last_month_sb",
+								"title": "下月社保",
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								"key": "last_month_gjj",
+								"title": "下月公积金",
+								"type": "number",
+								"width": colWidth
+							},
+							{
+								key: "status",
+								title: "状态",
+								type: "radio",
+								width: colWidth - 50,
+								data: [{
+										value: 0,
+										label: "未签名"
+									},
+									{
+										value: 1,
+										label: "已签名"
+									}
+								]
+							},
+							{
+								key: "comment",
+								title: "备注",
+								type: "textarea",
+								maxlength: "500",
+								showWordLimit: true,
+								width: colWidth,
+								autosize: {
+									minRows: 4,
+									maxRows: 10
+								}
+							}
+						],
+						// 表单验证规则
+						rules: {
+							attendance_ym: [{
+								required: true,
+								message: "该项不能为空",
+								trigger: ['blur', 'change']
+							}],
+							employee_name: [{
+								required: true,
+								message: "该项不能为空",
+								trigger: ['blur', 'change']
+							}]
+						},
+						// add 代表添加 update 代表修改
+						formType: "",
+						// 弹窗标题
+						title: "",
+						// 是否显示表单的弹窗
+						show: false
+					}
+				},
+				// 其它弹窗表单
+				formDatas: {},
+				// 表单相关结束 -----------------------------------------------------------
+			};
+		},
+		// 监听 - 页面每次【加载时】执行(如：前进)
+		onLoad(options = {}) {
+			this.options = options;
+			this.init(options);
+			this.getSumList();
+		},
+		// 监听 - 页面【首次渲染完成时】执行。注意如果渲染速度快，会在页面进入动画完成前触发
+		onReady() {
+
+		},
+		// 监听 - 页面每次【显示时】执行(如：前进和返回) (页面每次出现在屏幕上都触发，包括从下级页面点返回露出当前页面)
+		onShow() {
+
+		},
+		// 监听 - 页面每次【隐藏时】执行(如：返回)
+		onHide() {
+
+		},
+		// 函数
+		methods: {
+			//得到所有的合计数据
+			async getSumList() {
+				const attendance_ym = this.queryForm1.formData.attendance_ym || nowym;
+				let res = await vk.callFunction({
+					url: 'admin/hrm/salary/pub/getSumList',
+					title: '请求中...',
+					data: {
+						attendance_ym
+					},
+				});
+				if (res.code == 0) {
+					this.sumList = res.rows
+				}
+			},
+
+			//合计行
+			summaryMethod({
+				columns,
+				data
+			}) {
+				const totalSummary = this.sumList[0] || {};
+				const means = ['']; // 第一列空白占位
+				// 定义需要合计的字段及其单位、精度
+				const totalOption = [{
+						key: 'work_days',
+						unit: '',
+						precision: 2
+					},
+					{
+						key: 'real_days',
+						unit: '',
+						precision: 2
+					},
+					{
+						key: 'gross_salary',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'overtime_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'free_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'grant',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'agency_fee',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'other_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'we_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'clothes_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'earlytime_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'missed_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'loan_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'this_month_sb',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'this_month_dk',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'dkgs',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'real_salary',
+						unit: '元',
+						precision: 2
+					},
+				];
+
+				for (let columnIndex = 0; columnIndex < columns.length; columnIndex++) {
+					const column = columns[columnIndex];
+					if (columnIndex === 0) {
+						means.push('合计');
+					} else {
+						const columnItem = totalOption.find(item => item.key === column.property);
+						if (!columnItem) {
+							means.push(''); // 非合计字段留空
+							continue;
+						}
+						const {
+							key,
+							precision = 2,
+							unit
+						} = columnItem;
+						// 从总计对象中取值，若不存在则设为0
+						let totalValue = totalSummary[key] || 0;
+
+						totalValue = vk.pubfn.toDecimal(totalValue, precision);
+						// 可添加货币样式
+						means[columnIndex] = `<span style="color: red">${totalValue}${unit}</span>`;
+					}
+				}
+				return [means];
+			},
+			//删除导入的数据
+			async deleteAll() {
+				try {
+					if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
+						return vk.alert(`考勤日期不能为空！`);
+					}
+					const attendance_ym = this.queryForm1.formData.attendance_ym;
+					// 删除旧数据
+					let delRes = await vk.callFunction({
+						url: 'admin/hrm/salary/sys/payslip/all/deleteAll',
+						title: '删除中...',
+						data: {
+							attendance_ym: attendance_ym
+						}
+					})
+
+					if (delRes.code != 0) {
+						return vk.alert(`${attendance_ym}月工资条明细删除失败！`);
+					}
+					return vk.alert(`${attendance_ym}月工资条明细删除成功！`);
+				} catch (err) {
+
+				} finally {
+					this.refresh();
+				}
+			},
+			//导入xls表格文件
+			async handleChange(file) {
+				// 定义字段类型
+				let typeObj = {
+					total_salary: {
+						"title": "综合",
+						"type": "number"
+					},
+					rest_type: {
+						"title": "制",
+						"type": "text"
+					},
+					attendance_ym_key: {
+						"title": "月份",
+						"type": "text"
+					},
+					employee_name: {
+						"title": "姓名",
+						"type": "text"
+					},
+					card: {
+						"title": "身份证号码",
+						"type": "text"
+					},
+					department_name: {
+						"title": "任职部门",
+						"type": "text"
+					},
+					position_name: {
+						"title": "岗位",
+						"type": "text"
+					},
+					hire_date: {
+						"title": "入职日期",
+						"type": "number"
+					},
+					resign_date: {
+						"title": "离职日期",
+						"type": "text"
+					},
+					base_salary: {
+						"title": "基本工资",
+						"type": "number"
+					},
+					performance_salary: {
+						"title": "绩效工资",
+						"type": "number"
+					},
+					overtime_fee: {
+						"title": "固定加班",
+						"type": "number"
+					},
+					penalty_fund: {
+						"title": "社保补偿金",
+						"type": "number"
+					},
+					housing_fund: {
+						"title": "公积补偿金",
+						"type": "number"
+					},
+					annual_allowance: {
+						"title": "年度补偿金",
+						"type": "number"
+					},
+					floating_bonus: {
+						"title": "浮动奖励",
+						"type": "number"
+					},
+					confidentiality_fee: {
+						"title": "保密费",
+						"type": "number"
+					},
+					work_days: {
+						"title": "应勤天数",
+						"type": "number"
+					},
+					real_days: {
+						"title": "实际出勤",
+						"type": "number"
+					},
+					gross_salary: {
+						"title": "应发工资",
+						"type": "number"
+					},
+					overtime_cost: {
+						"title": "加班费",
+						"type": "number"
+					},
+					free_cost: {
+						"title": "放假补助",
+						"type": "number"
+					},
+					grant: {
+						"title": "补助",
+						"type": "number"
+					},
+					agency_fee: {
+						"title": "介绍费",
+						"type": "number"
+					},
+					other_cost: {
+						"title": "其它",
+						"type": "number"
+					},
+					we_cost: {
+						"title": "水电",
+						"type": "number"
+					},
+					clothes_cost: {
+						"title": "工衣",
+						"type": "number"
+					},
+					earlytime_cost: {
+						"title": "迟到早退",
+						"type": "number"
+					},
+					missed_cost: {
+						"title": "未打卡",
+						"type": "number"
+					},
+					loan_cost: {
+						"title": "借款",
+						"type": "number"
+					},
+					this_month_sb: {
+						"title": "本月社保",
+						"type": "number"
+					},
+					this_month_dk: {
+						"title": "本月代扣部份",
+						"type": "number"
+					},
+					dkgs: {
+						"title": "代扣个税",
+						"type": "number"
+					},
+					real_salary: {
+						"title": "实发工资",
+						"type": "number"
+					},
+					// comment: {
+					// 	"title": "备注",
+					// 	"type": "text"
+					// },
+					company_sb: {
+						"title": "公司部份社保",
+						"type": "number",
+					},
+					company_gjj: {
+						"title": "公司部份公积金",
+						"type": "number",
+					},
+					last_month_sb: {
+						"title": "下月社保",
+						"type": "number"
+					},
+					last_month_dk: {
+						"title": "下月公积金",
+						"type": "number"
+					}
+				};
+
+				try {
+					if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
+						return vk.alert(`考勤日期不能为空！`);
+					}
+
+					const attendance_ym = this.queryForm1.formData.attendance_ym;
+
+					this.$iexcel.importExcel(file.raw, typeObj, async (res) => {
+						if (!res || res.length === 0) {
+							return vk.alert('Excel中没有数据！');
+						}
+
+						// 删除旧数据
+						let delRes = await vk.callFunction({
+							url: 'admin/hrm/salary/sys/payslip/all/deleteAll',
+							title: '删除中...',
+							data: {
+								attendance_ym: attendance_ym
+							}
+						})
+
+						if (delRes.code != 0) {
+							return vk.alert(`${attendance_ym}月工资条明细删除失败！`);
+						}
+
+						// 1. 数据验证
+						const validationResult = this.validateExcelData(res);
+						if (!validationResult.valid) {
+							return vk.alert(validationResult.message, "数据验证失败", "确定");
+						}
+
+						// 2. 提取所有身份证号码
+						const cards = res.map(item => item.card).filter(card => card);
+						if (cards.length === 0) {
+							return vk.alert('Excel中没有有效的身份证号码！');
+						}
+
+						// 3. 准备要处理的数据
+						const validData = [];
+						const errorData = [];
+
+						for (const item of res) {
+
+							item.attendance_ym = attendance_ym;
+
+							//状态
+							item.status = 0;
+
+							// 验证必要字段
+							if (!item.attendance_ym) {
+								errorData.push({
+									item,
+									reason: '考勤日期不能为空'
+								});
+								continue;
+							}
+							if (!item.card) {
+								errorData.push({
+									item,
+									reason: '身份证号码不能为空'
+								});
+								continue;
+							}
+
+							//处理月份
+							item.attendance_ym_key = vk.myfn.toFormatDate(item.attendance_ym_key);
+
+							//修改新增人员和时间									
+							item.update_date = new Date().getTime();
+							item.update_id = vk.getVuex('$user.userInfo._id');
+
+							if (vk.pubfn.isNotNull(item.hire_date)) {
+								let utcDate = new Date(Date.UTC(1900, 0, item.hire_date - 1));
+								item.hire_date = utcDate.toISOString().slice(0, 10);
+							}
+
+							validData.push(item);
+						}
+
+						if (errorData.length > 0) {
+							let errorMsg = errorData.slice(0, 5).map(err =>
+								`姓名: ${err.item.employee_name} - ${err.reason}`
+							).join('\n');
+							if (errorData.length > 5) {
+								errorMsg += `\n...还有${errorData.length - 5}条错误数据`;
+							}
+							vk.confirm(`数据验证失败:\n${errorMsg}`, "是否继续导入数据", "是", "否", async (res) => {
+								if (res.confirm) {
+									// 点击确定按钮后的回调	
+									// 6. 批量处理数据
+									vk.toast('开始导入数据...');
+									const result = await vk.callFunction({
+										url: 'admin/hrm/salary/sys/payslip/all/addAll',
+										title: '请求中...',
+										data: {
+											items: validData
+										},
+									});
+
+									if (result.code === 0) {
+										let resultMessage = `导入完成！成功: ${result.id.length}条`;
+										return vk.alert(resultMessage, "导入成功", "确定", () => {
+											this.refresh();
+										})
+									} else {
+										return vk.alert(`导入Excel失败!`, "系统错误", "确定");
+									}
+								} else {
+									return;
+								}
+							})
+						} else {
+							vk.toast('开始导入数据...');
+							const result = await vk.callFunction({
+								url: 'admin/hrm/salary/sys/payslip/all/addAll',
+								title: '请求中...',
+								data: {
+									items: validData
+								},
+							});
+
+							if (result.code === 0) {
+								let resultMessage = `导入完成！成功: ${result.id.length}条`;
+								return vk.alert(resultMessage, "导入成功", "确定", () => {
+									this.refresh();
+								})
+							} else {
+								return vk.alert(`导入Excel失败!`, "系统错误", "确定");
+							}
+						}
+					})
+				} catch (error) {
+					console.error('导入Excel失败:', error);
+					vk.alert(`导入Excel失败: ${error.message}`, "系统错误", "确定");
+					this.fileList = [];
+				} finally {
+					this.fileList = [];
+				}
+			},
+			// 验证Excel数据
+			validateExcelData(data) {
+				if (!Array.isArray(data)) {
+					return {
+						valid: false,
+						message: '数据格式错误'
+					};
+				}
+
+				// 检查是否有重复的身份证+考勤日期组合
+				const keySet = new Set();
+				const duplicates = [];
+
+				for (const item of data) {
+					if (item.card && item.attendance_ym) {
+						const key = `${item.card}_${item.attendance_ym}`;
+						if (keySet.has(key)) {
+							duplicates.push(item.card);
+						}
+						keySet.add(key);
+					}
+				}
+
+				if (duplicates.length > 0) {
+					return {
+						valid: false,
+						message: `存在重复数据: ${duplicates.slice(0, 5).join(', ')}${duplicates.length > 5 ? '...' : ''}`
+					};
+				}
+
+				return {
+					valid: true,
+					message: ''
+				};
+			},
+			// 页面数据初始化函数
+			init(options) {
+				originalForms["form1"] = vk.pubfn.copyObject(this.form1);
+			},
+			// 页面跳转
+			pageTo(path) {
+				vk.navigateTo(path);
+			},
+			// 表单重置
+			resetForm() {
+				vk.pubfn.resetForm(originalForms, this);
+			},
+			// 搜索
+			async search() {
+				await this.getSumList();
+				this.$refs.table1.search();
+			},
+			// 刷新
+			refresh() {
+				this.$refs.table1.refresh();
+			},
+			// 获取当前选中的行的数据
+			getCurrentRow() {
+				return this.$refs.table1.getCurrentRow();
+			},
+			// 监听 - 行的选中高亮事件
+			currentChange(val) {
+				this.table1.selectItem = val;
+			},
+			// 当选择项发生变化时会触发该事件
+			selectionChange(list) {
+				this.table1.multipleSelection = list;
+			},
+			// 显示添加页面
+			addBtn() {
+				this.resetForm();
+				this.form1.props.action = 'admin/hrm/salary/sys/payslip/add';
+				this.form1.props.formType = 'add';
+				this.form1.props.title = '添加';
+				this.form1.props.show = true;
+			},
+			// 显示修改页面
+			updateBtn({
+				item
+			}) {
+				this.form1.props.action = 'admin/hrm/salary/sys/payslip/update';
+				this.form1.props.formType = 'update';
+				this.form1.props.title = '编辑';
+				this.form1.props.show = true;
+				this.form1.data = item;
+			},
+			// 删除按钮
+			deleteBtn({
+				item,
+				deleteFn
+			}) {
+				deleteFn({
+					action: "admin/hrm/salary/sys/payslip/delete",
+					data: {
+						_id: item._id
+					},
+				});
+			},
+			// 导入xls表格文件模版
+			exportExcelModel() {
+				this.$refs.table1.exportExcel({
+					fileName: new Date().getFullYear() + '考勤明细模版',
+					title: "正在导出数据...",
+					columns: [{
+							"key": "total_salary",
+							"title": "综合",
+							"type": "number"
+						},
+						{
+							"key": "rest_type",
+							"title": "制",
+							"type": "text",
+						},
+						{
+							"key": "attendance_ym",
+							"title": "月份",
+							"type": "text"
+						},
+						{
+							"key": "employee_name",
+							"title": "姓名",
+							"type": "text"
+						},
+						{
+							"key": "card",
+							"title": "身份证号码",
+							"type": "text"
+						},
+						{
+							"key": "department_name",
+							"title": "任职部门",
+							"type": "text"
+						},
+						{
+							"key": "position_name",
+							"title": "岗位",
+							"type": "text"
+						},
+						{
+							"key": "hire_date",
+							"title": "入职日期",
+							"type": "number"
+						},
+						{
+							"key": "resign_date",
+							"title": "离职日期",
+							"type": "text"
+						},
+						{
+							"key": "base_salary",
+							"title": "基本工资",
+							"type": "number"
+						},
+						{
+							"key": "performance_salary",
+							"title": "绩效工资",
+							"type": "number"
+						},
+						{
+							"key": "overtime_fee",
+							"title": "固定加班",
+							"type": "number"
+						},
+						{
+							"key": "penalty_fund",
+							"title": "社保补偿金",
+							"type": "number"
+						},
+						{
+							"key": "housing_fund",
+							"title": "公积补偿金",
+							"type": "number"
+						},
+						{
+							"key": "annual_allowance",
+							"title": "年度补偿金",
+							"type": "number"
+						},
+						{
+							"key": "floating_bonus",
+							"title": "浮动奖励",
+							"type": "number"
+						},
+						{
+							"key": "confidentiality_fee",
+							"title": "保密费",
+							"type": "number"
+						},
+						{
+							"key": "work_days",
+							"title": "应勤天数",
+							"type": "number"
+						},
+						{
+							"key": "real_days",
+							"title": "实际出勤",
+							"type": "number"
+						},
+						{
+							"key": "gross_salary",
+							"title": "应发工资",
+							"type": "number"
+						},
+						{
+							"key": "overtime_cost",
+							"title": "加班费",
+							"type": "number"
+						},
+						{
+							"key": "free_cost",
+							"title": "放假补助",
+							"type": "number"
+						},
+						{
+							"key": "grant",
+							"title": "补助",
+							"type": "number"
+						},
+						{
+							"key": "agency_fee",
+							"title": "介绍费",
+							"type": "text"
+						},
+						{
+							"key": "other_cost",
+							"title": "其它",
+							"type": "text"
+						},
+						{
+							"key": "we_cost",
+							"title": "水电",
+							"type": "number"
+						},
+						{
+							"key": "clothes_cost",
+							"title": "工衣",
+							"type": "number"
+						},
+						{
+							"key": "earlytime_cost",
+							"title": "迟到早退",
+							"type": "number"
+						},
+						{
+							"key": "missed_cost",
+							"title": "未打卡",
+							"type": "number"
+						},
+						{
+							"key": "loan_cost",
+							"title": "借款",
+							"type": "number"
+						},
+						{
+							"key": "this_month_sb",
+							"title": "本月社保",
+							"type": "number"
+						},
+						{
+							"key": "this_month_dk",
+							"title": "本月代扣部份",
+							"type": "number"
+						},
+						{
+							"key": "dkgs",
+							"title": "代扣个税",
+							"type": "number"
+						},
+						{
+							"key": "real_salary",
+							"title": "实发工资",
+							"type": "number"
+						},
+						// {
+						// 	"key": "comment",
+						// 	"title": "备注",
+						// 	"type": "text"
+						// },
+						{
+							"key": "company_sb",
+							"title": "公司部份社保",
+							"type": "number",
+						},
+						{
+							"key": "company_gjj",
+							"title": "公司部份公积金",
+							"type": "number",
+						},
+						{
+							"key": "last_month_sb",
+							"title": "下月社保",
+							"type": "number"
+						},
+						{
+							"key": "last_month_gjj",
+							"title": "下月公积金",
+							"type": "number"
+						}
+					],
+					pageIndex: 1,
+					pageSize: 1, // 此值为-1，代表导出所有数据
+				});
+			},
+			// 导出xls表格文件（全部数据）
+			exportExcelAll() {
+				if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
+					return vk.alert(`考勤日期不能为空！`);
+				}
+				const attendance_ym = this.queryForm1.formData.attendance_ym;
+				this.$refs.table1.exportExcel({
+					fileName: attendance_ym + '月份工资条',
+					title: "正在导出数据...",
+					columns: [{
+							"key": "attendance_ym",
+							"title": "考勤日期",
+							"type": "date",
+							"dateType": "date",
+							"fixed": true,
+							"valueFormat": "yyyy-MM",
+							"format": "yyyy-MM"
+						}, {
+							"key": "total_salary",
+							"title": "综合",
+							"type": "number"
+						},
+						{
+							"key": "attendance_ym_key",
+							"title": "月份",
+							"type": "text"
+						},
+						{
+							"key": "employee_name",
+							"title": "姓名",
+							"type": "text"
+						},
+						{
+							"key": "card",
+							"title": "身份证号码",
+							"type": "text"
+						},
+						{
+							"key": "department_name",
+							"title": "任职部门",
+							"type": "text"
+						},
+						{
+							"key": "position_name",
+							"title": "岗位",
+							"type": "text"
+						},
+						{
+							"key": "hire_date",
+							"title": "入职日期",
+							"type": "number"
+						},
+						{
+							"key": "resign_date",
+							"title": "离职日期",
+							"type": "text"
+						},
+						{
+							"key": "base_salary",
+							"title": "基本工资",
+							"type": "number"
+						},
+						{
+							"key": "performance_salary",
+							"title": "绩效工资",
+							"type": "number"
+						},
+						{
+							"key": "overtime_fee",
+							"title": "固定加班",
+							"type": "number"
+						},
+						{
+							"key": "penalty_fund",
+							"title": "社保补偿金",
+							"type": "number"
+						},
+						{
+							"key": "housing_fund",
+							"title": "公积补偿金",
+							"type": "number"
+						},
+						{
+							"key": "annual_allowance",
+							"title": "年度补偿金",
+							"type": "number"
+						},
+						{
+							"key": "floating_bonus",
+							"title": "浮动奖励",
+							"type": "number"
+						},
+						{
+							"key": "confidentiality_fee",
+							"title": "保密费",
+							"type": "number"
+						},
+						{
+							"key": "work_days",
+							"title": "应勤天数",
+							"type": "number"
+						},
+						{
+							"key": "real_days",
+							"title": "实际出勤",
+							"type": "number"
+						},
+						{
+							"key": "gross_salary",
+							"title": "应发工资",
+							"type": "number"
+						},
+						{
+							"key": "overtime_cost",
+							"title": "加班费",
+							"type": "number"
+						},
+						{
+							"key": "free_cost",
+							"title": "放假补助",
+							"type": "number"
+						},
+						{
+							"key": "grant",
+							"title": "补助",
+							"type": "number"
+						},
+						{
+							"key": "agency_fee",
+							"title": "介绍费",
+							"type": "text"
+						},
+						{
+							"key": "other_cost",
+							"title": "其它",
+							"type": "text"
+						},
+						{
+							"key": "we_cost",
+							"title": "水电",
+							"type": "number"
+						},
+						{
+							"key": "clothes_cost",
+							"title": "工衣",
+							"type": "number"
+						},
+						{
+							"key": "earlytime_cost",
+							"title": "迟到早退",
+							"type": "number"
+						},
+						{
+							"key": "missed_cost",
+							"title": "未打卡",
+							"type": "number"
+						},
+						{
+							"key": "loan_cost",
+							"title": "借款",
+							"type": "number"
+						},
+						{
+							"key": "this_month_sb",
+							"title": "本月社保",
+							"type": "number"
+						},
+						{
+							"key": "this_month_dk",
+							"title": "本月代扣部份",
+							"type": "number"
+						},
+						{
+							"key": "dkgs",
+							"title": "代扣个税",
+							"type": "number"
+						},
+						{
+							"key": "real_salary",
+							"title": "实发工资",
+							"type": "number"
+						},
+						// {
+						// 	"key": "comment",
+						// 	"title": "备注",
+						// 	"type": "text"
+						// },
+						{
+							"key": "company_sb",
+							"title": "公司部份社保",
+							"type": "number",
+						},
+						{
+							"key": "company_gjj",
+							"title": "公司部份公积金",
+							"type": "number",
+						},
+						{
+							"key": "last_month_sb",
+							"title": "下月社保",
+							"type": "number"
+						},
+						{
+							"key": "last_month_gjj",
+							"title": "下月公积金",
+							"type": "number"
+						},
+						{
+							"key": "status",
+							"title": "状态",
+							"type": "number",
+							formatter: function(val, row, column, index) {
+								return row.status == 1 ? '已签名' : '未签名';
+							}
+						}
+					],
+					pageIndex: 1,
+					pageSize: -1, // 此值为-1，代表导出所有数据
+				});
+			}
+		},
+		// 监听属性
+		watch: {
+
+		},
+		// 计算属性
+		computed: {
+
+		}
+	};
+</script>
+<style lang="scss" scoped>
+	.page-body {}
+</style>

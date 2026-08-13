@@ -1,0 +1,169 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "employee_name", "card", "work_days", "real_days", "overtime_hours",
+		"earlytime_hours",
+		"missed_count"
+	],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤年月",
+			"bsonType": "date",
+			"description": "考勤年月"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"employee_name": {
+			"title": "员工姓名",
+			"bsonType": "string",
+			"description": "员工姓名",
+			"trim": "both"
+		},
+		"department_name": {
+			"title": "部门名称",
+			"bsonType": "string",
+			"description": "部门名称",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "身份证号码唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"position_name": {
+			"title": "职位名称",
+			"bsonType": "string",
+			"description": "职位名称",
+			"trim": "both"
+		},
+		"hire_date": {
+			"title": "入职日期",
+			"bsonType": "timestamp",
+			"description": "入职日期",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"resign_date": {
+			"title": "离职日期",
+			"bsonType": "string",
+			"description": "离职日期"
+		},
+		"resign_month": {
+			"title": "离职月份",
+			"bsonType": "int",
+			"description": "离职月份"
+		},
+		"work_days": {
+			"title": "全勤天数",
+			"bsonType": "int",
+			"description": "全勤天数"
+		},
+		"real_days": {
+			"title": "实际天数",
+			"bsonType": "string",
+			"description": "实际天数"
+		},
+		"overtime_hours": {
+			"title": "加班小时",
+			"bsonType": "string",
+			"description": "加班小时"
+		},
+		"earlytime_hours": {
+			"title": "迟\/早退(分)",
+			"bsonType": "int",
+			"description": "迟\/早退(分)"
+		},
+		"missed_count": {
+			"title": "未打卡(次)",
+			"bsonType": "int",
+			"description": "未打卡(次)"
+		},
+		"typhoon_duty": {
+			"title": "台风",
+			"bsonType": "string",
+			"description": "台风"
+		},
+		"spring_festival_duty": {
+			"title": "留年",
+			"bsonType": "string",
+			"description": "留年"
+		},
+		"user_confirmed": {
+			"title": "本人确认",
+			"bsonType": "string",
+			"description": "本人确认"
+		},
+		"marriage_leave": {
+			"title": "婚假",
+			"bsonType": "int"
+		},
+		"maternity_leave": {
+			"title": "产假",
+			"bsonType": "int"
+		},
+		"paternity_leave": {
+			"title": "陪产假",
+			"bsonType": "int"
+		},
+		"sick_leave": {
+			"title": "病假",
+			"bsonType": "int"
+		},
+		"emergency_leave": {
+			"title": "丧假",
+			"bsonType": "int"
+		},
+		"work_injury": {
+			"title": "工伤",
+			"bsonType": "int"
+		},
+		"allowance": {
+			"title": "补助",
+			"bsonType": "int"
+		},
+		"attendance_correction": {
+			"title": "补考勤",
+			"bsonType": "int"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "approve-handle-dialog": "/components/approve-handle-dialog/approve-handle-dialog",
+    "approve-header-detail": "/components/approve-header-detail/approve-header-detail",
+    "return-handle-dialog": "/components/return-handle-dialog/return-handle-dialog",
+    "dynamic-form-dialog": "/components/dynamic-form-dialog/dynamic-form-dialog",
+    "file-preview-dialog": "/components/file-preview-dialog/file-preview-dialog",
+    "approe-work-flow": "/components/approve-work-flow/approve-work-flow"
+  }
+}

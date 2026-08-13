@@ -1,0 +1,117 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/index",
+    "pages/login/register",
+    "pages/login/forget",
+    "pages/user/index",
+    "pages/contacts/index",
+    "pages/notice/index",
+    "pages/setting/index",
+    "pages/pwd/update-password",
+    "pages/test/test"
+  ],
+  "subPackages": [
+    {
+      "root": "pages/workflow",
+      "pages": [
+        "seal/seal"
+      ]
+    },
+    {
+      "root": "pages/customer",
+      "pages": [
+        "index",
+        "detail"
+      ]
+    },
+    {
+      "root": "pages_template",
+      "pages": [
+        "db-test/db-test",
+        "db-test/list/list",
+        "uni-id/index/index",
+        "uni-id/password/password",
+        "uni-id/mobile/mobile",
+        "uni-id/univerify/univerify",
+        "uni-id/weixin/weixin",
+        "uni-id/weixin/h5-weixin",
+        "uni-id/weixin/set-user-info",
+        "uni-id/alipay/alipay",
+        "uni-id/qq/qq",
+        "uni-id/util/util",
+        "uni-id/email/email",
+        "uni-id/login/index/index",
+        "uni-id/login/register/register",
+        "uni-id/login/forget/forget",
+        "vk-vuex/vk-vuex",
+        "openapi/weixin/weixin",
+        "openapi/weixin/msgSecCheck/msgSecCheck",
+        "openapi/weixin/imgSecCheck/imgSecCheck",
+        "openapi/weixin/sendMessage/sendMessage",
+        "openapi/baidu/baidu",
+        "openapi/qq/qq",
+        "openapi/qq/msgSecCheck/msgSecCheck",
+        "openapi/qq/imgSecCheck/imgSecCheck",
+        "openapi/douyin/douyin",
+        "openapi/douyin/msgSecCheck/msgSecCheck",
+        "openapi/douyin/imgSecCheck/imgSecCheck",
+        "openapi/alipay/alipay",
+        "uni-id/test/test",
+        "plugs/lucky-draw/lucky-draw"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7d7e80",
+    "selectedColor": "#2979ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "iconPath": "static/icon_home.png",
+        "selectedIconPath": "static/icon_home_sel.png",
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "iconPath": "static/icon_msg.png",
+        "selectedIconPath": "static/icon_msg_sel.png",
+        "pagePath": "pages/notice/index",
+        "text": "消息"
+      },
+      {
+        "iconPath": "static/icon_mailList.png",
+        "selectedIconPath": "static/icon_mailList_sel.png",
+        "pagePath": "pages/contacts/index",
+        "text": "通讯录"
+      },
+      {
+        "iconPath": "static/icon_user.png",
+        "selectedIconPath": "static/icon_user_sel.png",
+        "pagePath": "pages/user/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 180000,
+    "connectSocket": 60000,
+    "uploadFile": 6000000,
+    "downloadFile": 6000000
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "方便自动填写地址"
+    }
+  },
+  "__usePrivacyCheck__": true,
+  "usingComponents": {}
+}

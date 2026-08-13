@@ -1,0 +1,93 @@
+{
+	"bsonType": "object",
+	"required": [
+		"employee_id", "employee_name", "transfer_date", "current_company_name", "current_department_name", "current_position_name", "new_company_name", "new_department_name", "new_position_name"
+	],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"transfer_date": {
+			"title": "调动日期",
+			"bsonType": "timestamp",
+			"description": "调协日期",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"foreignKey": "hrm-employees.employee_id",
+			"description": "员工工号唯一标识，不可修改，不允许重复",
+			"trim": "both"
+		},
+		"employee_name": {
+			"title": "员工姓名",
+			"bsonType": "string",
+			"description": "员工姓名",
+			"trim": "both"
+		},
+		"current_company_name": {
+			"title": "现公司",
+			"bsonType": "string",
+			"description": "现公司",
+			"trim": "both"
+		},
+		"current_department_name": {
+			"title": "现部门",
+			"bsonType": "string",
+			"description": "现部门",
+			"trim": "both"
+		},
+		"current_position_name": {
+			"title": "现职务",
+			"bsonType": "string",
+			"description": "现职务",
+			"trim": "both"
+		},
+		"new_company_name": {
+			"title": "新公司",
+			"bsonType": "string",
+			"description": "新公司",
+			"trim": "both"
+		},
+		"new_department_name": {
+			"title": "新部门",
+			"bsonType": "string",
+			"description": "新部门",
+			"trim": "both"
+		},
+		"new_position_name": {
+			"title": "新职务",
+			"bsonType": "string",
+			"description": "新职务",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
+}

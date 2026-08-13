@@ -1,0 +1,1 @@
+<view class="app data-v-e9a01646"><block wx:if="{{r0}}"><textarea class="data-v-e9a01646" style="width:100%" value="{{a}}" bindinput="{{b}}"></textarea></block><button class="data-v-e9a01646" bindtap="{{c}}">检测文字是否违规</button><view class="data-v-e9a01646"><text class="data-v-e9a01646" space="ensp">{{d}}</text></view></view>

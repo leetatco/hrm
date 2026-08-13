@@ -1,0 +1,37 @@
+/* 文字尺寸 */
+/*文字颜色*/
+/* 边框颜色 */
+/* 图片加载中颜色 */
+page.data-v-25614e50 {
+  background-color: #f8f8f8;
+  min-height: 100vh;
+}
+
+/* list 开始 */
+.vk-list-view.data-v-25614e50 {
+  background-color: #f8f8f8;
+}
+.vk-list-view .list-view.data-v-25614e50 {
+  padding: 0rpx 0rpx 20rpx 0rpx;
+}
+.vk-list-view .list-search.data-v-25614e50 {
+  background-color: #ffffff;
+  padding: 20rpx 30rpx;
+}
+.vk-list-view .list-head-desc-text.data-v-25614e50 {
+  font-size: 28rpx;
+  color: #999;
+  padding: 20rpx 30rpx 0rpx 30rpx;
+  padding-bottom: 0;
+  line-height: 52rpx;
+  width: 100%;
+}
+.vk-list-view .list-head-text-num.data-v-25614e50 {
+  font-weight: bold;
+  color: black;
+  font-size: 26rpx;
+  margin-left: 10rpx;
+  margin-right: 10rpx;
+}
+
+/* list 结束 */

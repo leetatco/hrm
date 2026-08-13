@@ -1,0 +1,114 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"customer_id": {
+			"bsonType": "string",
+			"foreignKey": "customers._id",
+			"description": "关联客户ID"
+		},
+		"loan_type": {
+			"bsonType": "string",
+			"description": "贷款主体类型: company/actual_controller/legal_person/related_company"
+		},
+		"bank_name": {
+			"bsonType": "string",
+			"description": "贷款银行"
+		},
+		"credit_or_mortgage": {
+			"bsonType": "string",
+			"description": "信用/抵押"
+		},
+		"loan_name": {
+			"bsonType": "string",
+			"description": "贷款名称"
+		},
+		"loan_intro": {
+			"bsonType": "string",
+			"description": "贷款介绍"
+		},
+		"total_limit": {
+			"bsonType": "double",
+			"description": "总额度(万元)"
+		},
+		"credit_start_date": {
+			"bsonType": "date",
+			"description": "授信开始时间"
+		},
+		"credit_end_date": {
+			"bsonType": "date",
+			"description": "授信结束时间"
+		},
+		"loan_term": {
+			"bsonType": "string",
+			"description": "贷款期"
+		},
+		"actual_amount": {
+			"bsonType": "double",
+			"description": "实际发生额(万元)"
+		},
+		"loan_start_date": {
+			"bsonType": "date",
+			"description": "贷款开始时间"
+		},
+		"loan_end_date": {
+			"bsonType": "date",
+			"description": "贷款结束时间"
+		},
+		"annual_rate": {
+			"bsonType": "double",
+			"description": "年化利率(%)"
+		},
+		"collateral": {
+			"bsonType": "string",
+			"description": "抵押物"
+		},
+		"guarantor": {
+			"bsonType": "string",
+			"description": "担保人"
+		},
+		"is_overdue": {
+			"bsonType": "bool",
+			"description": "是否逾期"
+		},
+		"subsidy_amount": {
+			"bsonType": "double",
+			"description": "补贴额(万元)"
+		},
+		"monthly_repayment": {
+			"bsonType": "double",
+			"description": "每月还款额(万元)"
+		},
+		"other_notes": {
+			"bsonType": "string",
+			"description": "其它说明"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

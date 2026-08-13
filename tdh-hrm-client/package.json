@@ -1,0 +1,25 @@
+{
+    "id": "u-input-select",
+    "name": "u-input-select 输入候选词选择组件",
+    "displayName": "u-input-select 输入候选词选择组件",
+    "version": "0.1.2",
+    "description": "一个简单的输入+候选词选择input插件, 注意各平台不是不兼容 只是没有测试,当前插件只是因为本人用到所以开发的,目前只在微信小程序使用过.",
+    "keywords": [
+        "候选词",
+        "输入",
+        "input",
+        "select",
+        "选择"
+    ],
+    "dcloudext": {
+        "type": "component-vue",
+        "sale": {
+            "regular": {
+                "price": "0.00"
+            },
+            "sourcecode": {
+                "price": "0.00"
+            }
+        }
+    }
+}

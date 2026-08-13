@@ -1,0 +1,58 @@
+{
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"customer_id": {
+			"bsonType": "string",
+			"foreignKey": "customers._id",
+			"description": "关联客户ID"
+		},
+		"shareholder_name": {
+			"bsonType": "string",
+			"description": "股东名称"
+		},
+		"subscribed_capital": {
+			"bsonType": "double",
+			"description": "应出资(万元)"
+		},
+		"actual_capital": {
+			"bsonType": "double",
+			"description": "实际出资(万元)"
+		},
+		"ownership_ratio": {
+			"bsonType": "double",
+			"description": "占股比例(%)"
+		},
+		"relationship_desc": {
+			"bsonType": "string",
+			"description": "股东间关系说明"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

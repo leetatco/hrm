@@ -1,0 +1,75 @@
+{
+	"bsonType": "object",
+	"required": ["_id", "title", "recipients"],
+	"properties": {
+		"_id": {
+			"bsonType": "string"
+		},
+		"type": {
+			"bsonType": "string",
+			"description": "通知类型",
+			"enum": ["system", "task_assigned", "process_start", "task_resubmitted", "application_withdrawn"]
+		},
+		"title": {
+			"bsonType": "string",
+			"description": "通知标题",
+			"maxLength": 200
+		},
+		"content": {
+			"bsonType": "string",
+			"description": "通知内容",
+			"maxLength": 1000
+		},
+		"recipients": {
+			"bsonType": "array",
+			"description": "接收人列表",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"data": {
+			"bsonType": "object",
+			"description": "通知数据"
+		},
+		"read_status": {
+			"bsonType": "array",
+			"description": "阅读状态",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"user_id": {
+						"bsonType": "string",
+						"description": "用户ID"
+					},
+					"status": {
+						"bsonType": "string",
+						"description": "阅读状态",
+						"enum": ["unread", "read"]
+					},
+					"read_time": {
+						"bsonType": "timestamp",
+						"description": "阅读时间"
+					}
+				}
+			}
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	}
+}

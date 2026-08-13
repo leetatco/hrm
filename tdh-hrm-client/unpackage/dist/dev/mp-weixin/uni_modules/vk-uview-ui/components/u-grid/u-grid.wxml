@@ -1,0 +1,1 @@
+<view class="{{['u-grid', 'data-v-897c440a', a && 'u-border-top u-border-left']}}" style="{{b}}"><slot/></view>

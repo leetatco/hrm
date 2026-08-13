@@ -1,0 +1,36 @@
+[
+  {
+    "_id": "tax_2023_vat",
+    "customer_id": "test_customer_001",
+    "year": 2023,
+    "tax_type": "增值税",
+    "tax_rate": "13%",
+    "tax_paid": 85.6,
+    "is_overdue": false,
+    "is_tax_refund": false,
+    "estimated_next_year": 95,
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  },
+  {
+    "_id": "tax_2023_cit",
+    "customer_id": "test_customer_001",
+    "year": 2023,
+    "tax_type": "企业所得税",
+    "tax_rate": "15%",
+    "tax_paid": 62.3,
+    "is_overdue": false,
+    "is_tax_refund": true,
+    "estimated_next_year": 70,
+    "create_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    },
+    "update_time": {
+      "$date": "2025-03-20T00:00:00Z"
+    }
+  }
+]
