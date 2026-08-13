@@ -600,7 +600,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       bottom: 0
     })
   }, {
-    y: common_vendor.sr("toast", "5efb8b87-2")
+    y: common_vendor.sr("toast", "9ee76dc8-2")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

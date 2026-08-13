@@ -39,8 +39,7 @@
 		{
 			"path": "pages/notice/index",
 			"style": {
-				"navigationBarTitleText": "消息",
-				"navigationStyle": "custom"				
+				"navigationBarTitleText": "消息"	
 			}
 		},
 		{

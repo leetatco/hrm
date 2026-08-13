@@ -14,19 +14,14 @@
 					<view class="filter-tags">
 						<u-tag v-for="tag in filterTags" :key="tag.value" :text="tag.label"
 							:type="activeFilter === tag.value ? 'primary' : 'info'" size="default"
-							:plain="activeFilter !== tag.value" @click="changeFilter(tag.value)" class="filter-tag"></u-tag>
+							:plain="activeFilter !== tag.value" @click="changeFilter(tag.value)"
+							class="filter-tag"></u-tag>
 					</view>
 				</view>
-				
+
 				<view class="action-buttons">
-					<u-button 
-						type="primary" 
-						size="mini" 
-						shape="circle" 
-						:disabled="unreadCount === 0" 
-						@click="markAllAsRead"
-						class="mark-all-btn"
-					>
+					<u-button type="primary" size="mini" shape="circle" :disabled="unreadCount === 0"
+						@click="markAllAsRead" class="mark-all-btn">
 						<u-icon name="checkmark-circle" size="16" color="#ffffff"></u-icon>
 						<text class="btn-text">全部标记已读</text>
 					</u-button>
@@ -123,7 +118,7 @@
 		<!-- 底部导航栏 -->
 		<view class="bottom-tabbar">
 			<u-tabbar :list="tabbar" :before-switch="beforeTabSwitch" icon-size="50" border-top></u-tabbar>
-		</view>	
+		</view>
 
 		<!-- 加载动画 -->
 		<u-loading-page :loading="pageLoading" bgColor="#f5f5f5"></u-loading-page>
@@ -167,7 +162,7 @@
 					total: 0
 				},
 				hasMore: true,
-				loadmoreStatus: 'loadmore',				
+				loadmoreStatus: 'loadmore',
 
 				// 错误信息
 				errorMessage: '',
@@ -247,7 +242,7 @@
 			// 显示更多操作
 			showMoreAction() {
 				this.showActionSheet = true;
-			},			
+			},
 
 			// 跳转到设置
 			goToSetting() {
@@ -306,31 +301,31 @@
 
 			// 获取类型文本
 			getTypeText(type) {
-			    const map = {
-			        // 系统类
-			        'system': '',                    // 系统通知不显示标签（简洁）
-			        'announce': '公告',
-			        'remind': '提醒',
-			
-			        // 流程任务类
-			        'task_assigned': '新任务',
+				const map = {
+					// 系统类
+					'system': '', // 系统通知不显示标签（简洁）
+					'announce': '公告',
+					'remind': '提醒',
+
+					// 流程任务类
+					'task_assigned': '新任务',
 					'task_resubmitted': '新重新提交任务',
-			        'process_end': '流程结束',
-			
-			        // 操作类（与审批记录保持一致）
-			        'approve': '同意',
-			        'reject': '驳回',
-			        'return': '退回',
-			        'transfer': '转办',
-			        'add_sign': '加签',
-			        'add_sign_complete': '加签完成',
-			        'confirm': '确认',
-			        'resubmit': '重新提交',
-			        'withdraw': '撤回',
-			        'create': '创建',
-			        'complete': '完成'
-			    };
-			    return map[type] !== undefined ? map[type] : type;
+					'process_end': '流程结束',
+
+					// 操作类（与审批记录保持一致）
+					'approve': '同意',
+					'reject': '驳回',
+					'return': '退回',
+					'transfer': '转办',
+					'add_sign': '加签',
+					'add_sign_complete': '加签完成',
+					'confirm': '确认',
+					'resubmit': '重新提交',
+					'withdraw': '撤回',
+					'create': '创建',
+					'complete': '完成'
+				};
+				return map[type] !== undefined ? map[type] : type;
 			},
 
 			// 获取短内容
@@ -616,82 +611,128 @@
 <style lang="scss" scoped>
 	.container {
 		min-height: 100vh;
-		background-color: #f5f5f5;
+		background: linear-gradient(180deg, #f5f9ff 0%, #f0f4fa 100%);
 		padding-bottom: 120rpx;
 		box-sizing: border-box;
 	}
 
+	/* ========== 筛选区域 ========== */
 	.filter-section {
-		margin-top: 150rpx;
-		background-color: #ffffff;
-		padding: 30rpx;
-		
+		background: linear-gradient(160deg, #ffffff 0%, #f8fbff 100%);
+		padding: 24rpx 30rpx;
+		border-bottom-left-radius: 24rpx;
+		border-bottom-right-radius: 24rpx;
+		box-shadow: 0 6rpx 30rpx rgba(180, 210, 240, 0.15);
+		margin-bottom: 4rpx;
+
 		.search-box {
-			margin-bottom: 30rpx;
+			margin-bottom: 24rpx;
+
+			::v-deep .u-search {
+				background: rgba(255, 255, 255, 0.8) !important;
+				border-radius: 40rpx !important;
+				box-shadow: 0 4rpx 16rpx rgba(180, 210, 240, 0.2);
+				backdrop-filter: blur(10rpx);
+				-webkit-backdrop-filter: blur(10rpx);
+
+				.u-search__content {
+					background: transparent !important;
+				}
+
+				.u-search__content__input {
+					font-size: 28rpx;
+					color: #333;
+				}
+
+				.u-search__content__icon {
+					color: #999;
+				}
+			}
 		}
-		
+
 		.filter-row {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			flex-wrap: nowrap; /* 确保不换行 */
+			flex-wrap: nowrap;
 			white-space: nowrap;
 			width: 100%;
-			
+
 			.filter-tags-container {
 				flex: 1;
-				overflow: hidden; /* 隐藏溢出内容 */
-				min-width: 0; /* 允许flex容器收缩 */
+				overflow: hidden;
+				min-width: 0;
 			}
-			
+
 			.filter-tags {
 				display: flex;
-				flex-wrap: nowrap; /* 确保标签不换行 */
+				flex-wrap: nowrap;
 				white-space: nowrap;
-				overflow-x: auto; /* 如果需要可以横向滚动 */
-				padding-bottom: 4rpx; /* 为滚动条留空间 */
-				
-				/* 隐藏滚动条，但保留滚动功能 */
+				overflow-x: auto;
+				padding-bottom: 4rpx;
+
 				&::-webkit-scrollbar {
 					display: none;
 				}
-				
+
 				.filter-tag {
-					flex-shrink: 0; /* 防止标签被压缩 */
+					flex-shrink: 0;
 					margin-right: 20rpx;
-					
+
 					&:last-child {
 						margin-right: 0;
 					}
-					
+
 					::v-deep .u-tag {
-						padding: 12rpx 30rpx;
+						padding: 8rpx 28rpx;
 						border-radius: 30rpx;
 						white-space: nowrap;
+						font-size: 26rpx;
+						transition: all 0.2s;
+					}
+
+					/* 选中态更柔和 */
+					::v-deep .u-tag--primary {
+						background: #e8f1ff !important;
+						color: #2979ff !important;
+						border-color: #c9ddff !important;
+					}
+
+					/* 未选中态 */
+					::v-deep .u-tag--info {
+						background: #f2f5f9 !important;
+						color: #7a8a9f !important;
+						border-color: #e4e9f0 !important;
 					}
 				}
 			}
-			
+
 			.action-buttons {
-				flex-shrink: 0; /* 防止按钮被压缩 */
+				flex-shrink: 0;
 				margin-left: 20rpx;
-				min-width: 140rpx; /* 给按钮一个最小宽度 */
-				
+				min-width: 140rpx;
+
 				.mark-all-btn {
 					::v-deep .u-button {
-						height: 60rpx;
+						height: 56rpx;
 						font-size: 24rpx;
-						padding: 0 20rpx;
+						padding: 0 22rpx;
 						white-space: nowrap;
-						
+						border-radius: 28rpx;
+						background: #2979ff;
+						color: #fff;
+						box-shadow: 0 4rpx 12rpx rgba(41, 121, 255, 0.3);
+						transition: all 0.2s;
+
 						&[disabled] {
-							background-color: #c8c9cc !important;
-							color: #ffffff !important;
-							border-color: #c8c9cc !important;
+							background: #c8d6e8 !important;
+							color: #fff !important;
+							border-color: #c8d6e8 !important;
 							opacity: 0.6;
+							box-shadow: none;
 						}
 					}
-					
+
 					.btn-text {
 						margin-left: 8rpx;
 					}
@@ -700,6 +741,7 @@
 		}
 	}
 
+	/* ========== 通知列表 ========== */
 	.notice-list {
 		height: calc(100vh - 240rpx);
 	}
@@ -718,44 +760,64 @@
 		.empty-tips {
 			margin-top: 30rpx;
 			font-size: 26rpx;
-			color: #999999;
+			color: #a0b0c0;
 			text-align: center;
 		}
 	}
 
 	.notice-items {
-		padding: 30rpx;
+		padding: 28rpx 30rpx;
 	}
 
 	.notice-item {
 		display: flex;
 		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 30rpx;
+		border-radius: 20rpx;
+		padding: 28rpx 26rpx;
 		margin-bottom: 20rpx;
-		box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+		box-shadow: 0 4rpx 16rpx rgba(180, 210, 240, 0.12);
+		transition: all 0.2s;
 
 		&:active {
-			background-color: #f9f9f9;
+			background-color: #fafcff;
+			transform: translateY(2rpx);
+			box-shadow: 0 2rpx 8rpx rgba(180, 210, 240, 0.15);
 		}
 
 		&.unread {
-			border-left: 8rpx solid #2979ff;
-			background-color: #f0f8ff;
+			background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+			border-left: 6rpx solid #2979ff;
+			/* 改用渐变左边框效果 */
+			position: relative;
+
+			&::before {
+				content: '';
+				position: absolute;
+				left: 0;
+				top: 0;
+				bottom: 0;
+				width: 6rpx;
+				background: linear-gradient(180deg, #5a9cff, #2979ff);
+				border-radius: 6rpx 0 0 6rpx;
+			}
 
 			&:active {
-				background-color: #e8f2ff;
+				background: linear-gradient(135deg, #f5faff 0%, #e8f2ff 100%);
 			}
 		}
 
 		.notice-status {
 			margin-right: 20rpx;
+			display: flex;
+			align-items: flex-start;
+			padding-top: 6rpx;
 
 			.unread-dot {
 				width: 20rpx;
 				height: 20rpx;
 				border-radius: 50%;
-				background-color: #2979ff;
+				background: #2979ff;
+				box-shadow: 0 0 0 4rpx rgba(41, 121, 255, 0.15);
 			}
 		}
 
@@ -766,13 +828,13 @@
 				display: flex;
 				justify-content: space-between;
 				align-items: flex-start;
-				margin-bottom: 20rpx;
+				margin-bottom: 16rpx;
 
 				.notice-title {
 					flex: 1;
 					font-size: 32rpx;
-					font-weight: bold;
-					color: #333333;
+					font-weight: 600;
+					color: #2a3441;
 					line-height: 1.4;
 					margin-right: 20rpx;
 				}
@@ -781,23 +843,25 @@
 					display: flex;
 					flex-wrap: wrap;
 					gap: 10rpx;
+					align-items: center;
 
 					.priority-badge {
-						background-color: #f56c6c;
-						color: #ffffff;
+						background: #f56c6c;
+						color: #fff;
 						font-size: 22rpx;
 						padding: 4rpx 12rpx;
 						border-radius: 12rpx;
+						box-shadow: 0 2rpx 8rpx rgba(245, 108, 108, 0.3);
 					}
 				}
 			}
 
 			.notice-body {
-				margin-bottom: 20rpx;
+				margin-bottom: 16rpx;
 
 				.notice-text {
 					font-size: 28rpx;
-					color: #666666;
+					color: #5a6b7d;
 					line-height: 1.5;
 				}
 			}
@@ -806,7 +870,7 @@
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				margin-bottom: 20rpx;
+				margin-bottom: 16rpx;
 
 				.notice-time {
 					display: flex;
@@ -815,14 +879,14 @@
 					.time-text {
 						margin-left: 8rpx;
 						font-size: 24rpx;
-						color: #999999;
+						color: #a0b0c0;
 					}
 				}
 
 				.notice-sender {
 					.sender-text {
 						font-size: 24rpx;
-						color: #999999;
+						color: #a0b0c0;
 					}
 				}
 			}
@@ -836,6 +900,15 @@
 						padding: 0 24rpx;
 						height: 50rpx;
 						line-height: 50rpx;
+						border-radius: 25rpx;
+						background: #e8f1ff;
+						color: #2979ff;
+						border: 1rpx solid #c9ddff;
+						font-size: 24rpx;
+
+						&:active {
+							background: #d4e5ff;
+						}
 					}
 				}
 			}
@@ -844,12 +917,12 @@
 
 	.load-more,
 	.no-more {
-		padding: 30rpx 0;
+		padding: 28rpx 0;
 		text-align: center;
 
 		.no-more-text {
 			font-size: 26rpx;
-			color: #999999;
+			color: #a0b0c0;
 		}
 	}
 
@@ -861,25 +934,24 @@
 		z-index: 999;
 	}
 
-	// 响应式调整 - 确保在小屏幕上也保持一行布局
+	/* ========== 响应式调整 ========== */
 	@media (max-width: 750px) {
 		.filter-section {
-			padding: 20rpx;
-			
+			padding: 20rpx 24rpx;
+
 			.filter-row {
-				/* 在小屏幕上，如果空间不足，筛选标签可以横向滚动 */
 				.filter-tags {
 					overflow-x: auto;
-					
+
 					.filter-tag {
 						margin-right: 15rpx;
 					}
 				}
-				
+
 				.action-buttons {
 					margin-left: 15rpx;
 					min-width: 130rpx;
-					
+
 					.mark-all-btn {
 						::v-deep .u-button {
 							padding: 0 15rpx;
@@ -891,11 +963,11 @@
 		}
 
 		.notice-items {
-			padding: 20rpx;
+			padding: 20rpx 24rpx;
 		}
 
 		.notice-item {
-			padding: 20rpx;
+			padding: 22rpx 20rpx;
 
 			.notice-content {
 				.notice-header {

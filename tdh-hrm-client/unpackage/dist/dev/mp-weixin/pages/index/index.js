@@ -25,7 +25,6 @@ const _sfc_main = {
         content: "",
         publish_date: ""
       },
-      // 颜色池（用于占位图标）
       colorPool: ["#2979ff", "#19be6b", "#ff9900", "#e74c3c", "#9b59b6", "#1abc9c", "#e67e22", "#3498db"],
       quickList: [
         {
@@ -88,7 +87,6 @@ const _sfc_main = {
     hasLogin() {
       return !!vk.getVuex("$user.userInfo.username");
     },
-    // 只显示前8个功能
     displayMenuList() {
       return this.menuList.slice(0, 8);
     }
@@ -119,7 +117,6 @@ const _sfc_main = {
     }, 1e3);
   },
   methods: {
-    // -------- 数据加载 --------
     async loadSwiperList() {
       try {
         const res = await this.vk.callFunction({
@@ -136,7 +133,7 @@ const _sfc_main = {
           }));
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:321", "加载轮播图失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:311", "加载轮播图失败:", error);
       }
     },
     async loadMenuList() {
@@ -155,11 +152,10 @@ const _sfc_main = {
           this.menuList = res.rows.map((item) => ({
             ...item,
             _imgLoaded: true
-            // 标记图片加载状态
           }));
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:344", "加载常用功能失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:334", "加载常用功能失败:", error);
       }
     },
     async loadNoticeList() {
@@ -177,7 +173,7 @@ const _sfc_main = {
           this.noticeList = res.rows;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:361", "加载通知失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:351", "加载通知失败:", error);
       }
     },
     async loadUnreadCount() {
@@ -196,29 +192,26 @@ const _sfc_main = {
           this.tabbar[1].count = res.data.count || 0;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:379", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:369", "加载未读数量失败:", error);
       }
     },
     loadUserInfo() {
       try {
         this.userInfo = vk.getVuex("$user.userInfo") || {};
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:386", "加载用户信息失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:376", "加载用户信息失败:", error);
       }
     },
     refreshData() {
-      common_vendor.index.__f__("log", "at pages/index/index.vue:390", "刷新数据");
+      common_vendor.index.__f__("log", "at pages/index/index.vue:380", "刷新数据");
     },
-    // -------- 图标颜色 --------
     getColor(index) {
       return this.colorPool[index % this.colorPool.length];
     },
-    // -------- 图片加载失败处理 --------
     onIconError(event, item) {
       item._imgLoaded = false;
       this.$forceUpdate();
     },
-    // -------- 交互事件 --------
     getGreeting() {
       const hour = (/* @__PURE__ */ new Date()).getHours();
       if (hour < 9)
@@ -345,25 +338,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     c: common_vendor.t($data.userInfo.nickname || "欢迎回来"),
     d: common_vendor.t($options.getGreeting()),
-    e: common_vendor.p({
-      name: "grid",
-      size: "24",
-      color: "#4a4a6a"
-    }),
-    f: common_vendor.t($options.departMentName),
-    g: $options.hasLogin
+    e: $options.hasLogin
   }, $options.hasLogin ? {
-    h: common_vendor.p({
+    f: common_vendor.p({
       name: "search",
       size: "32",
       color: "#999"
     }),
-    i: common_vendor.o((...args) => $options.onSearch && $options.onSearch(...args), "88")
+    g: common_vendor.o((...args) => $options.onSearch && $options.onSearch(...args), "03")
   } : {}, {
-    j: $options.hasLogin
+    h: $options.hasLogin
   }, $options.hasLogin ? {
-    k: common_vendor.o($options.onSwiperClick, "80"),
-    l: common_vendor.p({
+    i: common_vendor.o($options.onSwiperClick, "cd"),
+    j: common_vendor.p({
       list: $data.swiperList.length ? $data.swiperList : $data.defaultSwiper,
       height: "300",
       ["indicator-pos"]: "bottomCenter",
@@ -375,8 +362,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       radius: "20"
     })
   } : {}, {
-    m: common_vendor.o((...args) => $options.viewAllFunctions && $options.viewAllFunctions(...args), "38"),
-    n: common_vendor.f($options.displayMenuList, (item, index, i0) => {
+    k: common_vendor.o((...args) => $options.viewAllFunctions && $options.viewAllFunctions(...args), "c8"),
+    l: common_vendor.f($options.displayMenuList, (item, index, i0) => {
       return common_vendor.e({
         a: item.imgUrl && item._imgLoaded !== false
       }, item.imgUrl && item._imgLoaded !== false ? {
@@ -389,7 +376,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         f: common_vendor.t(item.name),
         g: item.badge
       }, item.badge ? {
-        h: "1cf27b2a-6-" + i0 + "," + ("1cf27b2a-5-" + i0),
+        h: "1cf27b2a-5-" + i0 + "," + ("1cf27b2a-4-" + i0),
         i: common_vendor.p({
           value: item.badge,
           offset: [-5, -5],
@@ -398,19 +385,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       } : {}, {
         j: index,
         k: common_vendor.o(($event) => $options.goToPage(item), index),
-        l: "1cf27b2a-5-" + i0 + ",1cf27b2a-4"
+        l: "1cf27b2a-4-" + i0 + ",1cf27b2a-3"
       });
     }),
-    o: common_vendor.p({
+    m: common_vendor.p({
       col: 4,
       border: false,
       gap: 10
     }),
-    p: $options.hasLogin
+    n: $options.hasLogin
   }, $options.hasLogin ? {
-    q: common_vendor.o((...args) => $options.viewAllNotices && $options.viewAllNotices(...args), "53"),
-    r: common_vendor.o($options.onNoticeClick, "8b"),
-    s: common_vendor.p({
+    o: common_vendor.o((...args) => $options.viewAllNotices && $options.viewAllNotices(...args), "6e"),
+    p: common_vendor.o($options.onNoticeClick, "75"),
+    q: common_vendor.p({
       list: $data.noticeList.map((item) => item.title),
       duration: 4e3,
       ["is-circular"]: false,
@@ -418,16 +405,16 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#ff9900",
       mode: "vertical"
     }),
-    t: common_vendor.t($data.currentNotice.title || "暂无通知"),
-    v: common_vendor.t($data.currentNotice.publish_date ? _ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "MM-dd") : ""),
-    w: $data.currentNotice.content || "暂无内容",
-    x: common_vendor.o(($event) => $options.showDetail($data.currentNotice), "63")
+    r: common_vendor.t($data.currentNotice.title || "暂无通知"),
+    s: common_vendor.t($data.currentNotice.publish_date ? _ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "MM-dd") : ""),
+    t: $data.currentNotice.content || "暂无内容",
+    v: common_vendor.o(($event) => $options.showDetail($data.currentNotice), "fd")
   } : {}, {
-    y: $options.hasLogin
+    w: $options.hasLogin
   }, $options.hasLogin ? {
-    z: common_vendor.f($data.quickList, (item, index, i0) => {
+    x: common_vendor.f($data.quickList, (item, index, i0) => {
       return {
-        a: "1cf27b2a-8-" + i0,
+        a: "1cf27b2a-7-" + i0,
         b: common_vendor.p({
           name: item.icon,
           size: "36",
@@ -440,19 +427,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    A: $options.hasLogin
+    y: $options.hasLogin
   }, $options.hasLogin ? common_vendor.e({
-    B: common_vendor.t($data.currentNotice.title),
-    C: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
-    D: $data.currentNotice.publisher_name
+    z: common_vendor.t($data.currentNotice.title),
+    A: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
+    B: $data.currentNotice.publisher_name
   }, $data.currentNotice.publisher_name ? {
-    E: common_vendor.t($data.currentNotice.publisher_name)
+    C: common_vendor.t($data.currentNotice.publisher_name)
   } : {}, {
-    F: common_vendor.p({
+    D: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    G: common_vendor.o(($event) => $data.showDetailPopup = $event, "51"),
-    H: common_vendor.p({
+    E: common_vendor.o(($event) => $data.showDetailPopup = $event, "03"),
+    F: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
       ["mask-close-able"]: true,
@@ -461,18 +448,18 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       modelValue: $data.showDetailPopup
     })
   }) : {}) : {
-    I: common_vendor.f(8, (i, k0, i0) => {
+    G: common_vendor.f(8, (i, k0, i0) => {
       return {
         a: i
       };
     }),
-    J: common_vendor.f(4, (i, k0, i0) => {
+    H: common_vendor.f(4, (i, k0, i0) => {
       return {
         a: i
       };
     })
   }, {
-    K: common_vendor.p({
+    I: common_vendor.p({
       list: $data.tabbar,
       ["before-switch"]: $options.beforeTabSwitch,
       ["icon-size"]: "48",

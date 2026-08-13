@@ -259,7 +259,7 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/notice/index.vue:441", "加载通知失败:", error);
+        common_vendor.index.__f__("error", "at pages/notice/index.vue:436", "加载通知失败:", error);
         common_vendor.index.showToast({
           title: "加载失败，请重试",
           icon: "none"
@@ -284,7 +284,7 @@ const _sfc_main = {
           this.tabbar[1].count = res.data.count || 0;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/notice/index.vue:468", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/notice/index.vue:463", "加载未读数量失败:", error);
       }
     },
     // 查看通知详情
@@ -330,7 +330,7 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/notice/index.vue:524", "标记为已读失败:", error);
+        common_vendor.index.__f__("error", "at pages/notice/index.vue:519", "标记为已读失败:", error);
         common_vendor.index.showToast({
           title: "操作失败",
           icon: "none"
@@ -377,7 +377,7 @@ const _sfc_main = {
                 });
               }
             } catch (error) {
-              common_vendor.index.__f__("error", "at pages/notice/index.vue:576", "全部标记为已读失败:", error);
+              common_vendor.index.__f__("error", "at pages/notice/index.vue:571", "全部标记为已读失败:", error);
               common_vendor.index.showToast({
                 title: "操作失败",
                 icon: "none"
@@ -437,9 +437,9 @@ if (!Math) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o($options.handleSearch, "6d"),
-    b: common_vendor.o($options.handleClearSearch, "32"),
-    c: common_vendor.o(($event) => $data.searchKeyword = $event, "ef"),
+    a: common_vendor.o($options.handleSearch, "e5"),
+    b: common_vendor.o($options.handleClearSearch, "1c"),
+    c: common_vendor.o(($event) => $data.searchKeyword = $event, "eb"),
     d: common_vendor.p({
       placeholder: "搜索内容",
       shape: "round",
@@ -466,14 +466,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "16",
       color: "#ffffff"
     }),
-    g: common_vendor.o($options.markAllAsRead, "cf"),
+    g: common_vendor.o($options.markAllAsRead, "3b"),
     h: common_vendor.p({
       type: "primary",
       size: "mini",
       shape: "circle",
       disabled: $data.unreadCount === 0
     }),
-    i: common_vendor.o($options.onRefresh, "6b"),
+    i: common_vendor.o($options.onRefresh, "22"),
     j: common_vendor.p({
       ["refresher-triggered"]: $data.refreshing
     }),
@@ -565,8 +565,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : $data.notices.length > 0 ? {} : {}, {
     t: $data.notices.length > 0,
     v: $data.refreshing,
-    w: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "79"),
-    x: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args), "fe"),
+    w: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "aa"),
+    x: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args), "77"),
     y: common_vendor.p({
       list: $data.tabbar,
       ["before-switch"]: $options.beforeTabSwitch,

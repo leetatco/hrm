@@ -241,13 +241,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     n: common_vendor.f($data.clocks, (item, index, i0) => {
       var _a;
       return common_vendor.e({
-        a: "1a0765fa-5-" + i0,
+        a: "58f97be4-5-" + i0,
         b: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date(item.clockintime), "hh:mm")),
         c: common_vendor.t(item.type),
         d: common_vendor.n($options.getTypeClass(item.type)),
         e: item.img && item.img.url
       }, item.img && item.img.url ? {
-        f: "1a0765fa-6-" + i0,
+        f: "58f97be4-6-" + i0,
         g: common_vendor.o(($event) => item.img = $event, index),
         h: common_vendor.p({
           fileMediatype: "image",
@@ -260,7 +260,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       } : {}, {
         i: item.wifis
       }, item.wifis ? {
-        j: "1a0765fa-7-" + i0,
+        j: "58f97be4-7-" + i0,
         k: common_vendor.p({
           name: "wifi",
           size: "28",
@@ -268,11 +268,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         }),
         l: common_vendor.t(item.wifis.ssid)
       } : {}, {
-        m: "1a0765fa-8-" + i0,
+        m: "58f97be4-8-" + i0,
         n: common_vendor.t(item.bssid || "未获取"),
-        o: "1a0765fa-9-" + i0,
+        o: "58f97be4-9-" + i0,
         p: common_vendor.t(((_a = item.employeeInfo) == null ? void 0 : _a.employee_name) || ""),
-        q: "1a0765fa-10-" + i0,
+        q: "58f97be4-10-" + i0,
         r: common_vendor.t(item.remark),
         s: !(item.img && item.img.url) ? 1 : "",
         t: index
