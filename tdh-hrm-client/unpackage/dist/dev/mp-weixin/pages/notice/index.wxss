@@ -9,20 +9,73 @@
   box-sizing: border-box;
 }
 
-/* ========== 筛选区域 ========== */
+/* ========== 筛选区域（小清新表头） ========== */
 .filter-section.data-v-a41149ed {
-  background: linear-gradient(160deg, #ffffff 0%, #f8fbff 100%);
+  position: relative;
+  overflow: hidden;
   padding: 24rpx 30rpx;
   border-bottom-left-radius: 24rpx;
   border-bottom-right-radius: 24rpx;
   box-shadow: 0 6rpx 30rpx rgba(180, 210, 240, 0.15);
   margin-bottom: 4rpx;
+  /* 多层背景：主渐变 + 圆点纹理 */
+  background: radial-gradient(circle at 15% 30%, rgba(255, 255, 255, 0.7) 0%, transparent 30%), radial-gradient(circle at 85% 70%, rgba(255, 255, 255, 0.5) 0%, transparent 25%), radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 40%), linear-gradient(160deg, #ffffff 0%, #eaf6ff 30%, #fff0f6 60%, #f0fdf4 100%);
+}
+
+/* 装饰光晕 1（左上角，天空蓝） */
+.filter-section.data-v-a41149ed::before {
+  content: "";
+  position: absolute;
+  top: -80rpx;
+  right: -60rpx;
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(135, 206, 250, 0.3) 0%, rgba(135, 206, 250, 0.1) 40%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: floatGlow-a41149ed 6s ease-in-out infinite;
+}
+
+/* 装饰光晕 2（右下角，薄荷绿） */
+.filter-section.data-v-a41149ed::after {
+  content: "";
+  position: absolute;
+  bottom: -60rpx;
+  left: -40rpx;
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(144, 238, 144, 0.3) 0%, rgba(144, 238, 144, 0.1) 45%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: floatGlow-a41149ed 8s ease-in-out infinite reverse;
+}
+
+/* 确保内容在光晕之上（修改：针对具体子元素，避免通配符） */
+.filter-section .search-box.data-v-a41149ed,
+.filter-section .filter-row.data-v-a41149ed {
+  position: relative;
+  z-index: 1;
+}
+
+/* 光晕浮动动画 */
+@keyframes floatGlow-a41149ed {
+0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.8;
+}
+50% {
+    transform: translate(8rpx, -12rpx) scale(1.03);
+    opacity: 1;
+}
 }
 .filter-section .search-box.data-v-a41149ed {
+  margin-top: 150rpx;
   margin-bottom: 24rpx;
 }
 .filter-section .search-box.data-v-a41149ed .u-search {
-  background: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
   border-radius: 40rpx !important;
   box-shadow: 0 4rpx 16rpx rgba(180, 210, 240, 0.2);
   backdrop-filter: blur(10rpx);

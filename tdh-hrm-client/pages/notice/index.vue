@@ -616,126 +616,184 @@
 		box-sizing: border-box;
 	}
 
-	/* ========== 筛选区域 ========== */
-	.filter-section {
-		background: linear-gradient(160deg, #ffffff 0%, #f8fbff 100%);
+	/* ========== 筛选区域（小清新表头） ========== */
+	.filter-section {		
+		position: relative;
+		overflow: hidden;
 		padding: 24rpx 30rpx;
 		border-bottom-left-radius: 24rpx;
 		border-bottom-right-radius: 24rpx;
 		box-shadow: 0 6rpx 30rpx rgba(180, 210, 240, 0.15);
 		margin-bottom: 4rpx;
+		
+		/* 多层背景：主渐变 + 圆点纹理 */
+		background:
+			radial-gradient(circle at 15% 30%, rgba(255, 255, 255, 0.7) 0%, transparent 30%),
+			radial-gradient(circle at 85% 70%, rgba(255, 255, 255, 0.5) 0%, transparent 25%),
+			radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 40%),
+			linear-gradient(160deg, #ffffff 0%, #eaf6ff 30%, #fff0f6 60%, #f0fdf4 100%);
+	}
 
-		.search-box {
-			margin-bottom: 24rpx;
+	/* 装饰光晕 1（左上角，天空蓝） */
+	.filter-section::before {
+		content: '';
+		position: absolute;
+		top: -80rpx;
+		right: -60rpx;
+		width: 280rpx;
+		height: 280rpx;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(135, 206, 250, 0.3) 0%, rgba(135, 206, 250, 0.1) 40%, transparent 70%);
+		pointer-events: none;
+		z-index: 0;
+		animation: floatGlow 6s ease-in-out infinite;
+	}
 
-			::v-deep .u-search {
-				background: rgba(255, 255, 255, 0.8) !important;
-				border-radius: 40rpx !important;
-				box-shadow: 0 4rpx 16rpx rgba(180, 210, 240, 0.2);
-				backdrop-filter: blur(10rpx);
-				-webkit-backdrop-filter: blur(10rpx);
+	/* 装饰光晕 2（右下角，薄荷绿） */
+	.filter-section::after {
+		content: '';
+		position: absolute;
+		bottom: -60rpx;
+		left: -40rpx;
+		width: 220rpx;
+		height: 220rpx;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(144, 238, 144, 0.3) 0%, rgba(144, 238, 144, 0.1) 45%, transparent 70%);
+		pointer-events: none;
+		z-index: 0;
+		animation: floatGlow 8s ease-in-out infinite reverse;		
+	}
 
-				.u-search__content {
-					background: transparent !important;
+	/* 确保内容在光晕之上（修改：针对具体子元素，避免通配符） */
+	.filter-section .search-box,
+	.filter-section .filter-row {		
+		position: relative;
+		z-index: 1;
+	}
+
+	/* 光晕浮动动画 */
+	@keyframes floatGlow {
+		0%, 100% {
+			transform: translate(0, 0) scale(1);
+			opacity: 0.8;
+		}
+		50% {
+			transform: translate(8rpx, -12rpx) scale(1.03);
+			opacity: 1;
+		}
+	}
+
+	.filter-section .search-box {
+		margin-top: 150rpx;
+		margin-bottom: 24rpx;
+
+		::v-deep .u-search {
+			background: rgba(255, 255, 255, 0.85) !important;
+			border-radius: 40rpx !important;
+			box-shadow: 0 4rpx 16rpx rgba(180, 210, 240, 0.2);
+			backdrop-filter: blur(10rpx);
+			-webkit-backdrop-filter: blur(10rpx);
+
+			.u-search__content {
+				background: transparent !important;
+			}
+
+			.u-search__content__input {
+				font-size: 28rpx;
+				color: #333;
+			}
+
+			.u-search__content__icon {
+				color: #999;
+			}
+		}
+	}
+
+	.filter-section .filter-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: nowrap;
+		white-space: nowrap;
+		width: 100%;
+
+		.filter-tags-container {
+			flex: 1;
+			overflow: hidden;
+			min-width: 0;
+		}
+
+		.filter-tags {
+			display: flex;
+			flex-wrap: nowrap;
+			white-space: nowrap;
+			overflow-x: auto;
+			padding-bottom: 4rpx;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
+
+			.filter-tag {
+				flex-shrink: 0;
+				margin-right: 20rpx;
+
+				&:last-child {
+					margin-right: 0;
 				}
 
-				.u-search__content__input {
-					font-size: 28rpx;
-					color: #333;
+				::v-deep .u-tag {
+					padding: 8rpx 28rpx;
+					border-radius: 30rpx;
+					white-space: nowrap;
+					font-size: 26rpx;
+					transition: all 0.2s;
 				}
 
-				.u-search__content__icon {
-					color: #999;
+				/* 选中态更柔和 */
+				::v-deep .u-tag--primary {
+					background: #e8f1ff !important;
+					color: #2979ff !important;
+					border-color: #c9ddff !important;
+				}
+
+				/* 未选中态 */
+				::v-deep .u-tag--info {
+					background: #f2f5f9 !important;
+					color: #7a8a9f !important;
+					border-color: #e4e9f0 !important;
 				}
 			}
 		}
 
-		.filter-row {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			flex-wrap: nowrap;
-			white-space: nowrap;
-			width: 100%;
+		.action-buttons {
+			flex-shrink: 0;
+			margin-left: 20rpx;
+			min-width: 140rpx;
 
-			.filter-tags-container {
-				flex: 1;
-				overflow: hidden;
-				min-width: 0;
-			}
+			.mark-all-btn {
+				::v-deep .u-button {
+					height: 56rpx;
+					font-size: 24rpx;
+					padding: 0 22rpx;
+					white-space: nowrap;
+					border-radius: 28rpx;
+					background: #2979ff;
+					color: #fff;
+					box-shadow: 0 4rpx 12rpx rgba(41, 121, 255, 0.3);
+					transition: all 0.2s;
 
-			.filter-tags {
-				display: flex;
-				flex-wrap: nowrap;
-				white-space: nowrap;
-				overflow-x: auto;
-				padding-bottom: 4rpx;
-
-				&::-webkit-scrollbar {
-					display: none;
-				}
-
-				.filter-tag {
-					flex-shrink: 0;
-					margin-right: 20rpx;
-
-					&:last-child {
-						margin-right: 0;
-					}
-
-					::v-deep .u-tag {
-						padding: 8rpx 28rpx;
-						border-radius: 30rpx;
-						white-space: nowrap;
-						font-size: 26rpx;
-						transition: all 0.2s;
-					}
-
-					/* 选中态更柔和 */
-					::v-deep .u-tag--primary {
-						background: #e8f1ff !important;
-						color: #2979ff !important;
-						border-color: #c9ddff !important;
-					}
-
-					/* 未选中态 */
-					::v-deep .u-tag--info {
-						background: #f2f5f9 !important;
-						color: #7a8a9f !important;
-						border-color: #e4e9f0 !important;
+					&[disabled] {
+						background: #c8d6e8 !important;
+						color: #fff !important;
+						border-color: #c8d6e8 !important;
+						opacity: 0.6;
+						box-shadow: none;
 					}
 				}
-			}
 
-			.action-buttons {
-				flex-shrink: 0;
-				margin-left: 20rpx;
-				min-width: 140rpx;
-
-				.mark-all-btn {
-					::v-deep .u-button {
-						height: 56rpx;
-						font-size: 24rpx;
-						padding: 0 22rpx;
-						white-space: nowrap;
-						border-radius: 28rpx;
-						background: #2979ff;
-						color: #fff;
-						box-shadow: 0 4rpx 12rpx rgba(41, 121, 255, 0.3);
-						transition: all 0.2s;
-
-						&[disabled] {
-							background: #c8d6e8 !important;
-							color: #fff !important;
-							border-color: #c8d6e8 !important;
-							opacity: 0.6;
-							box-shadow: none;
-						}
-					}
-
-					.btn-text {
-						margin-left: 8rpx;
-					}
+				.btn-text {
+					margin-left: 8rpx;
 				}
 			}
 		}

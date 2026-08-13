@@ -43,6 +43,12 @@ const _sfc_main = {
     }
   },
   methods: {
+    // 回到主页
+    goHome() {
+      common_vendor.index.switchTab({
+        url: "/pages/index/index"
+      });
+    },
     // 格式化日期
     formatDate(date) {
       if (!date)
@@ -99,7 +105,7 @@ const _sfc_main = {
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/opendb-notice/index.vue:134", "获取公告列表失败", e);
+        common_vendor.index.__f__("error", "at pages/opendb-notice/index.vue:154", "获取公告列表失败", e);
         common_vendor.index.showToast({
           title: "网络错误，请稍后重试",
           icon: "none"
@@ -136,83 +142,96 @@ const _sfc_main = {
 };
 if (!Array) {
   const _easycom_u_search2 = common_vendor.resolveComponent("u-search");
-  const _easycom_u_cell_item2 = common_vendor.resolveComponent("u-cell-item");
-  const _easycom_u_cell_group2 = common_vendor.resolveComponent("u-cell-group");
+  const _easycom_u_icon2 = common_vendor.resolveComponent("u-icon");
   const _easycom_u_empty2 = common_vendor.resolveComponent("u-empty");
   const _easycom_u_loadmore2 = common_vendor.resolveComponent("u-loadmore");
   const _easycom_u_parse2 = common_vendor.resolveComponent("u-parse");
   const _easycom_u_popup2 = common_vendor.resolveComponent("u-popup");
-  (_easycom_u_search2 + _easycom_u_cell_item2 + _easycom_u_cell_group2 + _easycom_u_empty2 + _easycom_u_loadmore2 + _easycom_u_parse2 + _easycom_u_popup2)();
+  (_easycom_u_search2 + _easycom_u_icon2 + _easycom_u_empty2 + _easycom_u_loadmore2 + _easycom_u_parse2 + _easycom_u_popup2)();
 }
 const _easycom_u_search = () => "../../uni_modules/vk-uview-ui/components/u-search/u-search.js";
-const _easycom_u_cell_item = () => "../../uni_modules/vk-uview-ui/components/u-cell-item/u-cell-item.js";
-const _easycom_u_cell_group = () => "../../uni_modules/vk-uview-ui/components/u-cell-group/u-cell-group.js";
+const _easycom_u_icon = () => "../../uni_modules/vk-uview-ui/components/u-icon/u-icon.js";
 const _easycom_u_empty = () => "../../uni_modules/vk-uview-ui/components/u-empty/u-empty.js";
 const _easycom_u_loadmore = () => "../../uni_modules/vk-uview-ui/components/u-loadmore/u-loadmore.js";
 const _easycom_u_parse = () => "../../uni_modules/vk-uview-ui/components/u-parse/u-parse.js";
 const _easycom_u_popup = () => "../../uni_modules/vk-uview-ui/components/u-popup/u-popup.js";
 if (!Math) {
-  (_easycom_u_search + _easycom_u_cell_item + _easycom_u_cell_group + _easycom_u_empty + _easycom_u_loadmore + _easycom_u_parse + _easycom_u_popup)();
+  (_easycom_u_search + _easycom_u_icon + _easycom_u_empty + _easycom_u_loadmore + _easycom_u_parse + _easycom_u_popup)();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o($options.handleSearch, "28"),
-    b: common_vendor.o($options.handleClear, "a8"),
-    c: common_vendor.o(($event) => $data.keyword = $event, "53"),
+    a: common_vendor.o($options.handleSearch, "f3"),
+    b: common_vendor.o($options.handleClear, "e7"),
+    c: common_vendor.o(($event) => $data.keyword = $event, "ef"),
     d: common_vendor.p({
       placeholder: "请输入公告标题",
       shape: "round",
-      ["bg-color"]: "#f5f5f5",
+      ["bg-color"]: "#ffffff",
       height: "70",
       showAction: false,
       modelValue: $data.keyword
     }),
-    e: common_vendor.f($data.noticeList, (item, k0, i0) => {
-      return {
-        a: item._id,
-        b: common_vendor.o(($event) => $options.showDetail(item), item._id),
-        c: "51646c99-2-" + i0 + ",51646c99-1",
-        d: common_vendor.p({
-          title: item.title,
-          value: $options.formatDate(item.publish_date),
-          ["is-link"]: true
-        })
-      };
+    e: $data.noticeList.length > 0
+  }, $data.noticeList.length > 0 ? {
+    f: common_vendor.f($data.noticeList, (item, k0, i0) => {
+      return common_vendor.e({
+        a: common_vendor.t(item.title),
+        b: "51646c99-1-" + i0,
+        c: common_vendor.t($options.formatDate(item.publish_date)),
+        d: item.publisher_name
+      }, item.publisher_name ? {
+        e: common_vendor.t(item.publisher_name)
+      } : {}, {
+        f: item._id,
+        g: common_vendor.o(($event) => $options.showDetail(item), item._id)
+      });
     }),
-    f: !$data.loading && $data.noticeList.length === 0
-  }, !$data.loading && $data.noticeList.length === 0 ? {
     g: common_vendor.p({
+      name: "arrow-right",
+      size: "16",
+      color: "#b0b7c3"
+    })
+  } : {}, {
+    h: !$data.loading && $data.noticeList.length === 0
+  }, !$data.loading && $data.noticeList.length === 0 ? {
+    i: common_vendor.p({
       text: "暂无公告",
       mode: "list"
     })
   } : {}, {
-    h: $data.noticeList.length > 0
+    j: $data.noticeList.length > 0
   }, $data.noticeList.length > 0 ? {
-    i: common_vendor.o($options.loadMore, "b7"),
-    j: common_vendor.p({
+    k: common_vendor.o($options.loadMore, "dd"),
+    l: common_vendor.p({
       status: $data.loadStatus,
       ["icon-type"]: $options.loadIconType
     })
   } : {}, {
-    k: common_vendor.t($data.currentNotice.title),
-    l: common_vendor.t($options.formatDate($data.currentNotice.publish_date)),
-    m: $data.currentNotice.publisher_name
+    m: common_vendor.t($data.currentNotice.title),
+    n: common_vendor.t($options.formatDate($data.currentNotice.publish_date)),
+    o: $data.currentNotice.publisher_name
   }, $data.currentNotice.publisher_name ? {
-    n: common_vendor.t($data.currentNotice.publisher_name)
+    p: common_vendor.t($data.currentNotice.publisher_name)
   } : {}, {
-    o: common_vendor.p({
+    q: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    p: common_vendor.o(($event) => $data.showDetailPopup = $event, "de"),
-    q: common_vendor.p({
+    r: common_vendor.o(($event) => $data.showDetailPopup = $event, "79"),
+    s: common_vendor.p({
       mode: "bottom",
       closeable: true,
       ["mask-close-able"]: true,
       width: "100%",
-      height: "80%",
+      height: "90%",
       ["border-radius"]: "16",
       modelValue: $data.showDetailPopup
-    })
+    }),
+    t: common_vendor.p({
+      name: "home",
+      size: "24",
+      color: "#ffffff"
+    }),
+    v: common_vendor.o((...args) => $options.goHome && $options.goHome(...args), "83")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-51646c99"]]);

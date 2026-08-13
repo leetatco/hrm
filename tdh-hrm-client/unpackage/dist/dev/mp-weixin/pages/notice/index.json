@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "消息",
+  "navigationStyle": "custom",
   "usingComponents": {
     "u-search": "../../uni_modules/vk-uview-ui/components/u-search/u-search",
     "u-tag": "../../uni_modules/vk-uview-ui/components/u-tag/u-tag",

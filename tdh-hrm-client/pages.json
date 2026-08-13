@@ -39,7 +39,8 @@
 		{
 			"path": "pages/notice/index",
 			"style": {
-				"navigationBarTitleText": "消息"	
+				"navigationBarTitleText": "消息",
+				"navigationStyle": "custom"				
 			}
 		},
 		{
@@ -51,7 +52,8 @@
 		{
 			"path": "pages/opendb-notice/index",
 			"style": {
-				"navigationBarTitleText": "公告信息"
+				"navigationBarTitleText": "公告信息",
+				"navigationStyle": "custom"	
 			}
 		},
 		{

@@ -9047,7 +9047,8 @@ const pages = [
   {
     path: "pages/notice/index",
     style: {
-      navigationBarTitleText: "消息"
+      navigationBarTitleText: "消息",
+      navigationStyle: "custom"
     }
   },
   {
@@ -9059,7 +9060,8 @@ const pages = [
   {
     path: "pages/opendb-notice/index",
     style: {
-      navigationBarTitleText: "公告信息"
+      navigationBarTitleText: "公告信息",
+      navigationStyle: "custom"
     }
   },
   {
