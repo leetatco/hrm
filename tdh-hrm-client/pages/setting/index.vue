@@ -6,7 +6,6 @@
 			<!-- 用户头像设置 -->
 			<view class="list-section">
 				<view class="list-title">个人信息</view>
-
 				<view class="avatar-item" @click="confirmCrop">
 					<text class="item-label">更改头像</text>
 					<view class="item-right">
@@ -285,7 +284,7 @@
 	.list-section {
 		background: #ffffff;
 		border-radius: 24rpx;
-		margin-bottom: 32rpx;
+		margin-bottom: 22rpx;
 		padding: 0 32rpx;
 		box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
 

@@ -9017,7 +9017,8 @@ const pages = [
   {
     path: "pages/login/index",
     style: {
-      navigationBarTitleText: "登录页面"
+      navigationBarTitleText: "登录页面",
+      navigationStyle: "custom"
     }
   },
   {

@@ -8,7 +8,6 @@ const _sfc_main = {
         border_radius: 16,
         height: "90%"
       },
-      // 功能列表
       functionList: [
         {
           icon: "order",
@@ -20,8 +19,8 @@ const _sfc_main = {
         {
           icon: "calendar",
           text: "考勤记录",
-          bgColor: "linear-gradient(135deg, #19be6b, #36cf89)"
-          // action: 'attendance'
+          bgColor: "linear-gradient(135deg, #19be6b, #36cf89)",
+          action: "attendance"
         },
         {
           icon: "file-text",
@@ -36,19 +35,12 @@ const _sfc_main = {
           action: "setting"
         }
       ],
-      avatar: "../static/txl/ico_logo_@3x.png",
       showDetailPopup: false,
-      // 详情弹窗显示状态
       currentNotice: {},
-      // 用户信息
       userInfo: {},
-      // 应用版本
       appVersion: "1.0.0",
-      // 未读通知数量
       unreadNotifications: 0,
-      // 个人资料是否完善
       profileUncompleted: false,
-      // 底部导航
       tabbar: [
         {
           iconPath: "/static/icon_home.png",
@@ -78,11 +70,9 @@ const _sfc_main = {
     };
   },
   computed: {
-    // 是否已登录
     hasLogin() {
-      return vk.getVuex("$user.userInfo.username") ? true : false;
+      return !!vk.getVuex("$user.userInfo.username");
     },
-    // 当前年份
     currentYear() {
       return (/* @__PURE__ */ new Date()).getFullYear();
     }
@@ -99,7 +89,6 @@ const _sfc_main = {
     this.loadNoticeList();
   },
   methods: {
-    //通告信息
     async loadNoticeList() {
       try {
         const res = await vk.callFunction({
@@ -113,14 +102,12 @@ const _sfc_main = {
           this.currentNotice = res.rows[0];
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:294", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:264", "加载公告失败:", error);
       }
     },
-    // 显示公告详情弹窗
     showDetail() {
       this.showDetailPopup = true;
     },
-    // 加载未读数量
     async loadUnreadCount() {
       try {
         const res = await vk.callFunction({
@@ -134,10 +121,9 @@ const _sfc_main = {
           this.userInfo.notices = this.tabbar[1].count;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:317", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:283", "加载未读数量失败:", error);
       }
     },
-    // 加载审核数量
     async loadUnApproveCount() {
       try {
         const res = await vk.callFunction({
@@ -152,10 +138,9 @@ const _sfc_main = {
           this.userInfo.tasks = res.total;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:337", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:300", "加载待办任务失败:", error);
       }
     },
-    // 加载考勤天数
     async loadAttendCount() {
       try {
         const res = await vk.callFunction({
@@ -168,24 +153,20 @@ const _sfc_main = {
           this.userInfo.attendance = res.totalDays;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:355", "加载考勤天数失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:315", "加载考勤天数失败:", error);
       }
     },
-    // 切换tab前的拦截
     beforeTabSwitch(index) {
       return true;
     },
-    // 更新用户信息
     updateUserInfo() {
       if (this.hasLogin) {
         this.userInfo = vk.getVuex("$user.userInfo") || {};
-        common_vendor.index.__f__("log", "at pages/user/index.vue:374", "用户信息:", this.userInfo);
         this.checkProfileCompletion();
       } else {
         this.userInfo = {};
       }
     },
-    // 检查资料是否完善
     checkProfileCompletion() {
       const requiredFields = ["avatar", "nickname"];
       this.profileUncompleted = requiredFields.some((field) => {
@@ -193,13 +174,10 @@ const _sfc_main = {
         return !value || value.trim() === "";
       });
     },
-    // 获取应用版本
     getAppVersion() {
     },
-    // 更新通知数量
     updateNotifications() {
     },
-    // 绑定登录
     bindLogin() {
       if (!this.hasLogin) {
         vk.navigateToLogin();
@@ -207,7 +185,6 @@ const _sfc_main = {
         this.goto("setting");
       }
     },
-    // 跳转页面
     async goto(value) {
       if (!this.hasLogin && value !== "about") {
         vk.navigateToLogin();
@@ -226,9 +203,10 @@ const _sfc_main = {
         "notification": "/pages/notice/index",
         "about": "/pages/about/index"
       };
-      vk.navigateTo(routes[value]);
+      if (routes[value]) {
+        vk.navigateTo(routes[value]);
+      }
     },
-    // 解除绑定微信
     async unbindWeixin() {
       try {
         await vk.userCenter.unbindWeixin();
@@ -237,12 +215,11 @@ const _sfc_main = {
           vk.navigateToLogin();
         });
       } catch (e) {
-        common_vendor.index.__f__("log", "at pages/user/index.vue:450", "解除绑定微信失败:", e);
+        common_vendor.index.__f__("log", "at pages/user/index.vue:375", "解除绑定微信失败:", e);
         common_vendor.index.clearStorageSync();
         vk.navigateToLogin();
       }
     },
-    // 处理功能点击
     handleFunction(item) {
       if (!this.hasLogin) {
         vk.navigateToLogin();
@@ -250,7 +227,7 @@ const _sfc_main = {
       }
       const actionMap = {
         "approval": "/pages/workflow/application-form/list",
-        "attendance": "/pages/clockin/index",
+        // 'attendance': '/pages/clockin/index',
         "document": "/pages/opendb-notice/index",
         "notice": "/pages/notice/index",
         "setting": "/pages/setting/index"
@@ -261,11 +238,9 @@ const _sfc_main = {
         });
       }
     },
-    // 反馈
     tofeedback(e) {
-      common_vendor.index.__f__("log", "at pages/user/index.vue:481", "打开反馈页面");
+      common_vendor.index.__f__("log", "at pages/user/index.vue:399", "打开客服反馈");
     },
-    // 退出登录
     logout() {
       common_vendor.index.showModal({
         title: "提示",
@@ -293,19 +268,19 @@ if (!Array) {
   const _easycom_u_avatar2 = common_vendor.resolveComponent("u-avatar");
   const _easycom_u_icon2 = common_vendor.resolveComponent("u-icon");
   const _easycom_u_badge2 = common_vendor.resolveComponent("u-badge");
-  const _easycom_u_tabbar2 = common_vendor.resolveComponent("u-tabbar");
   const _easycom_u_parse2 = common_vendor.resolveComponent("u-parse");
   const _easycom_u_popup2 = common_vendor.resolveComponent("u-popup");
-  (_component_u_status_bar + _easycom_u_avatar2 + _easycom_u_icon2 + _easycom_u_badge2 + _easycom_u_tabbar2 + _easycom_u_parse2 + _easycom_u_popup2)();
+  const _easycom_u_tabbar2 = common_vendor.resolveComponent("u-tabbar");
+  (_component_u_status_bar + _easycom_u_avatar2 + _easycom_u_icon2 + _easycom_u_badge2 + _easycom_u_parse2 + _easycom_u_popup2 + _easycom_u_tabbar2)();
 }
 const _easycom_u_avatar = () => "../../uni_modules/vk-uview-ui/components/u-avatar/u-avatar.js";
 const _easycom_u_icon = () => "../../uni_modules/vk-uview-ui/components/u-icon/u-icon.js";
 const _easycom_u_badge = () => "../../uni_modules/vk-uview-ui/components/u-badge/u-badge.js";
-const _easycom_u_tabbar = () => "../../uni_modules/vk-uview-ui/components/u-tabbar/u-tabbar.js";
 const _easycom_u_parse = () => "../../uni_modules/vk-uview-ui/components/u-parse/u-parse.js";
 const _easycom_u_popup = () => "../../uni_modules/vk-uview-ui/components/u-popup/u-popup.js";
+const _easycom_u_tabbar = () => "../../uni_modules/vk-uview-ui/components/u-tabbar/u-tabbar.js";
 if (!Math) {
-  (_easycom_u_avatar + _easycom_u_icon + _easycom_u_badge + _easycom_u_tabbar + _easycom_u_parse + _easycom_u_popup)();
+  (_easycom_u_avatar + _easycom_u_icon + _easycom_u_badge + _easycom_u_parse + _easycom_u_popup + _easycom_u_tabbar)();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -327,27 +302,27 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $options.hasLogin && $data.userInfo.position ? {
     g: common_vendor.t($data.userInfo.position)
   } : {}, {
-    h: common_vendor.o((...args) => $options.bindLogin && $options.bindLogin(...args), "54"),
-    i: $options.hasLogin
-  }, $options.hasLogin ? {
-    j: common_vendor.t($data.userInfo.attendance || 0),
-    k: common_vendor.t((/* @__PURE__ */ new Date()).getMonth() + 1),
-    l: common_vendor.t($data.userInfo.tasks || 0),
-    m: common_vendor.o(($event) => $options.handleFunction({
-      action: "approval"
-    }), "24"),
-    n: common_vendor.t($data.userInfo.notices || 0),
-    o: common_vendor.o(($event) => $options.handleFunction({
-      action: "notice"
-    }), "c1")
-  } : {}, {
-    p: !$options.hasLogin
+    h: !$options.hasLogin
   }, !$options.hasLogin ? {
-    q: common_vendor.p({
+    i: common_vendor.p({
       name: "arrow-right",
-      color: "#ffffff",
-      size: "24"
+      color: "rgba(255,255,255,0.8)",
+      size: "36"
     })
+  } : {}, {
+    j: common_vendor.o((...args) => $options.bindLogin && $options.bindLogin(...args), "28"),
+    k: $options.hasLogin
+  }, $options.hasLogin ? {
+    l: common_vendor.t($data.userInfo.attendance || 0),
+    m: common_vendor.t((/* @__PURE__ */ new Date()).getMonth() + 1),
+    n: common_vendor.t($data.userInfo.tasks || 0),
+    o: common_vendor.o(($event) => $options.handleFunction({
+      action: "approval"
+    }), "38"),
+    p: common_vendor.t($data.userInfo.notices || 0),
+    q: common_vendor.o(($event) => $options.handleFunction({
+      action: "notice"
+    }), "2f")
   } : {}, {
     r: !$options.hasLogin ? 1 : "",
     s: common_vendor.f($data.functionList, (item, index, i0) => {
@@ -385,7 +360,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    x: common_vendor.o(($event) => $options.goto("setting"), "89"),
+    x: common_vendor.o(($event) => $options.goto("setting"), "44"),
     y: common_vendor.p({
       name: "bell",
       size: "24",
@@ -404,7 +379,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    C: common_vendor.o(($event) => $options.goto("notification"), "28"),
+    C: common_vendor.o(($event) => $options.goto("notification"), "37"),
     D: common_vendor.p({
       name: "chat",
       size: "24",
@@ -415,7 +390,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    F: common_vendor.o((...args) => $options.tofeedback && $options.tofeedback(...args), "33"),
+    F: common_vendor.o((...args) => $options.tofeedback && $options.tofeedback(...args), "47"),
     G: _ctx.$hasRole("admin")
   }, _ctx.$hasRole("admin") ? {
     H: common_vendor.p({
@@ -428,7 +403,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    J: common_vendor.o(($event) => $options.goto("unbindWeixin"), "95")
+    J: common_vendor.o(($event) => $options.goto("unbindWeixin"), "df")
   } : {}, {
     K: common_vendor.p({
       name: "info-circle",
@@ -440,31 +415,34 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    M: common_vendor.o(($event) => $options.goto("about"), "15"),
-    N: common_vendor.p({
-      list: $data.tabbar,
-      ["before-switch"]: $options.beforeTabSwitch,
-      ["icon-size"]: "50",
-      ["border-top"]: true,
-      ["hide-tab-bar"]: true
-    }),
-    O: common_vendor.t($data.currentNotice.title),
-    P: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
-    Q: $data.currentNotice.publisher_name
+    M: common_vendor.o(($event) => $options.goto("about"), "5c"),
+    N: common_vendor.t($data.currentNotice.title),
+    O: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
+    P: $data.currentNotice.publisher_name
   }, $data.currentNotice.publisher_name ? {
-    R: common_vendor.t($data.currentNotice.publisher_name)
+    Q: common_vendor.t($data.currentNotice.publisher_name)
   } : {}, {
-    S: common_vendor.p({
+    R: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    T: common_vendor.o(($event) => $data.showDetailPopup = $event, "fb"),
-    U: common_vendor.p({
+    S: common_vendor.o(($event) => $data.showDetailPopup = $event, "06"),
+    T: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
       ["mask-close-able"]: true,
       height: $data.popupStyle.height,
       ["border-radius"]: $data.popupStyle.border_radius,
       modelValue: $data.showDetailPopup
+    }),
+    U: common_vendor.p({
+      list: $data.tabbar,
+      ["before-switch"]: $options.beforeTabSwitch,
+      ["icon-size"]: "48",
+      ["font-size"]: "20",
+      ["border-top"]: true,
+      ["hide-tab-bar"]: true,
+      ["active-color"]: "#2979ff",
+      ["inactive-color"]: "#999"
     })
   });
 }

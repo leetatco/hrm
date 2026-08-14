@@ -2,97 +2,155 @@
 /*文字颜色*/
 /* 边框颜色 */
 /* 图片加载中颜色 */
+/* ============================================================
+   小清新风格 - 柔和的马卡龙色系
+   ============================================================ */
 .container.data-v-d08ef7d4 {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 80rpx 60rpx 40rpx;
+  background: linear-gradient(150deg, #e8f0fe 0%, #f5e8fd 40%, #fce4ec 100%);
+  padding: 0 50rpx 40rpx;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.modal-input-wrap.data-v-d08ef7d4 {
-  padding: 40rpx;
+
+/* 状态栏占位 */
+.status-placeholder.data-v-d08ef7d4 {
+  width: 100%;
+  flex-shrink: 0;
 }
+
+/* ============================================================
+   Logo 区域（位于胶囊下方）
+   ============================================================ */
 .logo-box.data-v-d08ef7d4 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 100rpx;
+  width: 100%;
+  margin-bottom: 40rpx;
 }
-.logo-box .logo.data-v-d08ef7d4 {
-  width: 150rpx;
-  height: 150rpx;
-  border-radius: 30rpx;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.1);
-  margin-bottom: 30rpx;
+.logo-box .logo-wrapper.data-v-d08ef7d4 {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #ffffff, #f8faff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16rpx 48rpx rgba(108, 140, 255, 0.12);
+  margin-bottom: 24rpx;
+}
+.logo-box .logo-wrapper .logo.data-v-d08ef7d4 {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 24rpx;
 }
 .logo-box .app-name.data-v-d08ef7d4 {
-  font-size: 48rpx;
-  font-weight: bold;
-  color: #333;
-  letter-spacing: 4rpx;
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #4a4a6a;
+  letter-spacing: 2rpx;
+  margin-bottom: 8rpx;
 }
+.logo-box .app-desc.data-v-d08ef7d4 {
+  font-size: 26rpx;
+  color: #a8b5d9;
+  letter-spacing: 1rpx;
+}
+
+/* ============================================================
+   表单卡片 - 磨砂玻璃效果
+   ============================================================ */
 .form-box.data-v-d08ef7d4 {
-  background-color: #ffffff;
-  border-radius: 30rpx;
-  padding: 60rpx 50rpx;
-  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 600rpx;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border-radius: 36rpx;
+  padding: 56rpx 44rpx 48rpx;
+  box-shadow: 0 24rpx 64rpx rgba(108, 140, 255, 0.1), inset 0 1rpx 0 rgba(255, 255, 255, 0.6);
 }
-.form-box .form-tools.data-v-d08ef7d4 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 40rpx;
+.form-box.data-v-d08ef7d4 .u-form-item {
+  padding: 6rpx 0;
 }
-.form-box .form-tools .remember.data-v-d08ef7d4 .u-checkbox__label {
-  font-size: 28rpx;
-  color: #666;
+.form-box.data-v-d08ef7d4 .u-form-item .u-form-item__body {
+  padding: 6rpx 0 !important;
 }
-.form-box .form-tools .forget .forget-text.data-v-d08ef7d4 {
-  font-size: 28rpx;
-  color: #2979ff;
+.form-box.data-v-d08ef7d4 .u-form-item .u-form-item__body__left {
+  padding: 0 !important;
+}
+.form-box.data-v-d08ef7d4 .u-input {
+  padding: 16rpx 0 !important;
+  font-size: 30rpx;
+  color: #4a4a6a;
+}
+.form-box.data-v-d08ef7d4 .u-input .u-input__input {
+  color: #4a4a6a;
+}
+.form-box.data-v-d08ef7d4 .u-form-item .u-form-item__body .u-form-item__body__left {
+  width: auto !important;
+  flex: none !important;
 }
 .form-box .btn-group.data-v-d08ef7d4 {
-  margin-top: 60rpx;
+  margin-top: 10rpx;
 }
 .form-box .btn-group.data-v-d08ef7d4 .u-button {
-  background: linear-gradient(135deg, #2979ff, #4dabff);
-  box-shadow: 0 10rpx 30rpx rgba(41, 121, 255, 0.3);
+  border: none !important;
+  font-weight: 500;
+  letter-spacing: 4rpx;
+  transition: all 0.3s;
+}
+.form-box .btn-group.data-v-d08ef7d4 .u-button:active {
+  transform: scale(0.97);
+  box-shadow: 0 6rpx 20rpx rgba(108, 140, 255, 0.25) !important;
 }
 .form-box .btn-group .register-link.data-v-d08ef7d4 {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 40rpx;
+  margin-top: 32rpx;
 }
 .form-box .btn-group .register-link .tip-text.data-v-d08ef7d4 {
-  font-size: 28rpx;
-  color: #666;
+  font-size: 26rpx;
+  color: #b0bcdb;
 }
-.form-box .btn-group .register-link .register-btn.data-v-d08ef7d4 {
-  font-size: 28rpx;
-  color: #2979ff;
-  margin-left: 20rpx;
-  font-weight: 500;
-}
+
+/* ============================================================
+   分割线
+   ============================================================ */
 .divider.data-v-d08ef7d4 {
   display: flex;
   align-items: center;
-  margin: 80rpx 0 60rpx;
+  width: 100%;
+  max-width: 600rpx;
+  margin: 60rpx 0 48rpx;
 }
 .divider .divider-line.data-v-d08ef7d4 {
   flex: 1;
-  height: 1px;
-  background: linear-gradient(to right, transparent, #ddd, transparent);
+  height: 1rpx;
+  background: linear-gradient(to right, transparent, rgba(160, 180, 210, 0.3), transparent);
 }
 .divider .divider-text.data-v-d08ef7d4 {
-  padding: 0 30rpx;
-  font-size: 26rpx;
-  color: #999;
+  padding: 0 28rpx;
+  font-size: 24rpx;
+  color: #b8c5e0;
   white-space: nowrap;
+  font-weight: 400;
+  letter-spacing: 2rpx;
 }
+
+/* ============================================================
+   第三方登录
+   ============================================================ */
 .third-login.data-v-d08ef7d4 {
   display: flex;
   justify-content: center;
-  gap: 80rpx;
+  gap: 72rpx;
+  width: 100%;
+  max-width: 600rpx;
 }
 .third-login .third-item.data-v-d08ef7d4 {
   display: flex;
@@ -100,60 +158,247 @@
   align-items: center;
 }
 .third-login .third-item .third-icon.data-v-d08ef7d4 {
-  width: 100rpx;
-  height: 100rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20rpx;
+  margin-bottom: 14rpx;
+  box-shadow: 0 8rpx 24rpx rgba(7, 193, 96, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .third-login .third-item .third-icon.wechat.data-v-d08ef7d4 {
-  background-color: #07c160;
+  background: linear-gradient(135deg, #07c160, #0dd06a);
+}
+.third-login .third-item .third-icon.data-v-d08ef7d4:active {
+  transform: scale(0.92);
+  box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.15);
 }
 .third-login .third-item .third-text.data-v-d08ef7d4 {
-  font-size: 26rpx;
-  color: #666;
+  font-size: 24rpx;
+  color: #b0bcdb;
+  font-weight: 400;
 }
+
+/* ============================================================
+   底部协议 - 复选框 + 链接
+   ============================================================ */
 .agreement.data-v-d08ef7d4 {
   position: fixed;
-  bottom: 40rpx;
+  bottom: 48rpx;
   left: 0;
   right: 0;
   text-align: center;
+  padding: 0 32rpx;
+  display: flex;
+  justify-content: center;
 }
-.agreement .agreement-text.data-v-d08ef7d4 {
-  font-size: 24rpx;
-  color: #999;
+.agreement .agreement-checkbox.data-v-d08ef7d4 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4rpx;
+  cursor: pointer;
+  -webkit-user-select: none;
+          user-select: none;
 }
-.agreement .agreement-link.data-v-d08ef7d4 {
+.agreement .agreement-checkbox .checkbox-icon.data-v-d08ef7d4 {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 6rpx;
+  border: 2rpx solid #c5d0e8;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10rpx;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.agreement .agreement-checkbox .checkbox-icon.checked.data-v-d08ef7d4 {
+  background: #6c8cff;
+  border-color: #6c8cff;
+}
+.agreement .agreement-checkbox .agreement-text.data-v-d08ef7d4 {
   font-size: 24rpx;
-  color: #2979ff;
+  color: #c5d0e8;
+}
+.agreement .agreement-checkbox .agreement-link.data-v-d08ef7d4 {
+  font-size: 24rpx;
+  color: #8aa4e8;
+  font-weight: 500;
+  padding: 4rpx 6rpx;
+  border-radius: 12rpx;
+  transition: background 0.2s;
+}
+.agreement .agreement-checkbox .agreement-link.data-v-d08ef7d4:active {
+  background: rgba(138, 164, 232, 0.15);
 }
 
-/* 响应式调整 */
+/* ============================================================
+   协议弹窗
+   ============================================================ */
+.agreement-popup.data-v-d08ef7d4 {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 20rpx 20rpx 0 0;
+  overflow: hidden;
+}
+.agreement-popup .popup-header.data-v-d08ef7d4 {
+  padding: 32rpx 40rpx 20rpx;
+  border-bottom: 1rpx solid #f0f2f5;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.agreement-popup .popup-header .popup-title.data-v-d08ef7d4 {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #4a4a6a;
+  letter-spacing: 1rpx;
+}
+.agreement-popup .popup-scroll.data-v-d08ef7d4 {
+  flex: 1;
+  padding: 0 40rpx 40rpx;
+}
+.agreement-popup .popup-content.data-v-d08ef7d4 {
+  font-size: 28rpx;
+  color: #4a4a6a;
+  line-height: 1.8;
+}
+.agreement-popup .popup-content h2.data-v-d08ef7d4 {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #4a4a6a;
+  text-align: center;
+  margin: 30rpx 0 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #f0f2f5;
+}
+.agreement-popup .popup-content h3.data-v-d08ef7d4 {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #6c8cff;
+  margin: 28rpx 0 12rpx;
+}
+.agreement-popup .popup-content p.data-v-d08ef7d4 {
+  font-size: 27rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+  text-indent: 2em;
+}
+.agreement-popup .popup-content strong.data-v-d08ef7d4 {
+  color: #4a4a6a;
+  font-weight: 600;
+}
+
+/* ============================================================
+   弹窗输入框
+   ============================================================ */
+.modal-input-wrap.data-v-d08ef7d4 {
+  padding: 32rpx 20rpx 20rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+.modal-input-wrap.data-v-d08ef7d4 .u-input {
+  border-radius: 16rpx;
+  background: #f5f7fc;
+  padding: 0 20rpx;
+  height: 76rpx;
+  border: 2rpx solid #e8edf5;
+  transition: border-color 0.3s;
+}
+.modal-input-wrap.data-v-d08ef7d4 .u-input:focus {
+  border-color: #6c8cff;
+}
+
+/* ============================================================
+   响应式适配
+   ============================================================ */
 @media (max-width: 750px) {
 .container.data-v-d08ef7d4 {
-    padding: 60rpx 40rpx 30rpx;
+    padding: 0 36rpx 32rpx;
 }
 .logo-box.data-v-d08ef7d4 {
-    margin-bottom: 80rpx;
+    margin-bottom: 32rpx;
 }
-.logo-box .logo.data-v-d08ef7d4 {
+.logo-box .logo-wrapper.data-v-d08ef7d4 {
     width: 120rpx;
     height: 120rpx;
 }
-.logo-box .app-name.data-v-d08ef7d4 {
-    font-size: 40rpx;
-}
-.form-box.data-v-d08ef7d4 {
-    padding: 50rpx 40rpx;
-}
-.third-login.data-v-d08ef7d4 {
-    gap: 60rpx;
-}
-.third-login .third-item .third-icon.data-v-d08ef7d4 {
+.logo-box .logo-wrapper .logo.data-v-d08ef7d4 {
     width: 80rpx;
     height: 80rpx;
+}
+.logo-box .app-name.data-v-d08ef7d4 {
+    font-size: 36rpx;
+}
+.logo-box .app-desc.data-v-d08ef7d4 {
+    font-size: 24rpx;
+}
+.form-box.data-v-d08ef7d4 {
+    padding: 44rpx 32rpx 40rpx;
+    border-radius: 32rpx;
+}
+.third-login.data-v-d08ef7d4 {
+    gap: 56rpx;
+}
+.third-login .third-item .third-icon.data-v-d08ef7d4 {
+    width: 76rpx;
+    height: 76rpx;
+}
+.divider.data-v-d08ef7d4 {
+    margin: 48rpx 0 40rpx;
+}
+.agreement.data-v-d08ef7d4 {
+    bottom: 32rpx;
+}
+.agreement .agreement-checkbox .checkbox-icon.data-v-d08ef7d4 {
+    width: 32rpx;
+    height: 32rpx;
+    margin-right: 6rpx;
+}
+.agreement .agreement-checkbox .agreement-text.data-v-d08ef7d4,
+.agreement .agreement-checkbox .agreement-link.data-v-d08ef7d4 {
+    font-size: 22rpx;
+}
+.agreement-popup .popup-header.data-v-d08ef7d4 {
+    padding: 28rpx 32rpx 16rpx;
+}
+.agreement-popup .popup-header .popup-title.data-v-d08ef7d4 {
+    font-size: 30rpx;
+}
+.agreement-popup .popup-scroll.data-v-d08ef7d4 {
+    padding: 0 32rpx 32rpx;
+}
+.agreement-popup .popup-content.data-v-d08ef7d4 {
+    font-size: 26rpx;
+}
+.agreement-popup .popup-content h2.data-v-d08ef7d4 {
+    font-size: 30rpx;
+}
+.agreement-popup .popup-content h3.data-v-d08ef7d4 {
+    font-size: 28rpx;
+}
+.agreement-popup .popup-content p.data-v-d08ef7d4 {
+    font-size: 25rpx;
+}
+}
+@media (max-width: 400px) {
+.container.data-v-d08ef7d4 {
+    padding: 0 24rpx 28rpx;
+}
+.form-box.data-v-d08ef7d4 {
+    padding: 36rpx 24rpx 32rpx;
+    border-radius: 28rpx;
+}
+.logo-box .logo-wrapper.data-v-d08ef7d4 {
+    width: 100rpx;
+    height: 100rpx;
 }
 }

@@ -5,46 +5,44 @@
 
 		<!-- 用户信息卡片 -->
 		<view class="user-card" :class="{ 'not-login': !hasLogin }">
-			<view class="card-content">
-				<view @click="bindLogin">
-					<view class="avatar-section">
-						<u-avatar :src="hasLogin && userInfo.avatar ? userInfo.avatar : '/static/txl/ico_logo_@3x.png'"
-							size="120" mode="aspectFill" shape="circle"></u-avatar>
-					</view>
-					<view class="user-detail">
-						<text class="user-name">
-							{{ hasLogin ? (userInfo.nickname || '未设置昵称') : '点击登录/注册' }}
-						</text>
-						<text v-if="hasLogin" class="user-account">
-							{{ userInfo.username || userInfo.mobile || '未绑定账号' }}
-						</text>
-						<text v-if="hasLogin && userInfo.position" class="user-position">
-							{{ userInfo.position }}
-						</text>
-					</view>
+			<view class="card-content" @click="bindLogin">
+				<view class="avatar-section">
+					<u-avatar :src="hasLogin && userInfo.avatar ? userInfo.avatar : '/static/txl/ico_logo_@3x.png'"
+						size="120" mode="aspectFill" shape="circle"></u-avatar>
 				</view>
-				<view class="user-status" v-if="hasLogin">
-					<!-- <view class="status-item" @click="handleFunction({action:'attendance'})"> -->
-					<view class="status-item">	
-						<text class="status-value">{{ userInfo.attendance || 0 }}</text>
-						<text class="status-label">{{new Date().getMonth()+1}}月考勤天数</text>
-					</view>
-					<view class="status-divider"></view>
-					<view class="status-item" @click="handleFunction({action:'approval'})">
-						<text class="status-value">{{ userInfo.tasks || 0 }}</text>
-						<text class="status-label">待办任务</text>
-					</view>
-					<view class="status-divider"></view>
-					<view class="status-item" @click="handleFunction({action:'notice'})">
-						<text class="status-value">{{ userInfo.notices || 0 }}</text>
-						<text class="status-label">未读通知</text>
-					</view>
+				<view class="user-detail">
+					<text class="user-name">
+						{{ hasLogin ? (userInfo.nickname || '未设置昵称') : '点击登录/注册' }}
+					</text>
+					<text v-if="hasLogin" class="user-account">
+						{{ userInfo.username || userInfo.mobile || '未绑定账号' }}
+					</text>
+					<text v-if="hasLogin && userInfo.position" class="user-position">
+						{{ userInfo.position }}
+					</text>
+				</view>
+				<!-- 登录箭头提示 -->
+				<view v-if="!hasLogin" class="login-arrow">
+					<u-icon name="arrow-right" color="rgba(255,255,255,0.8)" size="36"></u-icon>
 				</view>
 			</view>
 
-			<!-- 登录提示 -->
-			<view v-if="!hasLogin" class="login-tip">
-				<u-icon name="arrow-right" color="#ffffff" size="24"></u-icon>
+			<!-- 用户数据统计 -->
+			<view class="user-status" v-if="hasLogin">
+				<view class="status-item">
+					<text class="status-value">{{ userInfo.attendance || 0 }}</text>
+					<text class="status-label">{{ new Date().getMonth()+1 }}月考勤天数</text>
+				</view>
+				<view class="status-divider"></view>
+				<view class="status-item" @click="handleFunction({action:'approval'})">
+					<text class="status-value">{{ userInfo.tasks || 0 }}</text>
+					<text class="status-label">待办任务</text>
+				</view>
+				<view class="status-divider"></view>
+				<view class="status-item" @click="handleFunction({action:'notice'})">
+					<text class="status-value">{{ userInfo.notices || 0 }}</text>
+					<text class="status-label">未读通知</text>
+				</view>
 			</view>
 		</view>
 
@@ -57,7 +55,7 @@
 			<view class="function-grid">
 				<view class="grid-item" v-for="(item, index) in functionList" :key="index"
 					@click="handleFunction(item)">
-					<view class="item-icon" :style="{ backgroundColor: item.bgColor }">
+					<view class="item-icon" :style="{ background: item.bgColor }">
 						<u-icon :name="item.icon" size="32" color="#ffffff"></u-icon>
 					</view>
 					<text class="item-text">{{ item.text }}</text>
@@ -106,7 +104,7 @@
 					<button class="feedback-btn" open-type="contact" @click.stop="tofeedback">
 						<view class="item-left">
 							<view class="item-icon-wrapper"
-								style="background: linear-gradient(135deg, #ff4444, #ff6b6b);">
+								style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
 								<u-icon name="chat" size="24" color="#ffffff"></u-icon>
 							</view>
 							<text class="item-title">我的客服</text>
@@ -118,7 +116,7 @@
 				<!-- 解除微信绑定 -->
 				<view class="account-item" @click="goto('unbindWeixin')" v-if="$hasRole('admin')">
 					<view class="item-left">
-						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #4cd964, #4cd964);">
+						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #4cd964, #6ddb7a);">
 							<u-icon name="lock-open" size="24" color="#ffffff"></u-icon>
 						</view>
 						<text class="item-title">解除绑定</text>
@@ -129,7 +127,7 @@
 				<!-- 关于我们 -->
 				<view class="account-item" @click="goto('about')">
 					<view class="item-left">
-						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #909399, #a6a9ad);">
+						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #909399, #b0b3b8);">
 							<u-icon name="info-circle" size="24" color="#ffffff"></u-icon>
 						</view>
 						<text class="item-title">关于我们</text>
@@ -139,42 +137,29 @@
 			</view>
 		</view>
 
-		<!-- 退出登录按钮 -->
-		<!-- <view class="logout-section" v-if="hasLogin">
-			<u-button type="error" shape="circle" @click="logout" :customStyle="{
-					height: '90rpx',
-					fontSize: '32rpx',
-					margin: '40rpx 0',
-					background: 'linear-gradient(135deg, #ff4444, #ff6b6b)'
-				}">退出登录</u-button>
-		</view> -->
+		<!-- ========== 公告详情弹窗 ========== -->
+		<u-popup v-model="showDetailPopup" :mode="popupStyle.mode" :closeable="true" :mask-close-able="true"
+			:height="popupStyle.height" :border-radius="popupStyle.border_radius">
+			<view class="detail-popup">
+				<scroll-view scroll-y class="detail-scroll">
+					<view class="detail-title">{{ currentNotice.title }}</view>
+					<view class="detail-meta">
+						<text>发布时间：{{ vk.pubfn.timeFormat(new Date(currentNotice.publish_date), 'yyyy-MM-dd') }}</text>
+						<text v-if="currentNotice.publisher_name"> 发布人：{{ currentNotice.publisher_name }}</text>
+					</view>
+					<view class="detail-content">
+						<u-parse :html="currentNotice.content" />
+					</view>
+				</scroll-view>
+			</view>
+		</u-popup>
 
-		<!-- 版本信息 
-		<view class="version-info">
-			<text class="version-text">版本 {{ appVersion }}</text>
-			<text class="copyright">© {{ currentYear }} 版权所有</text>
-		</view>-->
 		<!-- 底部导航栏 -->
-		<u-tabbar :list="tabbar" :before-switch="beforeTabSwitch" icon-size="50" border-top hide-tab-bar></u-tabbar>
+		<u-tabbar :list="tabbar" :before-switch="beforeTabSwitch" icon-size="48" font-size="20" border-top hide-tab-bar
+			active-color="#2979ff" inactive-color="#999"></u-tabbar>
 	</view>
-	<!-- 公告详情弹窗 -->
-	<u-popup v-model="showDetailPopup" :mode="popupStyle.mode" :closeable="true" :mask-close-able="true"
-		:height="popupStyle.height" :border-radius="popupStyle.border_radius">
-		<view class="detail-popup">
-			<scroll-view scroll-y class="detail-scroll">
-				<view class="detail-title">{{ currentNotice.title }}</view>
-				<view class="detail-meta">
-					<text>发布时间：{{ vk.pubfn.timeFormat(new Date(currentNotice.publish_date), 'yyyy-MM-dd') }}</text>
-					<text v-if="currentNotice.publisher_name"> 发布人：{{ currentNotice.publisher_name }}</text>
-				</view>
-				<view class="detail-content">
-					<!-- 使用 u-parse 组件展示富文本内容 -->
-					<u-parse :html="currentNotice.content" />
-				</view>
-			</scroll-view>
-		</view>
-	</u-popup>
 </template>
+
 <script>
 	export default {
 		data() {
@@ -184,7 +169,6 @@
 					border_radius: 16,
 					height: "90%"
 				},
-				// 功能列表
 				functionList: [{
 						icon: 'order',
 						text: '我的任务',
@@ -196,7 +180,7 @@
 						icon: 'calendar',
 						text: '考勤记录',
 						bgColor: 'linear-gradient(135deg, #19be6b, #36cf89)',
-						// action: 'attendance'
+						action: 'attendance'
 					},
 					{
 						icon: 'file-text',
@@ -211,18 +195,12 @@
 						action: 'setting'
 					}
 				],
-				avatar: '../static/txl/ico_logo_@3x.png',
-				showDetailPopup: false, // 详情弹窗显示状态
+				showDetailPopup: false,
 				currentNotice: {},
-				// 用户信息
 				userInfo: {},
-				// 应用版本
 				appVersion: '1.0.0',
-				// 未读通知数量
 				unreadNotifications: 0,
-				// 个人资料是否完善
 				profileUncompleted: false,
-				// 底部导航
 				tabbar: [{
 						iconPath: "/static/icon_home.png",
 						selectedIconPath: "/static/icon_home_sel.png",
@@ -251,32 +229,25 @@
 			}
 		},
 		computed: {
-			// 是否已登录
 			hasLogin() {
-				return vk.getVuex('$user.userInfo.username')? true : false;
+				return !!vk.getVuex('$user.userInfo.username');
 			},
-			// 当前年份
 			currentYear() {
 				return new Date().getFullYear();
 			}
 		},
-		onLoad() {			
-			// 获取应用版本
+		onLoad() {
 			this.getAppVersion();
 		},
 		onShow() {
 			this.loadUnreadCount();
 			this.loadUnApproveCount();
 			this.loadAttendCount();
-			// 页面显示时更新用户信息
 			this.updateUserInfo();
-			// 更新通知数量
 			this.updateNotifications();
-
 			this.loadNoticeList();
 		},
 		methods: {
-			//通告信息
 			async loadNoticeList() {
 				try {
 					const res = await vk.callFunction({
@@ -286,20 +257,16 @@
 							status: 'published'
 						}
 					});
-
 					if (res.code === 0 && res.total > 0) {
 						this.currentNotice = res.rows[0];
 					}
 				} catch (error) {
-					console.error('加载未读数量失败:', error);
+					console.error('加载公告失败:', error);
 				}
 			},
-
-			// 显示公告详情弹窗
 			showDetail() {
-				this.showDetailPopup = true
+				this.showDetailPopup = true;
 			},
-			// 加载未读数量
 			async loadUnreadCount() {
 				try {
 					const res = await vk.callFunction({
@@ -308,7 +275,6 @@
 							userInfo: vk.getVuex('$user.userInfo')
 						}
 					});
-
 					if (res.code === 0) {
 						this.tabbar[1].count = res.data.count || 0;
 						this.userInfo.notices = this.tabbar[1].count;
@@ -317,8 +283,6 @@
 					console.error('加载未读数量失败:', error);
 				}
 			},
-
-			// 加载审核数量
 			async loadUnApproveCount() {
 				try {
 					const res = await vk.callFunction({
@@ -329,16 +293,13 @@
 							}
 						}
 					});
-
 					if (res.code === 0) {
 						this.userInfo.tasks = res.total;
 					}
 				} catch (error) {
-					console.error('加载未读数量失败:', error);
+					console.error('加载待办任务失败:', error);
 				}
 			},
-
-			// 加载考勤天数
 			async loadAttendCount() {
 				try {
 					const res = await vk.callFunction({
@@ -347,7 +308,6 @@
 							userInfo: vk.getVuex('$user.userInfo')
 						}
 					});
-
 					if (res.code === 0) {
 						this.userInfo.attendance = res.totalDays;
 					}
@@ -355,90 +315,55 @@
 					console.error('加载考勤天数失败:', error);
 				}
 			},
-
-
-
-			// 切换tab前的拦截
 			beforeTabSwitch(index) {
-				// 中间按钮处理
-				// if (this.tabbarList[index].midButton) {
-				// 	this.showCenterAction();
-				// 	return false;
-				// }
 				return true;
 			},
-			// 更新用户信息
 			updateUserInfo() {
 				if (this.hasLogin) {
 					this.userInfo = vk.getVuex('$user.userInfo') || {};
-					console.log('用户信息:', this.userInfo);
-					// 检查资料是否完善
 					this.checkProfileCompletion();
 				} else {
 					this.userInfo = {};
 				}
 			},
-
-			// 检查资料是否完善
 			checkProfileCompletion() {
-				// 这里可以添加逻辑检查用户资料是否完整
 				const requiredFields = ['avatar', 'nickname'];
 				this.profileUncompleted = requiredFields.some(field => {
 					const value = this.userInfo[field];
 					return !value || value.trim() === '';
 				});
 			},
-
-			// 获取应用版本
-			getAppVersion() {
-				// 这里可以调用API获取应用版本
-				// 或者从配置文件中读取
-				// this.appVersion = uni.getStorageSync('appVersion') || '1.0.0';
-			},
-
-			// 更新通知数量
-			updateNotifications() {
-				// 这里可以调用API获取未读通知数量
-				// this.unreadNotifications = await this.$api.notification.getUnreadCount();
-			},
-
-			// 绑定登录
+			getAppVersion() {},
+			updateNotifications() {},
 			bindLogin() {
 				if (!this.hasLogin) {
 					vk.navigateToLogin();
 				} else {
-					// 已登录跳转到个人资料
 					this.goto('setting');
 				}
 			},
-
-
-			// 跳转页面
 			async goto(value) {
 				if (!this.hasLogin && value !== 'about') {
 					vk.navigateToLogin();
 					return;
 				}
-
 				if (value === 'about') {
 					this.showDetail();
 					return;
 				}
-
 				if (value === 'unbindWeixin') {
-					await this.unbindWeixin();					
+					await this.unbindWeixin();
 					return;
 				}
-
 				const routes = {
 					'setting': '/pages/setting/index',
 					'notification': '/pages/notice/index',
 					'about': '/pages/about/index'
 				};
-				vk.navigateTo(routes[value]);
+				if (routes[value]) {
+					vk.navigateTo(routes[value]);
+				}
 			},
-
-			// 解除绑定微信
 			async unbindWeixin() {
 				try {
 					await vk.userCenter.unbindWeixin();
@@ -452,40 +377,27 @@
 					vk.navigateToLogin();
 				}
 			},
-
-			// 处理功能点击
 			handleFunction(item) {
 				if (!this.hasLogin) {
 					vk.navigateToLogin();
 					return;
 				}
-
 				const actionMap = {
 					'approval': '/pages/workflow/application-form/list',
-					'attendance': '/pages/clockin/index',
+					// 'attendance': '/pages/clockin/index',
 					'document': '/pages/opendb-notice/index',
 					'notice': '/pages/notice/index',
 					'setting': '/pages/setting/index'
 				};
-
 				if (actionMap[item.action]) {
 					vk.navigateTo({
 						url: actionMap[item.action]
 					});
 				}
 			},
-
-
-			// 反馈
 			tofeedback(e) {
-				console.log('打开反馈页面');
-				// 如果需要自定义反馈页面，可以在这里跳转
-				// uni.navigateTo({
-				// 	url: '/pages/feedback/index'
-				// });
+				console.log('打开客服反馈');
 			},
-
-			// 退出登录
 			logout() {
 				uni.showModal({
 					title: '提示',
@@ -499,9 +411,7 @@
 									title: '已退出登录',
 									icon: 'success'
 								});
-								// 清空用户信息
 								this.userInfo = {};
-								// 刷新页面
 								this.$forceUpdate();
 							}, 300);
 						}
@@ -513,124 +423,109 @@
 </script>
 
 <style lang="scss" scoped>
+	/* ============================================================
+	   设计变量（与首页完全一致）
+	   ============================================================ */
+	:root {
+		--color-primary: #2979ff;
+		--color-primary-light: #5a9cff;
+		--color-bg: #f5f7fa;
+		--color-card: #ffffff;
+		--color-text-primary: #1a1a2e;
+		--color-text-secondary: #666;
+		--color-text-light: #999;
+		--color-border: #f0f0f0;
+		--shadow-card: 0 8rpx 30rpx rgba(0, 0, 0, 0.05);
+		--shadow-hover: 0 12rpx 40rpx rgba(0, 0, 0, 0.08);
+		--radius-card: 20rpx;
+		--card-gap: 24rpx;  /* 👈 统一间距变量，与首页完全一致 */
+	}
+
+	/* ============================================================
+	   页面背景 - 与首页完全一致
+	   ============================================================ */
 	.page {
 		min-height: 100vh;
-		background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
-		padding-bottom: 40rpx;
+		background: var(--color-bg);
+		padding-bottom: 120rpx;
 		box-sizing: border-box;
 	}
 
-	.detail-popup {
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-
-		.detail-scroll {
-			flex: 1;
-			padding: 30rpx;
-		}
-
-		.detail-title {
-			font-size: 36rpx;
-			font-weight: bold;
-			color: #333333;
-			margin-bottom: 20rpx;
-			line-height: 1.4;
-		}
-
-		.detail-meta {
-			font-size: 24rpx;
-			color: #999999;
-			margin-bottom: 30rpx;
-			display: flex;
-			gap: 20rpx;
-		}
-
-		.detail-content {
-			font-size: 28rpx;
-			color: #444444;
-			line-height: 1.6;
-			// margin-right: 60rpx;
-		}
-	}
-
-	.header {
-		padding: 80rpx 40rpx 30rpx;
-
-		.header-title {
-			font-size: 48rpx;
-			font-weight: bold;
-			color: #333333;
-			display: block;
-		}
-	}
-
+	/* ============================================================
+	   用户信息卡片 ———— 间距 24rpx（8网格标准）
+	   ============================================================ */
 	.user-card {
-		background: linear-gradient(135deg, #2979ff 0%, #4dabff 100%);
-		border-radius: 30rpx;
-		margin: 0 40rpx 40rpx;
-		padding: 60rpx 40rpx;
+		background: linear-gradient(145deg, #4a7aff 0%, #6c8cff 60%, #8aa4ff 100%);
+		border-radius: var(--radius-card);
+		margin: var(--card-gap) 24rpx;  /* 上下24rpx，与首页完全一致 */
+		padding: 40rpx 32rpx 32rpx;
 		position: relative;
 		overflow: hidden;
-		box-shadow: 0 20rpx 60rpx rgba(41, 121, 255, 0.2);
+		box-shadow: 0 16rpx 48rpx rgba(41, 121, 255, 0.25);
 
 		&.not-login {
-			background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
-			box-shadow: 0 20rpx 60rpx rgba(255, 107, 107, 0.2);
+			background: linear-gradient(145deg, #ff6b6b 0%, #ff8e8e 60%, #ffb0b0 100%);
+			box-shadow: 0 16rpx 48rpx rgba(255, 107, 107, 0.25);
+		}
 
-			.card-content {
-				opacity: 0.9;
-			}
+		/* 装饰光晕 - 与首页一致 */
+		&::before {
+			content: '';
+			position: absolute;
+			top: -120rpx;
+			right: -80rpx;
+			width: 320rpx;
+			height: 320rpx;
+			border-radius: 50%;
+			background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+			pointer-events: none;
+		}
+		&::after {
+			content: '';
+			position: absolute;
+			bottom: -80rpx;
+			left: -60rpx;
+			width: 240rpx;
+			height: 240rpx;
+			border-radius: 50%;
+			background: radial-gradient(circle, rgba(255, 255, 255, 0.10) 0%, transparent 70%);
+			pointer-events: none;
 		}
 
 		.card-content {
+			display: flex;
+			align-items: center;
 			position: relative;
 			z-index: 1;
 		}
 
 		.avatar-section {
-			position: relative;
-			display: inline-block;
-			margin-bottom: 40rpx;
+			flex-shrink: 0;
+			margin-right: 24rpx;
 
-			.user-avatar {
+			::v-deep .u-avatar {
 				border: 4rpx solid rgba(255, 255, 255, 0.3);
-				box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
-			}
-
-			.edit-avatar {
-				position: absolute;
-				bottom: 0;
-				right: 0;
-				width: 40rpx;
-				height: 40rpx;
-				background-color: rgba(0, 0, 0, 0.5);
-				border-radius: 50%;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				border: 2rpx solid #ffffff;
-				z-index: 2;
+				box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
 			}
 		}
 
 		.user-detail {
+			flex: 1;
 			display: flex;
 			flex-direction: column;
-			margin-bottom: 40rpx;
 
 			.user-name {
-				font-size: 40rpx;
-				font-weight: bold;
+				font-size: 34rpx;
+				font-weight: 600;
 				color: #ffffff;
-				margin-bottom: 8rpx;
-				line-height: 1.4;
+				margin-bottom: 4rpx;
+				line-height: 1.3;
 			}
 
 			.user-account {
-				font-size: 28rpx;
-				color: rgba(255, 255, 255, 0.9);
-				margin-bottom: 4rpx;
+				font-size: 26rpx;
+				color: rgba(255, 255, 255, 0.85);
+				margin-bottom: 2rpx;
 			}
 
 			.user-position {
@@ -639,124 +534,175 @@
 			}
 		}
 
+		.login-arrow {
+			flex-shrink: 0;
+			margin-left: 12rpx;
+			animation: arrowPulse 1.8s ease-in-out infinite;
+		}
+
+		@keyframes arrowPulse {
+			0%, 100% { transform: translateX(0); opacity: 0.7; }
+			50% { transform: translateX(8rpx); opacity: 1; }
+		}
+
 		.user-status {
 			display: flex;
 			align-items: center;
 			justify-content: space-around;
-			padding-top: 40rpx;
+			margin-top: 32rpx;
+			padding-top: 28rpx;
 			border-top: 1rpx solid rgba(255, 255, 255, 0.2);
+			position: relative;
+			z-index: 1;
 
 			.status-item {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
 				flex: 1;
+				padding: 6rpx 0;
+				border-radius: 12rpx;
+				transition: background 0.2s;
+
+				&:active {
+					background: rgba(255, 255, 255, 0.10);
+				}
 
 				.status-value {
-					font-size: 36rpx;
-					font-weight: bold;
+					font-size: 32rpx;
+					font-weight: 700;
 					color: #ffffff;
-					margin-bottom: 8rpx;
-					text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+					margin-bottom: 4rpx;
+					text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.10);
 				}
 
 				.status-label {
-					font-size: 24rpx;
-					color: rgba(255, 255, 255, 0.9);
+					font-size: 22rpx;
+					color: rgba(255, 255, 255, 0.85);
 				}
 			}
 
 			.status-divider {
 				width: 1rpx;
-				height: 40rpx;
-				background-color: rgba(255, 255, 255, 0.2);
+				height: 44rpx;
+				background: rgba(255, 255, 255, 0.2);
+				flex-shrink: 0;
 			}
 		}
+	}
 
-		.login-tip {
-			position: absolute;
-			right: 40rpx;
-			top: 50%;
-			transform: translateY(-50%);
+	/* ============================================================
+	   区块通用样式 ———— 所有区块 margin: 24rpx 24rpx
+	   ============================================================ */
+	.function-section,
+	.account-section {
+		background: var(--color-card);
+		margin: var(--card-gap) 24rpx;  /* 上下24rpx，与首页完全一致 */
+		border-radius: var(--radius-card);
+		box-shadow: var(--shadow-card);
+		overflow: hidden;
+		transition: box-shadow 0.2s;
+
+		&:hover {
+			box-shadow: var(--shadow-hover);
 		}
 	}
 
 	.section-header {
-		padding: 0 40rpx 20rpx;
+		padding: 18rpx 24rpx 8rpx;
 
 		.section-title {
-			font-size: 32rpx;
-			font-weight: bold;
-			color: #333333;
+			font-size: 30rpx;
+			font-weight: 600;
+			color: var(--color-text-primary);
+			letter-spacing: 0.5rpx;
+
+			&::before {
+				content: '';
+				display: inline-block;
+				width: 6rpx;
+				height: 28rpx;
+				background: #2979ff;
+				border-radius: 4rpx;
+				margin-right: 14rpx;
+				vertical-align: middle;
+			}
 		}
 	}
 
+	/* ============================================================
+	   我的功能
+	   ============================================================ */
 	.function-section {
-		background-color: #ffffff;
-		border-radius: 24rpx;
-		margin: 0 40rpx 30rpx;
-		padding: 30rpx 20rpx;
-		box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.06);
+		padding: 6rpx 8rpx 16rpx;
 
 		.function-grid {
 			display: flex;
 			justify-content: space-around;
+			padding: 0 8rpx;
 
 			.grid-item {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
 				position: relative;
-				padding: 10rpx;
+				padding: 12rpx 16rpx;
 				border-radius: 16rpx;
-				transition: all 0.3s;
+				transition: all 0.2s;
+				min-width: 100rpx;
 
 				&:active {
-					background-color: rgba(0, 0, 0, 0.02);
+					background: rgba(0, 0, 0, 0.03);
+					transform: scale(0.96);
 				}
 
 				.item-icon {
-					width: 80rpx;
-					height: 80rpx;
-					border-radius: 20rpx;
+					width: 72rpx;
+					height: 72rpx;
+					border-radius: 18rpx;
 					display: flex;
 					align-items: center;
 					justify-content: center;
-					margin-bottom: 20rpx;
-					box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.1);
+					margin-bottom: 14rpx;
+					box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.08);
+					transition: transform 0.2s;
+				}
+
+				&:active .item-icon {
+					transform: scale(0.92);
 				}
 
 				.item-text {
-					font-size: 26rpx;
-					color: #333333;
+					font-size: 24rpx;
+					color: var(--color-text-secondary);
 					font-weight: 500;
+					text-align: center;
 				}
 			}
 		}
 	}
 
+	/* ============================================================
+	   账户设置
+	   ============================================================ */
 	.account-section {
-		background-color: #ffffff;
-		border-radius: 24rpx;
-		margin: 0 40rpx 30rpx;
-		padding: 30rpx 0;
-		box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.06);
-		overflow: hidden;
+		padding: 6rpx 0 4rpx;
 
 		.account-list {
 			.account-item {
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
-				padding: 30rpx 40rpx;
-				transition: all 0.3s;
+				padding: 24rpx 24rpx;
+				transition: all 0.2s;
+				min-height: 80rpx;
 
 				&:active {
-					background-color: rgba(0, 0, 0, 0.02);
+					background: rgba(0, 0, 0, 0.02);
 				}
 
 				&:not(:last-child) {
-					border-bottom: 1rpx solid #f0f0f0;
+					border-bottom: 1rpx solid #f0f2f5;
 				}
 
 				.item-left {
@@ -765,19 +711,20 @@
 					flex: 1;
 
 					.item-icon-wrapper {
-						width: 48rpx;
-						height: 48rpx;
+						width: 44rpx;
+						height: 44rpx;
 						border-radius: 12rpx;
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						margin-right: 20rpx;
-						box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+						margin-right: 18rpx;
+						box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+						flex-shrink: 0;
 					}
 
 					.item-title {
-						font-size: 30rpx;
-						color: #333333;
+						font-size: 28rpx;
+						color: var(--color-text-primary);
 						font-weight: 500;
 					}
 				}
@@ -785,19 +732,12 @@
 				.item-right {
 					display: flex;
 					align-items: center;
+					flex-shrink: 0;
 
 					.item-desc {
 						font-size: 24rpx;
-						color: #999999;
-						margin-right: 12rpx;
-
-						&.warn {
-							color: #ff9900;
-						}
-
-						&.success {
-							color: #19be6b;
-						}
+						color: #ff9900;
+						margin-right: 10rpx;
 					}
 				}
 
@@ -824,112 +764,132 @@
 		}
 	}
 
-	.logout-section {
-		padding: 0 40rpx;
-
-		::v-deep .u-button {
-			background: linear-gradient(135deg, #ff4444 0%, #ff6b6b 100%) !important;
-			border: none !important;
-			box-shadow: 0 10rpx 30rpx rgba(255, 68, 68, 0.2);
-			transition: all 0.3s;
-
-			&:active {
-				transform: scale(0.98);
-				box-shadow: 0 5rpx 15rpx rgba(255, 68, 68, 0.3);
-			}
-		}
-	}
-
-	.version-info {
+	/* ============================================================
+	   公告详情弹窗
+	   ============================================================ */
+	.detail-popup {
+		height: 100%;
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		margin-top: 60rpx;
 
-		.version-text {
-			font-size: 26rpx;
-			color: #999999;
-			margin-bottom: 10rpx;
+		.detail-scroll {
+			flex: 1;
+			padding: 30rpx 32rpx 40rpx;
 		}
 
-		.copyright {
+		.detail-title {
+			font-size: 36rpx;
+			font-weight: 600;
+			color: var(--color-text-primary);
+			margin-bottom: 20rpx;
+			line-height: 1.4;
+		}
+
+		.detail-meta {
 			font-size: 24rpx;
-			color: #cccccc;
+			color: #b0b7c3;
+			margin-bottom: 30rpx;
+			display: flex;
+			gap: 24rpx;
+			flex-wrap: wrap;
+		}
+
+		.detail-content {
+			font-size: 28rpx;
+			color: var(--color-text-secondary);
+			line-height: 1.8;
 		}
 	}
 
-	/* 响应式调整 */
+	/* ============================================================
+	   响应式适配 ———— 与首页完全一致
+	   ============================================================ */
 	@media (max-width: 750px) {
-		.header {
-			padding: 60rpx 30rpx 20rpx;
-			.header-title {
-				font-size: 40rpx;
-			}
-		}
-
 		.user-card,
 		.function-section,
 		.account-section {
-			margin-left: 30rpx;
-			margin-right: 30rpx;
+			margin-left: 20rpx;
+			margin-right: 20rpx;
 		}
 
 		.user-card {
-			padding: 50rpx 30rpx;
+			padding: 32rpx 24rpx 24rpx;
 
-			.user-detail {
-				.user-name {
-					font-size: 36rpx;
-				}
+			.user-detail .user-name {
+				font-size: 30rpx;
 			}
-
 			.user-status {
 				.status-value {
-					font-size: 32rpx;
+					font-size: 28rpx;
 				}
+				.status-label {
+					font-size: 20rpx;
+				}
+			}
+			.avatar-section ::v-deep .u-avatar {
+				width: 80rpx !important;
+				height: 80rpx !important;
+			}
+		}
+
+		.function-section {
+			padding: 4rpx 4rpx 12rpx;
+
+			.function-grid .grid-item {
+				min-width: 80rpx;
+				padding: 8rpx 8rpx;
+
+				.item-icon {
+					width: 64rpx;
+					height: 64rpx;
+				}
+				.item-text {
+					font-size: 22rpx;
+				}
+			}
+		}
+
+		.account-section .account-list .account-item {
+			padding: 20rpx 20rpx;
+			min-height: 72rpx;
+
+			.item-left .item-title {
+				font-size: 26rpx;
+			}
+			.item-left .item-icon-wrapper {
+				width: 40rpx;
+				height: 40rpx;
 			}
 		}
 
 		.section-header {
-			padding: 0 30rpx 20rpx;
-		}
-
-		.function-section {
-			padding: 20rpx 10rpx;
-
-			.function-grid {
-				.grid-item {
-					.item-icon {
-						width: 70rpx;
-						height: 70rpx;
-					}
-				}
+			padding: 14rpx 20rpx 6rpx;
+			.section-title {
+				font-size: 28rpx;
 			}
 		}
+	}
 
-		.account-section {
-			padding: 20rpx 0;
+	@media (max-width: 400px) {
+		.user-card {
+			padding: 24rpx 18rpx 18rpx;
 
-			.account-list {
-				.account-item {
-					padding: 28rpx 30rpx;
-
-					.item-left {
-						.item-icon-wrapper {
-							width: 44rpx;
-							height: 44rpx;
-						}
-
-						.item-title {
-							font-size: 28rpx;
-						}
-					}
-				}
+			.user-status .status-value {
+				font-size: 24rpx;
+			}
+			.user-status .status-label {
+				font-size: 18rpx;
 			}
 		}
-
-		.logout-section {
-			padding: 0 30rpx;
+		.function-section .function-grid .grid-item {
+			min-width: 60rpx;
+			.item-icon {
+				width: 56rpx;
+				height: 56rpx;
+			}
+			.item-text {
+				font-size: 20rpx;
+			}
 		}
 	}
 </style>

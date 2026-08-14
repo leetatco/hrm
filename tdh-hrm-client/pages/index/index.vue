@@ -2,23 +2,22 @@
 	<view class="container">
 		<!-- 真实内容 -->
 		<view v-if="!pageLoading">
-			<!-- ========== 固定区域（头部 + 搜索 + 轮播） ========== -->
-			<view class="sticky-area">
+			<!-- ========== 固定卡片区域（头部 + 搜索 + 轮播 融合） ========== -->
+			<view class="sticky-card">
 				<!-- 顶部区域（头部+搜索整合） -->
 				<view class="top-section">
+					<!-- 状态栏占位（与胶囊按钮对齐） -->
+					<view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
+					
 					<!-- 用户头部 -->
 					<view class="header">
 						<view class="user-info">
-							<u-avatar :src="userInfo.avatar || '/static/txl/ico_logo_@3x.png'" size="80"></u-avatar>
+							<u-avatar :src="userInfo.avatar || '/static/txl/ico_logo_@3x.png'" size="76"></u-avatar>
 							<view class="user-detail">
 								<text class="user-name">{{ userInfo.nickname || '欢迎回来' }}</text>
 								<text class="user-greeting">{{ getGreeting() }}</text>
 							</view>
 						</view>
-						<!-- <view class="dept-tag">
-							<u-icon name="grid" size="28" color="#ff9900"></u-icon>
-							<text class="dept-text">{{ departMentName }}</text>
-						</view> -->
 					</view>
 
 					<!-- 搜索栏 -->
@@ -26,15 +25,16 @@
 						<view class="search-inner" @click="onSearch">
 							<u-icon name="search" size="32" color="#999"></u-icon>
 							<text class="search-placeholder">搜索通知、公告...</text>
+							<view class="search-btn">搜索</view>
 						</view>
 					</view>
 				</view>
 
-				<!-- 轮播图 -->
+				<!-- 轮播图（白色背景，不透明） -->
 				<view class="swiper-box" v-if="hasLogin">
-					<u-swiper :list="swiperList.length ? swiperList : defaultSwiper" height="300"
+					<u-swiper :list="swiperList.length ? swiperList : defaultSwiper" height="320"
 						indicator-pos="bottomCenter" circular :autoplay="true" :interval="3000" :duration="500"
-						bgColor="#f0f2f5" radius="20" @click="onSwiperClick"></u-swiper>
+						bgColor="#ffffff" radius="16" @click="onSwiperClick"></u-swiper>
 				</view>
 			</view>
 
@@ -45,11 +45,10 @@
 					<text class="section-more" @click="viewAllFunctions">更多</text>
 				</view>
 
-				<u-grid :col="4" :border="false" :gap="10">
+				<u-grid :col="4" :border="false" :gap="6">
 					<u-grid-item v-for="(item, index) in displayMenuList" :key="index" @click="goToPage(item)">
 						<view class="menu-item">
 							<view class="menu-icon-wrapper">
-								<!-- 优先显示图片，失败则显示首字母占位 -->
 								<image class="menu-icon" :src="item.imgUrl || ''" mode="aspectFill"
 									@error="onIconError($event, item)" v-if="item.imgUrl && item._imgLoaded !== false">
 								</image>
@@ -97,7 +96,7 @@
 					<view class="quick-item" v-for="(item, index) in quickList" :key="index"
 						@click="handleQuickAction(item)">
 						<view class="quick-icon" :style="{ background: item.bgColor }">
-							<u-icon :name="item.icon" size="36" color="#ffffff"></u-icon>
+							<u-icon :name="item.icon" size="32" color="#ffffff"></u-icon>
 						</view>
 						<text class="quick-text">{{ item.text }}</text>
 					</view>
@@ -124,47 +123,44 @@
 
 		<!-- ========== 骨架屏 ========== -->
 		<view v-else class="skeleton-container">
-			<!-- 顶部区域骨架 -->
-			<view class="skeleton-top-section">
-				<view class="skeleton-header">
-					<view class="skeleton-avatar"></view>
-					<view class="skeleton-user-detail">
-						<view class="skeleton-line" style="width: 200rpx;"></view>
-						<view class="skeleton-line short" style="width: 140rpx;"></view>
+			<view class="skeleton-sticky-card">
+				<view class="skeleton-status-bar"></view>
+				<view class="skeleton-top-section">
+					<view class="skeleton-header">
+						<view class="skeleton-avatar"></view>
+						<view class="skeleton-user-detail">
+							<view class="skeleton-line" style="width: 200rpx;"></view>
+							<view class="skeleton-line short" style="width: 140rpx;"></view>
+						</view>
+						<view class="skeleton-dept-tag"></view>
 					</view>
-					<view class="skeleton-dept-tag"></view>
+					<view class="skeleton-search-bar"></view>
 				</view>
-				<view class="skeleton-search-bar"></view>
+				<view class="skeleton-swiper-box"></view>
 			</view>
 
-			<!-- 轮播骨架 -->
-			<view class="skeleton-swiper-box"></view>
-
-			<!-- 功能菜单骨架 -->
 			<view class="skeleton-menu-box">
 				<view class="skeleton-section-title"></view>
 				<view class="skeleton-grid">
 					<view class="skeleton-grid-item" v-for="i in 8" :key="i">
 						<view class="skeleton-icon"></view>
-						<view class="skeleton-line short" style="width: 60rpx; margin-top: 12rpx;"></view>
+						<view class="skeleton-line short" style="width: 60rpx; margin-top: 10rpx;"></view>
 					</view>
 				</view>
 			</view>
 
-			<!-- 通知公告骨架 -->
 			<view class="skeleton-notice-box">
 				<view class="skeleton-section-title"></view>
 				<view class="skeleton-notice-bar"></view>
 				<view class="skeleton-notice-card"></view>
 			</view>
 
-			<!-- 快捷入口骨架 -->
 			<view class="skeleton-quick-access">
 				<view class="skeleton-section-title"></view>
 				<view class="skeleton-quick-grid">
 					<view class="skeleton-quick-item" v-for="i in 4" :key="i">
 						<view class="skeleton-quick-icon"></view>
-						<view class="skeleton-line short" style="width: 60rpx; margin-top: 12rpx;"></view>
+						<view class="skeleton-line short" style="width: 60rpx; margin-top: 10rpx;"></view>
 					</view>
 				</view>
 			</view>
@@ -181,6 +177,7 @@
 		data() {
 			return {
 				pageLoading: true,
+				statusBarHeight: 20,
 				popupStyle: {
 					mode: "bottom",
 					border_radius: 16,
@@ -267,6 +264,9 @@
 			}
 		},
 		async onLoad() {
+			const sysInfo = uni.getSystemInfoSync();
+			this.statusBarHeight = sysInfo.statusBarHeight || 20;
+			
 			this.pageLoading = true;
 			this.loadUserInfo();
 			await Promise.all([
@@ -452,7 +452,6 @@
 						});
 						break;
 					case 'attendance':
-						// uni.navigateTo({ url: '/pages/clockin/index' });
 						break;
 					case 'message':
 						uni.switchTab({
@@ -475,7 +474,7 @@
 
 <style lang="scss" scoped>
 	/* ============================================================
-	   设计变量（统一管理色彩与阴影）
+	   设计变量
 	   ============================================================ */
 	:root {
 		--color-primary: #2979ff;
@@ -488,13 +487,22 @@
 		--color-border: #f0f0f0;
 		--shadow-card: 0 8rpx 30rpx rgba(0, 0, 0, 0.05);
 		--shadow-hover: 0 12rpx 40rpx rgba(0, 0, 0, 0.08);
-		--radius-card: 24rpx;
+		--radius-card: 20rpx;
 		--radius-inner: 16rpx;
+		--card-gap: 24rpx;  /* 👈 统一间距变量，方便全局调整 */
 	}
 
-	/* ============================================================
-	   全局容器
-	   ============================================================ */
+	.search-btn {
+		padding: 8rpx 20rpx;
+		background: linear-gradient(135deg, #2979ff, #5a9cff);
+		color: #fff;
+		font-size: 24rpx;
+		border-radius: 28rpx;
+		box-shadow: 0 4rpx 12rpx rgba(41, 121, 255, 0.3);
+		flex-shrink: 0;
+		margin-left: 12rpx;
+	}
+
 	.container {
 		min-height: 100vh;
 		background: var(--color-bg);
@@ -503,36 +511,26 @@
 	}
 
 	/* ============================================================
-	   固定区域（头部 + 搜索 + 轮播）
+	   固定卡片区域 ———— 上下外边距 24rpx（8网格标准）
 	   ============================================================ */
-	.sticky-area {
+	.sticky-card {
+		margin: var(--card-gap) 24rpx;
+		border-radius: var(--radius-card);
+		overflow: hidden;
+		box-shadow: var(--shadow-card);
 		position: sticky;
 		top: 0;
 		z-index: 10;
-		background: var(--color-bg);
-		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
-	}
-
-	/* ============================================================
-	   顶部区域（头部 + 搜索）—— 小清新明亮版
-	   ============================================================ */
-	.top-section {
-		position: relative;
-		overflow: hidden;
-		padding-bottom: 8rpx;
-		border-bottom-left-radius: 36rpx;
-		border-bottom-right-radius: 36rpx;
-		/* 主背景：明亮渐变色 + 极淡彩色圆点纹理 */
 		background:
 			radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.6) 0%, transparent 30%),
 			radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.4) 0%, transparent 25%),
 			radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 40%),
 			linear-gradient(160deg, #ffffff 0%, #eaf6ff 30%, #fff0f6 60%, #f0fdf4 100%);
-		box-shadow: 0 8rpx 30rpx rgba(180, 210, 240, 0.15);
+		position: relative;
 	}
 
 	/* 装饰光晕 1（左上角，天空蓝） */
-	.top-section::before {
+	.sticky-card::before {
 		content: '';
 		position: absolute;
 		top: -80rpx;
@@ -540,13 +538,13 @@
 		width: 300rpx;
 		height: 300rpx;
 		border-radius: 50%;
-		background: radial-gradient(circle, rgba(135, 206, 250, 0.35) 0%, rgba(135, 206, 250, 0.12) 40%, transparent 70%);
+		background: radial-gradient(circle, rgba(100, 180, 255, 0.35) 0%, rgba(100, 180, 255, 0.12) 45%, transparent 70%);
 		pointer-events: none;
 		animation: floatGlow 6s ease-in-out infinite;
 	}
 
-	/* 装饰光晕 2（右下角，薄荷绿） */
-	.top-section::after {
+	/* 装饰光晕 2（右下角，亮橙色/金色） */
+	.sticky-card::after {
 		content: '';
 		position: absolute;
 		bottom: -60rpx;
@@ -554,13 +552,13 @@
 		width: 240rpx;
 		height: 240rpx;
 		border-radius: 50%;
-		background: radial-gradient(circle, rgba(144, 238, 144, 0.3) 0%, rgba(144, 238, 144, 0.1) 45%, transparent 70%);
+		background: radial-gradient(circle, rgba(255, 190, 50, 0.40) 0%, rgba(255, 170, 30, 0.18) 45%, transparent 70%);
 		pointer-events: none;
 		animation: floatGlow 8s ease-in-out infinite reverse;
 	}
 
 	/* 装饰光晕 3（中间偏上，樱花粉） */
-	.top-section .header::after {
+	.top-section::after {
 		content: '';
 		position: absolute;
 		top: 20rpx;
@@ -568,32 +566,44 @@
 		width: 200rpx;
 		height: 200rpx;
 		border-radius: 50%;
-		background: radial-gradient(circle, rgba(255, 182, 193, 0.3) 0%, rgba(255, 182, 193, 0.1) 50%, transparent 70%);
+		background: radial-gradient(circle, rgba(255, 180, 200, 0.35) 0%, rgba(255, 150, 180, 0.15) 50%, transparent 70%);
 		pointer-events: none;
 		animation: floatGlow 7s ease-in-out infinite;
 	}
 
-	/* 光晕浮动动画（更轻柔） */
 	@keyframes floatGlow {
-
-		0%,
-		100% {
+		0%, 100% {
 			transform: translate(0, 0) scale(1);
 			opacity: 0.9;
 		}
-
 		50% {
 			transform: translate(8rpx, -12rpx) scale(1.03);
 			opacity: 1;
 		}
 	}
 
-	/* -------- 用户头部 -------- */
+	/* ============================================================
+	   顶部区域（背景透明）
+	   ============================================================ */
+	.top-section {
+		position: relative;
+		overflow: visible;
+		padding: 0 24rpx 0;
+		background: transparent;
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	.status-bar {
+		width: 100%;
+		background: transparent;
+	}
+
 	.header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-top: 50rpx;
+		margin-top: 0;
 		position: relative;
 		z-index: 2;
 
@@ -604,58 +614,43 @@
 			.user-detail {
 				display: flex;
 				flex-direction: column;
-				margin-left: 20rpx;
+				margin-left: 16rpx;
 
 				.user-name {
-					font-size: 36rpx;
+					font-size: 34rpx;
 					font-weight: 600;
 					color: var(--color-text-primary);
-					margin-bottom: 6rpx;
+					margin-bottom: 4rpx;
 					letter-spacing: 0.5rpx;
 				}
 
 				.user-greeting {
-					font-size: 25rpx;
+					font-size: 24rpx;
 					color: var(--color-text-light);
 					letter-spacing: 0.3rpx;
 				}
-			}
-		}
-
-		.dept-tag {
-			display: flex;
-			align-items: center;
-			padding: 12rpx 22rpx;
-			background: rgba(255, 153, 0, 0.1);
-			border-radius: 30rpx;
-			border: 1rpx solid rgba(255, 153, 0, 0.2);
-
-			.dept-text {
-				margin-left: 8rpx;
-				font-size: 25rpx;
-				color: #e67e22;
-				font-weight: 500;
 			}
 		}
 	}
 
 	/* -------- 搜索栏 -------- */
 	.search-box {
-		padding: 20rpx 24rpx 30rpx;
+		padding: 16rpx 0 12rpx;
 		position: relative;
 		z-index: 2;
+		background: transparent;
 
 		.search-inner {
 			display: flex;
 			align-items: center;
-			height: 76rpx;
+			height: 72rpx;
 			background: rgba(255, 255, 255, 0.9);
 			backdrop-filter: blur(12rpx);
 			-webkit-backdrop-filter: blur(12rpx);
-			border-radius: 38rpx;
-			padding: 0 30rpx;
+			border-radius: 36rpx;
+			padding: 0 24rpx;
 			border: 1rpx solid rgba(0, 0, 0, 0.03);
-			box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+			box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 			transition: box-shadow 0.2s, transform 0.2s;
 
 			&:active {
@@ -664,39 +659,39 @@
 			}
 
 			.search-placeholder {
-				margin-left: 14rpx;
-				font-size: 27rpx;
+				flex: 1;
+				margin-left: 12rpx;
+				font-size: 26rpx;
 				color: #b0b7c3;
 			}
 		}
 	}
 
 	/* ============================================================
-	   轮播图
+	   轮播图（白色背景）
 	   ============================================================ */
 	.swiper-box {
-		padding: 0 24rpx;
-		margin-top: -20rpx;
-		position: relative;
-		z-index: 2;
+		padding: 0 24rpx 20rpx;
+		margin-top: 0;
+		background: transparent;
 
 		::v-deep .u-swiper {
-			border-radius: 24rpx !important;
+			border-radius: 16rpx !important;
 			overflow: hidden;
-			box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.08);
+			box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 
 			.u-swiper-indicator {
-				bottom: 20rpx !important;
+				bottom: 16rpx !important;
 
 				.u-swiper-indicator__dot {
-					width: 14rpx !important;
-					height: 14rpx !important;
-					background-color: rgba(255, 255, 255, 0.6) !important;
+					width: 12rpx !important;
+					height: 12rpx !important;
+					background-color: rgba(0, 0, 0, 0.15) !important;
 
 					&.u-swiper-indicator__dot--active {
-						background-color: #ffffff !important;
-						width: 28rpx !important;
-						border-radius: 8rpx !important;
+						background-color: #2979ff !important;
+						width: 24rpx !important;
+						border-radius: 6rpx !important;
 					}
 				}
 			}
@@ -704,13 +699,13 @@
 	}
 
 	/* ============================================================
-	   通用：区块卡片 & 标题
+	   通用：区块卡片 ———— 所有区块统一 margin: 24rpx 24rpx
 	   ============================================================ */
 	.menu-box,
 	.notice-box,
 	.quick-access {
 		background: var(--color-card);
-		margin: 24rpx 30rpx;
+		margin: var(--card-gap) 24rpx;
 		border-radius: var(--radius-card);
 		box-shadow: var(--shadow-card);
 		overflow: hidden;
@@ -725,10 +720,10 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 28rpx 30rpx 16rpx;
+		padding: 16rpx 24rpx 6rpx;
 
 		.section-title {
-			font-size: 32rpx;
+			font-size: 30rpx;
 			font-weight: 600;
 			color: var(--color-text-primary);
 			letter-spacing: 0.5rpx;
@@ -736,19 +731,19 @@
 			&::before {
 				content: '';
 				display: inline-block;
-				width: 8rpx;
-				height: 32rpx;
+				width: 6rpx;
+				height: 28rpx;
 				background: var(--color-primary);
 				border-radius: 4rpx;
-				margin-right: 16rpx;
+				margin-right: 14rpx;
 				vertical-align: middle;
 			}
 		}
 
 		.section-more {
-			font-size: 26rpx;
+			font-size: 24rpx;
 			color: var(--color-text-light);
-			padding: 8rpx 20rpx;
+			padding: 6rpx 16rpx;
 			border-radius: 24rpx;
 			background: #f5f7fa;
 			transition: all 0.2s;
@@ -768,15 +763,14 @@
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			// padding: 10rpx 0 12rpx;
 			position: relative;
 
 			.menu-icon-wrapper {
-				width: 88rpx;
-				height: 88rpx;
-				border-radius: 20rpx;
+				width: 80rpx;
+				height: 80rpx;
+				border-radius: 18rpx;
 				overflow: hidden;
-				margin-bottom: 12rpx;
+				margin-bottom: 8rpx;
 				flex-shrink: 0;
 				box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
 				transition: transform 0.2s, box-shadow 0.2s;
@@ -793,18 +787,18 @@
 					display: flex;
 					align-items: center;
 					justify-content: center;
-					border-radius: 20rpx;
+					border-radius: 18rpx;
 					background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
 					color: #fff;
 				}
 			}
 
 			.menu-text {
-				font-size: 26rpx;
+				font-size: 24rpx;
 				color: var(--color-text-secondary);
 				text-align: center;
 				line-height: 1.3;
-				max-width: 110rpx;
+				max-width: 100rpx;
 				word-break: break-all;
 			}
 
@@ -819,25 +813,6 @@
 				display: none;
 			}
 		}
-
-		.menu-more {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			padding: 18rpx 0 26rpx;
-			border-top: 1rpx solid var(--color-border);
-			margin: 0 30rpx;
-
-			text {
-				font-size: 26rpx;
-				color: var(--color-text-light);
-				margin-right: 6rpx;
-			}
-
-			&:active {
-				opacity: 0.6;
-			}
-		}
 	}
 
 	/* ============================================================
@@ -845,39 +820,28 @@
 	   ============================================================ */
 	.notice-box {
 		.notice-list {
-			padding: 0 30rpx 30rpx;
+			padding: 0 24rpx 20rpx;
 
 			::v-deep .u-notice-bar {
-				border-radius: 16rpx;
-				padding: 16rpx 24rpx;
-				margin-bottom: 20rpx;
+				border-radius: 12rpx;
+				padding: 12rpx 20rpx;
+				margin-bottom: 16rpx;
 				background: #f8fafc !important;
 				border: 1rpx solid #eef1f4;
 
 				.u-notice-bar__content {
-					font-size: 27rpx;
+					font-size: 26rpx;
 					color: var(--color-text-secondary);
 				}
 			}
 
 			.notice-card {
 				background: #fafbfc;
-				border-radius: 16rpx;
-				padding: 22rpx 26rpx;
+				border-radius: 12rpx;
+				padding: 16rpx 20rpx;
 				border: 1rpx solid #f0f0f0;
 				position: relative;
 				transition: all 0.2s;
-
-				&::before {
-					content: '';
-					position: absolute;
-					left: 0;
-					top: 0;
-					bottom: 0;
-					width: 6rpx;
-					// background: var(--color-primary);
-					border-radius: 0 4rpx 4rpx 0;
-				}
 
 				&:active {
 					background: #f0f2f5;
@@ -888,25 +852,25 @@
 					display: flex;
 					justify-content: space-between;
 					align-items: center;
-					margin-bottom: 12rpx;
+					margin-bottom: 6rpx;
 
 					.notice-card-title {
-						font-size: 30rpx;
+						font-size: 28rpx;
 						font-weight: 500;
 						color: var(--color-text-primary);
 						flex: 1;
-						margin-right: 20rpx;
+						margin-right: 16rpx;
 					}
 
 					.notice-card-time {
-						font-size: 26rpx;
+						font-size: 24rpx;
 						color: #b0b7c3;
 						flex-shrink: 0;
 					}
 				}
 
 				.notice-card-body {
-					font-size: 26rpx;
+					font-size: 24rpx;
 					color: var(--color-text-secondary);
 					line-height: 1.6;
 				}
@@ -921,23 +885,23 @@
 		.quick-grid {
 			display: flex;
 			justify-content: space-around;
-			padding: 10rpx 20rpx 30rpx;
+			padding: 6rpx 16rpx 16rpx;
 
 			.quick-item {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
-				min-width: 120rpx;
+				min-width: 100rpx;
 
 				.quick-icon {
-					width: 92rpx;
-					height: 92rpx;
+					width: 80rpx;
+					height: 80rpx;
 					border-radius: 50%;
 					display: flex;
 					align-items: center;
 					justify-content: center;
-					margin-bottom: 14rpx;
-					box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.12);
+					margin-bottom: 10rpx;
+					box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.10);
 					transition: transform 0.2s, box-shadow 0.2s;
 					position: relative;
 					overflow: hidden;
@@ -955,7 +919,7 @@
 				}
 
 				.quick-text {
-					font-size: 26rpx;
+					font-size: 24rpx;
 					color: var(--color-text-secondary);
 				}
 
@@ -967,9 +931,6 @@
 		}
 	}
 
-	/* ============================================================
-	   公告详情弹窗
-	   ============================================================ */
 	.detail-popup {
 		height: 100%;
 		display: flex;
@@ -1004,61 +965,64 @@
 	}
 
 	/* ============================================================
-	   响应式适配
+	   响应式适配（统一间距）
 	   ============================================================ */
 	@media (max-width: 750px) {
-		.header {
-			padding: 36rpx 28rpx 6rpx;
+		.sticky-card {
+			margin: 20rpx 20rpx; /* 小屏适当缩小，仍保持8网格节奏 */
 		}
-
-		.search-box {
-			padding: 12rpx 24rpx 22rpx;
+		.top-section {
+			padding: 0 20rpx 0;
 		}
-
 		.swiper-box {
-			padding: 0 24rpx;
+			padding: 0 20rpx 16rpx;
 		}
-
 		.menu-box,
 		.notice-box,
 		.quick-access {
-			margin: 20rpx 24rpx;
+			margin: 20rpx 20rpx;
 		}
-
 		.section-header {
-			padding: 22rpx 24rpx 12rpx;
-		}
-
-		.menu-box .menu-more {
-			margin: 0 24rpx;
+			padding: 14rpx 20rpx 4rpx;
 		}
 	}
 
 	/* ============================================================
-	   骨架屏（同步视觉升级）
+	   骨架屏
 	   ============================================================ */
 	.skeleton-container {
 		padding: 0;
 		background: var(--color-bg);
 	}
 
+	.skeleton-sticky-card {
+		margin: var(--card-gap) 24rpx;
+		border-radius: var(--radius-card);
+		overflow: hidden;
+		background: linear-gradient(160deg, #f5f9ff, #fff5f9);
+		box-shadow: var(--shadow-card);
+	}
+
+	.skeleton-status-bar {
+		height: 20px;
+		width: 100%;
+		background: transparent;
+	}
+
 	.skeleton-top-section {
-		background: #ffffff;
-		border-bottom-left-radius: 36rpx;
-		border-bottom-right-radius: 36rpx;
-		padding-bottom: 8rpx;
-		margin-bottom: 0;
+		padding: 0 24rpx 0;
+		background: transparent;
 	}
 
 	.skeleton-header {
 		display: flex;
 		align-items: center;
-		padding: 44rpx 30rpx 10rpx;
+		padding: 0 0 10rpx;
 	}
 
 	.skeleton-avatar {
-		width: 80rpx;
-		height: 80rpx;
+		width: 76rpx;
+		height: 76rpx;
 		border-radius: 50%;
 		flex-shrink: 0;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
@@ -1068,12 +1032,12 @@
 
 	.skeleton-user-detail {
 		flex: 1;
-		margin-left: 20rpx;
+		margin-left: 16rpx;
 	}
 
 	.skeleton-dept-tag {
 		width: 80rpx;
-		height: 40rpx;
+		height: 36rpx;
 		border-radius: 30rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
@@ -1081,18 +1045,18 @@
 	}
 
 	.skeleton-search-bar {
-		margin: 20rpx 24rpx 30rpx;
-		height: 76rpx;
-		border-radius: 38rpx;
+		margin: 16rpx 0 12rpx;
+		height: 72rpx;
+		border-radius: 36rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
 		animation: skeleton-loading 1.5s infinite;
 	}
 
 	.skeleton-swiper-box {
-		height: 300rpx;
-		border-radius: 24rpx;
-		margin: -20rpx 24rpx 0;
+		height: 280rpx;
+		border-radius: 16rpx;
+		margin: 0 24rpx 20rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
 		animation: skeleton-loading 1.5s infinite;
@@ -1102,18 +1066,18 @@
 	.skeleton-notice-box,
 	.skeleton-quick-access {
 		background: #ffffff;
-		margin: 24rpx 30rpx;
-		border-radius: 24rpx;
-		padding: 0 0 24rpx;
+		margin: var(--card-gap) 24rpx;
+		border-radius: var(--radius-card);
+		padding: 0 0 16rpx;
 		box-shadow: var(--shadow-card);
 		overflow: hidden;
 	}
 
 	.skeleton-section-title {
-		height: 32rpx;
-		width: 180rpx;
+		height: 28rpx;
+		width: 160rpx;
 		border-radius: 8rpx;
-		margin: 28rpx 30rpx 20rpx;
+		margin: 16rpx 24rpx 10rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
 		animation: skeleton-loading 1.5s infinite;
@@ -1130,31 +1094,30 @@
 		flex-direction: column;
 		align-items: center;
 		width: 25%;
-		// padding: 10rpx 0 12rpx;
 	}
 
 	.skeleton-icon {
-		width: 88rpx;
-		height: 88rpx;
-		border-radius: 20rpx;
+		width: 80rpx;
+		height: 80rpx;
+		border-radius: 18rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
 		animation: skeleton-loading 1.5s infinite;
 	}
 
 	.skeleton-notice-bar {
-		height: 60rpx;
-		border-radius: 16rpx;
-		margin: 0 30rpx 20rpx;
+		height: 56rpx;
+		border-radius: 12rpx;
+		margin: 0 24rpx 16rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
 		animation: skeleton-loading 1.5s infinite;
 	}
 
 	.skeleton-notice-card {
-		height: 110rpx;
-		border-radius: 16rpx;
-		margin: 0 30rpx;
+		height: 100rpx;
+		border-radius: 12rpx;
+		margin: 0 24rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
 		animation: skeleton-loading 1.5s infinite;
@@ -1163,7 +1126,7 @@
 	.skeleton-quick-grid {
 		display: flex;
 		justify-content: space-around;
-		padding: 10rpx 20rpx 30rpx;
+		padding: 0 16rpx 16rpx;
 	}
 
 	.skeleton-quick-item {
@@ -1173,8 +1136,8 @@
 	}
 
 	.skeleton-quick-icon {
-		width: 92rpx;
-		height: 92rpx;
+		width: 80rpx;
+		height: 80rpx;
 		border-radius: 50%;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
@@ -1182,15 +1145,15 @@
 	}
 
 	.skeleton-line {
-		height: 28rpx;
+		height: 24rpx;
 		background: linear-gradient(90deg, #e8ecf1 25%, #f2f5f8 50%, #e8ecf1 75%);
 		background-size: 200% 100%;
 		border-radius: 8rpx;
 		animation: skeleton-loading 1.5s infinite;
-		margin-bottom: 10rpx;
+		margin-bottom: 8rpx;
 
 		&.short {
-			height: 22rpx;
+			height: 20rpx;
 		}
 	}
 
@@ -1198,7 +1161,6 @@
 		0% {
 			background-position: 200% 0;
 		}
-
 		100% {
 			background-position: -200% 0;
 		}

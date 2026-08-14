@@ -4,6 +4,7 @@ const _sfc_main = {
   data() {
     return {
       pageLoading: true,
+      statusBarHeight: 20,
       popupStyle: {
         mode: "bottom",
         border_radius: 16,
@@ -92,6 +93,8 @@ const _sfc_main = {
     }
   },
   async onLoad() {
+    const sysInfo = common_vendor.index.getSystemInfoSync();
+    this.statusBarHeight = sysInfo.statusBarHeight || 20;
     this.pageLoading = true;
     this.loadUserInfo();
     await Promise.all([
@@ -332,38 +335,39 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: !$data.pageLoading
   }, !$data.pageLoading ? common_vendor.e({
-    b: common_vendor.p({
+    b: $data.statusBarHeight + "px",
+    c: common_vendor.p({
       src: $data.userInfo.avatar || "/static/txl/ico_logo_@3x.png",
-      size: "80"
+      size: "76"
     }),
-    c: common_vendor.t($data.userInfo.nickname || "欢迎回来"),
-    d: common_vendor.t($options.getGreeting()),
-    e: $options.hasLogin
+    d: common_vendor.t($data.userInfo.nickname || "欢迎回来"),
+    e: common_vendor.t($options.getGreeting()),
+    f: $options.hasLogin
   }, $options.hasLogin ? {
-    f: common_vendor.p({
+    g: common_vendor.p({
       name: "search",
       size: "32",
       color: "#999"
     }),
-    g: common_vendor.o((...args) => $options.onSearch && $options.onSearch(...args), "03")
+    h: common_vendor.o((...args) => $options.onSearch && $options.onSearch(...args), "e6")
   } : {}, {
-    h: $options.hasLogin
+    i: $options.hasLogin
   }, $options.hasLogin ? {
-    i: common_vendor.o($options.onSwiperClick, "cd"),
-    j: common_vendor.p({
+    j: common_vendor.o($options.onSwiperClick, "88"),
+    k: common_vendor.p({
       list: $data.swiperList.length ? $data.swiperList : $data.defaultSwiper,
-      height: "300",
+      height: "320",
       ["indicator-pos"]: "bottomCenter",
       circular: true,
       autoplay: true,
       interval: 3e3,
       duration: 500,
-      bgColor: "#f0f2f5",
-      radius: "20"
+      bgColor: "#ffffff",
+      radius: "16"
     })
   } : {}, {
-    k: common_vendor.o((...args) => $options.viewAllFunctions && $options.viewAllFunctions(...args), "c8"),
-    l: common_vendor.f($options.displayMenuList, (item, index, i0) => {
+    l: common_vendor.o((...args) => $options.viewAllFunctions && $options.viewAllFunctions(...args), "f7"),
+    m: common_vendor.f($options.displayMenuList, (item, index, i0) => {
       return common_vendor.e({
         a: item.imgUrl && item._imgLoaded !== false
       }, item.imgUrl && item._imgLoaded !== false ? {
@@ -388,16 +392,16 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         l: "1cf27b2a-4-" + i0 + ",1cf27b2a-3"
       });
     }),
-    m: common_vendor.p({
+    n: common_vendor.p({
       col: 4,
       border: false,
-      gap: 10
+      gap: 6
     }),
-    n: $options.hasLogin
+    o: $options.hasLogin
   }, $options.hasLogin ? {
-    o: common_vendor.o((...args) => $options.viewAllNotices && $options.viewAllNotices(...args), "6e"),
-    p: common_vendor.o($options.onNoticeClick, "75"),
-    q: common_vendor.p({
+    p: common_vendor.o((...args) => $options.viewAllNotices && $options.viewAllNotices(...args), "7c"),
+    q: common_vendor.o($options.onNoticeClick, "e8"),
+    r: common_vendor.p({
       list: $data.noticeList.map((item) => item.title),
       duration: 4e3,
       ["is-circular"]: false,
@@ -405,19 +409,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#ff9900",
       mode: "vertical"
     }),
-    r: common_vendor.t($data.currentNotice.title || "暂无通知"),
-    s: common_vendor.t($data.currentNotice.publish_date ? _ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "MM-dd") : ""),
-    t: $data.currentNotice.content || "暂无内容",
-    v: common_vendor.o(($event) => $options.showDetail($data.currentNotice), "fd")
+    s: common_vendor.t($data.currentNotice.title || "暂无通知"),
+    t: common_vendor.t($data.currentNotice.publish_date ? _ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "MM-dd") : ""),
+    v: $data.currentNotice.content || "暂无内容",
+    w: common_vendor.o(($event) => $options.showDetail($data.currentNotice), "ce")
   } : {}, {
-    w: $options.hasLogin
+    x: $options.hasLogin
   }, $options.hasLogin ? {
-    x: common_vendor.f($data.quickList, (item, index, i0) => {
+    y: common_vendor.f($data.quickList, (item, index, i0) => {
       return {
         a: "1cf27b2a-7-" + i0,
         b: common_vendor.p({
           name: item.icon,
-          size: "36",
+          size: "32",
           color: "#ffffff"
         }),
         c: item.bgColor,
@@ -427,19 +431,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       };
     })
   } : {}, {
-    y: $options.hasLogin
+    z: $options.hasLogin
   }, $options.hasLogin ? common_vendor.e({
-    z: common_vendor.t($data.currentNotice.title),
-    A: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
-    B: $data.currentNotice.publisher_name
+    A: common_vendor.t($data.currentNotice.title),
+    B: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
+    C: $data.currentNotice.publisher_name
   }, $data.currentNotice.publisher_name ? {
-    C: common_vendor.t($data.currentNotice.publisher_name)
+    D: common_vendor.t($data.currentNotice.publisher_name)
   } : {}, {
-    D: common_vendor.p({
+    E: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    E: common_vendor.o(($event) => $data.showDetailPopup = $event, "03"),
-    F: common_vendor.p({
+    F: common_vendor.o(($event) => $data.showDetailPopup = $event, "00"),
+    G: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
       ["mask-close-able"]: true,
@@ -448,18 +452,18 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       modelValue: $data.showDetailPopup
     })
   }) : {}) : {
-    G: common_vendor.f(8, (i, k0, i0) => {
+    H: common_vendor.f(8, (i, k0, i0) => {
       return {
         a: i
       };
     }),
-    H: common_vendor.f(4, (i, k0, i0) => {
+    I: common_vendor.f(4, (i, k0, i0) => {
       return {
         a: i
       };
     })
   }, {
-    I: common_vendor.p({
+    J: common_vendor.p({
       list: $data.tabbar,
       ["before-switch"]: $options.beforeTabSwitch,
       ["icon-size"]: "48",

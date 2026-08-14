@@ -9,10 +9,10 @@
 
 		<!-- 自定义按钮区域开始 -->
 		<view>
-			<el-row>				
+			<el-row>
 				<el-button type="primary" size="small" icon="el-icon-edit-outline"
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-view')" @click="exportExcelAll"> 导出全部
-				</el-button>			
+				</el-button>
 			</el-row>
 		</view>
 		<!-- 自定义按钮区域结束 -->
@@ -73,13 +73,12 @@
 					action: "admin/hrm/salary/sys/payslip/getList",
 					//按钮显示
 					rightBtns: [{
-							mode: 'detail_auto',
-							title: '详细',
-							show: (item) => {
-								return this.$hasRole('admin') || this.$hasPermission('hrm-salary-payslip-view')
-							}
+						mode: 'detail_auto',
+						title: '详细',
+						show: (item) => {
+							return this.$hasRole('admin') || this.$hasPermission('hrm-salary-payslip-view')
 						}
-					],
+					}],
 					// 表格字段显示规则
 					columns: [{
 							"key": "attendance_ym",
@@ -89,7 +88,7 @@
 							"fixed": true,
 							"valueFormat": "yyyy-MM",
 							"format": "yyyy-MM"
-						}, 
+						},
 						{
 							"key": "attendance_ym_key",
 							"title": "月份",
@@ -144,7 +143,7 @@
 							"title": "离职日期",
 							"type": "text",
 							"width": colWidth - 100
-						},						
+						},
 						{
 							key: "status",
 							title: "状态",
@@ -193,17 +192,90 @@
 					},
 					// 查询表单的字段规则 fieldName:指定数据库字段名,不填默认等于key
 					columns: [{
+						key: "attendance_ym",
+						title: "考勤日期",
+						type: "date",
+						dateType: "date",
+						valueFormat: "yyyy-MM",
+						format: "yyyy-MM",
+						"width": colWidth
+					}, {
+						key: "card",
+						title: "",
+						type: "table-select",
+						placeholder: "选择员工",
+						action: "admin/hrm/salary/sys/payslip/getList",
+						multiple: false,
+						columns: [{
+								key: "employee_name",
+								title: "员工姓名",
+								type: "text",
+								nameKey: true
+							},
+							{
+								key: "card",
+								title: "身份证号码",
+								type: "text",
+								idKey: true
+
+							}
+						],
+						queryColumns: [{
+								key: "employee_name",
+								title: "员工姓名",
+								type: "text",
+								width: 150,
+								mode: "%%"
+							},
+							{
+								key: "card",
+								title: "身份证号码",
+								type: "text",
+								width: 150,
+								mode: "%%"
+							}
+
+						]
+					}, {
+						key: "status",
+						title: "状态",
+						type: "select",
+						width: colWidth - 50,
+						data: [{
+								value: 0,
+								label: "未签名"
+							},
+							{
+								value: 1,
+								label: "已签名"
+							}
+						],
+						mode: "="
+					}, ]
+				},
+				form1: {
+					// 表单请求数据，此处可以设置默认值
+					data: {},
+					// 表单属性
+					props: {
+						// 表单请求地址
+						action: "",
+						// 表单字段显示规则
+						columns: [{
 							key: "attendance_ym",
 							title: "考勤日期",
 							type: "date",
 							dateType: "date",
+							disabled: true,
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							"width": colWidth
+
 						}, {
 							key: "card",
-							title: "",
+							title: "姓名",
 							type: "table-select",
+							disabled: true,
 							placeholder: "选择员工",
 							action: "admin/hrm/salary/sys/payslip/getList",
 							multiple: false,
@@ -237,82 +309,7 @@
 								}
 
 							]
-						},{
-							key: "status",
-							title: "状态",
-							type: "select",
-							width: colWidth - 50,
-							data: [{
-									value: 0,
-									label: "未签名"
-								},
-								{
-									value: 1,
-									label: "已签名"
-								}
-							],
-							mode: "="
-						},
-					]
-				},
-				form1: {
-					// 表单请求数据，此处可以设置默认值
-					data: {},
-					// 表单属性
-					props: {
-						// 表单请求地址
-						action: "",
-						// 表单字段显示规则
-						columns: [{
-								key: "attendance_ym",
-								title: "考勤日期",
-								type: "date",
-								dateType: "date",
-								disabled: true,
-								valueFormat: "yyyy-MM",
-								format: "yyyy-MM",
-								"width": colWidth
-
-							}, {
-								key: "card",
-								title: "姓名",
-								type: "table-select",
-								disabled: true,
-								placeholder: "选择员工",
-								action: "admin/hrm/salary/sys/payslip/getList",
-								multiple: false,
-								columns: [{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										nameKey: true
-									},
-									{
-										key: "card",
-										title: "身份证号码",
-										type: "text",
-										idKey: true
-
-									}
-								],
-								queryColumns: [{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "card",
-										title: "身份证号码",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									}
-
-								]
-							}							
-						],
+						}],
 						// 表单验证规则
 						rules: {
 							attendance_ym: [{
@@ -342,7 +339,7 @@
 		// 监听 - 页面每次【加载时】执行(如：前进)
 		onLoad(options = {}) {
 			this.options = options;
-			this.init(options);			
+			this.init(options);
 		},
 		// 监听 - 页面【首次渲染完成时】执行。注意如果渲染速度快，会在页面进入动画完成前触发
 		onReady() {
@@ -357,7 +354,7 @@
 
 		},
 		// 函数
-		methods: {					
+		methods: {
 			// 页面数据初始化函数
 			init(options) {
 				originalForms["form1"] = vk.pubfn.copyObject(this.form1);
@@ -371,7 +368,7 @@
 				vk.pubfn.resetForm(originalForms, this);
 			},
 			// 搜索
-			async search() {				
+			async search() {
 				this.$refs.table1.search();
 			},
 			// 刷新
@@ -389,8 +386,8 @@
 			// 当选择项发生变化时会触发该事件
 			selectionChange(list) {
 				this.table1.multipleSelection = list;
-			},			
-			
+			},
+
 			// 导出xls表格文件（全部数据）
 			exportExcelAll() {
 				if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
@@ -408,7 +405,7 @@
 							"fixed": true,
 							"valueFormat": "yyyy-MM",
 							"format": "yyyy-MM"
-						}, 
+						},
 						{
 							"key": "attendance_ym_key",
 							"title": "月份",
@@ -418,6 +415,12 @@
 							"key": "employee_name",
 							"title": "姓名",
 							"type": "text"
+						},
+						// ========== 新增签名图片列 ==========
+						{
+							"key": "signature_url",
+							"title": "签名",
+							"type": "image" // 指定为图片类型，导出时将嵌入图片
 						},
 						{
 							"key": "card",
@@ -443,7 +446,7 @@
 							"key": "resign_date",
 							"title": "离职日期",
 							"type": "text"
-						},						
+						},
 						{
 							"key": "status",
 							"title": "状态",

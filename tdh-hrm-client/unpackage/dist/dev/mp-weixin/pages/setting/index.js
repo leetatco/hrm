@@ -38,7 +38,7 @@ const _sfc_main = {
                 vk.navigateToLogin();
               },
               fail: (err) => {
-                common_vendor.index.__f__("error", "at pages/setting/index.vue:129", "退出登录失败:", err);
+                common_vendor.index.__f__("error", "at pages/setting/index.vue:128", "退出登录失败:", err);
                 common_vendor.index.showToast({
                   title: "切换失败，请重试",
                   icon: "none"
@@ -70,7 +70,7 @@ const _sfc_main = {
           this.showCropModal = true;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/setting/index.vue:165", "选择图片失败:", error);
+        common_vendor.index.__f__("error", "at pages/setting/index.vue:164", "选择图片失败:", error);
         common_vendor.index.showToast({
           title: "选择图片失败",
           icon: "none"
@@ -100,7 +100,7 @@ const _sfc_main = {
           await this.submitForm(avatarUrl);
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/setting/index.vue:200", "上传头像失败:", error);
+        common_vendor.index.__f__("error", "at pages/setting/index.vue:199", "上传头像失败:", error);
         common_vendor.index.showToast({
           title: "上传失败，请重试",
           icon: "none"
@@ -134,7 +134,7 @@ const _sfc_main = {
           }, 500);
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/setting/index.vue:242", "更新头像失败:", error);
+        common_vendor.index.__f__("error", "at pages/setting/index.vue:241", "更新头像失败:", error);
         common_vendor.index.showToast({
           title: "更新失败，请重试",
           icon: "none"
@@ -174,7 +174,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#999",
       size: "24"
     }),
-    d: common_vendor.o((...args) => $options.confirmCrop && $options.confirmCrop(...args), "29"),
+    d: common_vendor.o((...args) => $options.confirmCrop && $options.confirmCrop(...args), "e7"),
     e: common_vendor.p({
       name: "lock",
       size: "44",
@@ -185,7 +185,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#999",
       size: "24"
     }),
-    g: common_vendor.o((...args) => $options.goto && $options.goto(...args), "34"),
+    g: common_vendor.o((...args) => $options.goto && $options.goto(...args), "6e"),
     h: common_vendor.p({
       name: "swap",
       size: "44",
@@ -196,7 +196,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#999",
       size: "24"
     }),
-    j: common_vendor.o((...args) => $options.bindLogout && $options.bindLogout(...args), "25"),
+    j: common_vendor.o((...args) => $options.bindLogout && $options.bindLogout(...args), "12"),
     k: _ctx.vk.getVuex("$user.userInfo").username
   }, _ctx.vk.getVuex("$user.userInfo").username ? common_vendor.e({
     l: common_vendor.t(_ctx.vk.getVuex("$user.userInfo").username),
@@ -213,9 +213,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     r: $data.showCropModal
   }, $data.showCropModal ? {
     s: $data.tempAvatarPath,
-    t: common_vendor.o($options.confirmCrop, "78"),
-    v: common_vendor.o($options.cancelCrop, "8c"),
-    w: common_vendor.o(($event) => $data.showCropModal = $event, "e9"),
+    t: common_vendor.o($options.confirmCrop, "73"),
+    v: common_vendor.o($options.cancelCrop, "68"),
+    w: common_vendor.o(($event) => $data.showCropModal = $event, "c1"),
     x: common_vendor.p({
       ["show-cancel-button"]: true,
       ["show-confirm-button"]: true,
