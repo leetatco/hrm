@@ -1,5 +1,10 @@
 <template>
 	<view class="notice-list-container">
+		<!-- 返回主页按钮（左上角，与状态栏同行） -->
+		<view class="back-home-btn" :style="{ top: statusBarHeight + 6 + 'px' }" @click="goHome">
+			<u-icon name="home" size="45"></u-icon>
+		</view>
+
 		<!-- 搜索栏（小清新表头） -->
 		<view class="filter-section">
 			<view class="search-bar">
@@ -46,10 +51,6 @@
 				</scroll-view>
 			</view>
 		</u-popup>
-		<!-- 回到主页悬浮按钮 -->
-		<view class="back-home-btn" @click="goHome">
-		    <u-icon name="home" size="24" color="#ffffff"></u-icon>
-		</view>
 	</view>
 </template>
 
@@ -57,6 +58,7 @@
 	export default {
 		data() {
 			return {
+				statusBarHeight: 20, // 状态栏高度
 				keyword: '', // 搜索关键词
 				noticeList: [], // 公告列表数据
 				pageIndex: 1, // 当前页码
@@ -79,7 +81,8 @@
 			}
 		},
 		onLoad() {
-			this.getNoticeList(true)
+			this.getStatusBarHeight();
+			this.getNoticeList(true);
 		},
 		// 上拉加载更多
 		onReachBottom() {
@@ -88,11 +91,21 @@
 			}
 		},
 		methods: {
+			// 获取状态栏高度
+			getStatusBarHeight() {
+				try {
+					const sysInfo = uni.getSystemInfoSync();
+					this.statusBarHeight = sysInfo.statusBarHeight || 20;
+				} catch (e) {
+					console.error('获取状态栏高度失败:', e);
+					this.statusBarHeight = 20;
+				}
+			},
 			// 回到主页
 			goHome() {
-			    uni.switchTab({
-			        url: '/pages/index/index'
-			    });
+				uni.switchTab({
+					url: '/pages/index/index'
+				});
 			},
 			// 格式化日期
 			formatDate(date) {
@@ -188,32 +201,35 @@
 </script>
 
 <style lang="scss" scoped>
-	/* 回到主页悬浮按钮 */
-	.back-home-btn {
-	    position: fixed;
-	    right: 30rpx;
-	    bottom: 50rpx;
-	    width: 80rpx;
-	    height: 80rpx;
-	    border-radius: 50%;
-	    background: #2979ff;
-	    display: flex;
-	    align-items: center;
-	    justify-content: center;
-	    box-shadow: 0 8rpx 20rpx rgba(41, 121, 255, 0.3);
-	    z-index: 999;
-	    transition: all 0.2s;
-	
-	    &:active {
-	        transform: scale(0.9);
-	        box-shadow: 0 4rpx 12rpx rgba(41, 121, 255, 0.4);
-	    }
-	}
 	.notice-list-container {
 		min-height: 100vh;
 		background: linear-gradient(180deg, #f5f9ff 0%, #f0f4fa 100%);
 		padding-bottom: 40rpx;
 		box-sizing: border-box;
+	}
+
+	/* ========== 返回主页按钮（左上角固定） ========== */
+	.back-home-btn {
+		position: fixed;
+		left: 24rpx;
+		z-index: 999;
+		width: 48rpx;
+		height: 48rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		// background: rgba(255, 255, 255, 0.88);
+		border-radius: 50%;
+		box-shadow: 0 4rpx 16rpx rgba(41, 121, 255, 0.12);
+		transition: all 0.2s;
+		backdrop-filter: blur(8rpx);
+		-webkit-backdrop-filter: blur(8rpx);
+
+		&:active {
+			transform: scale(0.88);
+			background: rgba(255, 255, 255, 0.96);
+			box-shadow: 0 2rpx 8rpx rgba(41, 121, 255, 0.2);
+		}
 	}
 
 	/* ========== 筛选区域（小清新表头） ========== */
@@ -276,7 +292,7 @@
 
 	/* 搜索栏 */
 	.search-bar {
-		margin-top: 150rpx;
+		margin-top: 160rpx;
 		position: relative;
 		z-index: 1;
 
@@ -423,6 +439,12 @@
 
 		.notice-card {
 			padding: 22rpx 20rpx;
+		}
+
+		.back-home-btn {
+			left: 18rpx;
+			width: 42rpx;
+			height: 42rpx;
 		}
 	}
 </style>

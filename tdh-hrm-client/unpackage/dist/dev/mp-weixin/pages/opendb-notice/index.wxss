@@ -2,31 +2,33 @@
 /*文字颜色*/
 /* 边框颜色 */
 /* 图片加载中颜色 */
-/* 回到主页悬浮按钮 */
-.back-home-btn.data-v-51646c99 {
-  position: fixed;
-  right: 30rpx;
-  bottom: 50rpx;
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background: #2979ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 20rpx rgba(41, 121, 255, 0.3);
-  z-index: 999;
-  transition: all 0.2s;
-}
-.back-home-btn.data-v-51646c99:active {
-  transform: scale(0.9);
-  box-shadow: 0 4rpx 12rpx rgba(41, 121, 255, 0.4);
-}
 .notice-list-container.data-v-51646c99 {
   min-height: 100vh;
   background: linear-gradient(180deg, #f5f9ff 0%, #f0f4fa 100%);
   padding-bottom: 40rpx;
   box-sizing: border-box;
+}
+
+/* ========== 返回主页按钮（左上角固定） ========== */
+.back-home-btn.data-v-51646c99 {
+  position: fixed;
+  left: 24rpx;
+  z-index: 999;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 4rpx 16rpx rgba(41, 121, 255, 0.12);
+  transition: all 0.2s;
+  backdrop-filter: blur(8rpx);
+  -webkit-backdrop-filter: blur(8rpx);
+}
+.back-home-btn.data-v-51646c99:active {
+  transform: scale(0.88);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 2rpx 8rpx rgba(41, 121, 255, 0.2);
 }
 
 /* ========== 筛选区域（小清新表头） ========== */
@@ -84,7 +86,7 @@
 }
 /* 搜索栏 */
 .search-bar.data-v-51646c99 {
-  margin-top: 150rpx;
+  margin-top: 160rpx;
   position: relative;
   z-index: 1;
 }
@@ -214,5 +216,10 @@
 }
 .notice-card.data-v-51646c99 {
     padding: 22rpx 20rpx;
+}
+.back-home-btn.data-v-51646c99 {
+    left: 18rpx;
+    width: 42rpx;
+    height: 42rpx;
 }
 }

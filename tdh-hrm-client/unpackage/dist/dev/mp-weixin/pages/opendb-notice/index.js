@@ -3,6 +3,8 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = {
   data() {
     return {
+      statusBarHeight: 20,
+      // 状态栏高度
       keyword: "",
       // 搜索关键词
       noticeList: [],
@@ -34,6 +36,7 @@ const _sfc_main = {
     }
   },
   onLoad() {
+    this.getStatusBarHeight();
     this.getNoticeList(true);
   },
   // 上拉加载更多
@@ -43,6 +46,16 @@ const _sfc_main = {
     }
   },
   methods: {
+    // 获取状态栏高度
+    getStatusBarHeight() {
+      try {
+        const sysInfo = common_vendor.index.getSystemInfoSync();
+        this.statusBarHeight = sysInfo.statusBarHeight || 20;
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/opendb-notice/index.vue:100", "获取状态栏高度失败:", e);
+        this.statusBarHeight = 20;
+      }
+    },
     // 回到主页
     goHome() {
       common_vendor.index.switchTab({
@@ -105,7 +118,7 @@ const _sfc_main = {
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/opendb-notice/index.vue:154", "获取公告列表失败", e);
+        common_vendor.index.__f__("error", "at pages/opendb-notice/index.vue:167", "获取公告列表失败", e);
         common_vendor.index.showToast({
           title: "网络错误，请稍后重试",
           icon: "none"
@@ -141,29 +154,35 @@ const _sfc_main = {
   }
 };
 if (!Array) {
-  const _easycom_u_search2 = common_vendor.resolveComponent("u-search");
   const _easycom_u_icon2 = common_vendor.resolveComponent("u-icon");
+  const _easycom_u_search2 = common_vendor.resolveComponent("u-search");
   const _easycom_u_empty2 = common_vendor.resolveComponent("u-empty");
   const _easycom_u_loadmore2 = common_vendor.resolveComponent("u-loadmore");
   const _easycom_u_parse2 = common_vendor.resolveComponent("u-parse");
   const _easycom_u_popup2 = common_vendor.resolveComponent("u-popup");
-  (_easycom_u_search2 + _easycom_u_icon2 + _easycom_u_empty2 + _easycom_u_loadmore2 + _easycom_u_parse2 + _easycom_u_popup2)();
+  (_easycom_u_icon2 + _easycom_u_search2 + _easycom_u_empty2 + _easycom_u_loadmore2 + _easycom_u_parse2 + _easycom_u_popup2)();
 }
-const _easycom_u_search = () => "../../uni_modules/vk-uview-ui/components/u-search/u-search.js";
 const _easycom_u_icon = () => "../../uni_modules/vk-uview-ui/components/u-icon/u-icon.js";
+const _easycom_u_search = () => "../../uni_modules/vk-uview-ui/components/u-search/u-search.js";
 const _easycom_u_empty = () => "../../uni_modules/vk-uview-ui/components/u-empty/u-empty.js";
 const _easycom_u_loadmore = () => "../../uni_modules/vk-uview-ui/components/u-loadmore/u-loadmore.js";
 const _easycom_u_parse = () => "../../uni_modules/vk-uview-ui/components/u-parse/u-parse.js";
 const _easycom_u_popup = () => "../../uni_modules/vk-uview-ui/components/u-popup/u-popup.js";
 if (!Math) {
-  (_easycom_u_search + _easycom_u_icon + _easycom_u_empty + _easycom_u_loadmore + _easycom_u_parse + _easycom_u_popup)();
+  (_easycom_u_icon + _easycom_u_search + _easycom_u_empty + _easycom_u_loadmore + _easycom_u_parse + _easycom_u_popup)();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o($options.handleSearch, "f3"),
-    b: common_vendor.o($options.handleClear, "e7"),
-    c: common_vendor.o(($event) => $data.keyword = $event, "ef"),
-    d: common_vendor.p({
+    a: common_vendor.p({
+      name: "home",
+      size: "45"
+    }),
+    b: $data.statusBarHeight + 6 + "px",
+    c: common_vendor.o((...args) => $options.goHome && $options.goHome(...args), "b3"),
+    d: common_vendor.o($options.handleSearch, "e4"),
+    e: common_vendor.o($options.handleClear, "6a"),
+    f: common_vendor.o(($event) => $data.keyword = $event, "d9"),
+    g: common_vendor.p({
       placeholder: "请输入公告标题",
       shape: "round",
       ["bg-color"]: "#ffffff",
@@ -171,12 +190,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       showAction: false,
       modelValue: $data.keyword
     }),
-    e: $data.noticeList.length > 0
+    h: $data.noticeList.length > 0
   }, $data.noticeList.length > 0 ? {
-    f: common_vendor.f($data.noticeList, (item, k0, i0) => {
+    i: common_vendor.f($data.noticeList, (item, k0, i0) => {
       return common_vendor.e({
         a: common_vendor.t(item.title),
-        b: "51646c99-1-" + i0,
+        b: "51646c99-2-" + i0,
         c: common_vendor.t($options.formatDate(item.publish_date)),
         d: item.publisher_name
       }, item.publisher_name ? {
@@ -186,38 +205,38 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         g: common_vendor.o(($event) => $options.showDetail(item), item._id)
       });
     }),
-    g: common_vendor.p({
+    j: common_vendor.p({
       name: "arrow-right",
       size: "16",
       color: "#b0b7c3"
     })
   } : {}, {
-    h: !$data.loading && $data.noticeList.length === 0
+    k: !$data.loading && $data.noticeList.length === 0
   }, !$data.loading && $data.noticeList.length === 0 ? {
-    i: common_vendor.p({
+    l: common_vendor.p({
       text: "暂无公告",
       mode: "list"
     })
   } : {}, {
-    j: $data.noticeList.length > 0
+    m: $data.noticeList.length > 0
   }, $data.noticeList.length > 0 ? {
-    k: common_vendor.o($options.loadMore, "dd"),
-    l: common_vendor.p({
+    n: common_vendor.o($options.loadMore, "26"),
+    o: common_vendor.p({
       status: $data.loadStatus,
       ["icon-type"]: $options.loadIconType
     })
   } : {}, {
-    m: common_vendor.t($data.currentNotice.title),
-    n: common_vendor.t($options.formatDate($data.currentNotice.publish_date)),
-    o: $data.currentNotice.publisher_name
+    p: common_vendor.t($data.currentNotice.title),
+    q: common_vendor.t($options.formatDate($data.currentNotice.publish_date)),
+    r: $data.currentNotice.publisher_name
   }, $data.currentNotice.publisher_name ? {
-    p: common_vendor.t($data.currentNotice.publisher_name)
+    s: common_vendor.t($data.currentNotice.publisher_name)
   } : {}, {
-    q: common_vendor.p({
+    t: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    r: common_vendor.o(($event) => $data.showDetailPopup = $event, "79"),
-    s: common_vendor.p({
+    v: common_vendor.o(($event) => $data.showDetailPopup = $event, "81"),
+    w: common_vendor.p({
       mode: "bottom",
       closeable: true,
       ["mask-close-able"]: true,
@@ -225,13 +244,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       height: "90%",
       ["border-radius"]: "16",
       modelValue: $data.showDetailPopup
-    }),
-    t: common_vendor.p({
-      name: "home",
-      size: "24",
-      color: "#ffffff"
-    }),
-    v: common_vendor.o((...args) => $options.goHome && $options.goHome(...args), "83")
+    })
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-51646c99"]]);

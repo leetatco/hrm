@@ -6,6 +6,8 @@ const _sfc_main = {
     return {
       statusBarHeight: 20,
       logoMarginTop: 0,
+      backHomeTop: 30,
+      // 返回按钮的 top 值，动态计算
       form: {
         username: "",
         password: "",
@@ -40,23 +42,22 @@ const _sfc_main = {
           }
         ]
       },
-      bindModalVisible: false,
       inputModalVisible: false,
       bindAccountInput: "",
       currentCodeRes: null,
-      // 协议弹窗
       agreementPopupVisible: false,
       agreementTitle: "用户协议",
       agreementContent: "",
       privacyContent: "",
-      // 协议复选框
-      agreementChecked: false
+      agreementChecked: false,
+      encryptedKey: ""
     };
   },
   onLoad() {
     this.loadRememberedAccount();
     this.initLayout();
     this.loadAgreementContent();
+    this.prepareEncryptedKey();
   },
   onReady() {
     this.$refs.uForm.setRules(this.rules);
@@ -72,11 +73,79 @@ const _sfc_main = {
     }
   },
   methods: {
-    // 切换协议复选框状态
+    // 返回主页
+    goHome() {
+      common_vendor.index.switchTab({
+        url: "/pages/index/index"
+      });
+    },
+    // 预先获取 encryptedKey
+    async prepareEncryptedKey() {
+      try {
+        const res = await vk.userCenter.code2SessionWeixin({
+          data: {
+            needCache: true
+          }
+        });
+        if (res && res.encryptedKey) {
+          this.encryptedKey = res.encryptedKey;
+        }
+      } catch (e) {
+        common_vendor.index.__f__("log", "at pages/login/index.vue:233", "获取 encryptedKey 失败", e);
+      }
+    },
+    // 获取微信手机号
+    getPhoneNumber(e) {
+      const {
+        encryptedData,
+        iv
+      } = e.detail;
+      if (!encryptedData || !iv) {
+        common_vendor.index.showToast({
+          title: "授权失败，请手动输入",
+          icon: "none"
+        });
+        return;
+      }
+      if (!this.encryptedKey) {
+        common_vendor.index.showToast({
+          title: "加密密钥未准备好，请重试",
+          icon: "none"
+        });
+        return;
+      }
+      vk.userCenter.getPhoneNumber({
+        data: {
+          encryptedData,
+          iv,
+          encryptedKey: this.encryptedKey
+        },
+        success: (data) => {
+          if (data.mobile) {
+            this.bindAccountInput = data.mobile;
+            common_vendor.index.showToast({
+              title: "已获取手机号",
+              icon: "success"
+            });
+          } else {
+            common_vendor.index.showToast({
+              title: "未能获取手机号，请手动输入",
+              icon: "none"
+            });
+          }
+        },
+        fail: (err) => {
+          common_vendor.index.__f__("error", "at pages/login/index.vue:278", "获取手机号失败", err);
+          common_vendor.index.showToast({
+            title: err.msg || "获取失败，请手动输入",
+            icon: "none"
+          });
+        }
+      });
+    },
     toggleAgreement() {
       this.agreementChecked = !this.agreementChecked;
     },
-    // 加载协议内容
     loadAgreementContent() {
       this.agreementContent = `
 					<h2>用户协议</h2>
@@ -143,13 +212,11 @@ const _sfc_main = {
 					<p>如果您对隐私政策有任何疑问，请通过客服功能联系我们。</p>
 				`;
     },
-    // 显示用户协议弹窗
     showAgreementPopup() {
       this.agreementTitle = "用户协议";
       this.agreementContent = this.agreementContent;
       this.agreementPopupVisible = true;
     },
-    // 显示隐私政策弹窗
     showPrivacyPopup() {
       this.agreementTitle = "隐私政策";
       this.agreementContent = this.privacyContent;
@@ -163,9 +230,11 @@ const _sfc_main = {
         const capsuleBottom = menuRect.top + menuRect.height;
         const pxToRpx = 750 / sysInfo.windowWidth;
         this.logoMarginTop = (capsuleBottom + 10) * pxToRpx;
+        this.backHomeTop = menuRect.top + menuRect.height / 2 - 22;
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:299", "获取布局信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:390", "获取布局信息失败:", e);
         this.logoMarginTop = 40;
+        this.backHomeTop = 40;
       }
     },
     loadRememberedAccount() {
@@ -177,7 +246,7 @@ const _sfc_main = {
           this.form.remember = true;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:312", "读取记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:404", "读取记住的账号失败", e);
       }
     },
     saveRememberedAccount() {
@@ -187,14 +256,14 @@ const _sfc_main = {
           password: this.form.password
         });
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:322", "保存记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:414", "保存记住的账号失败", e);
       }
     },
     clearRememberedAccount() {
       try {
         common_vendor.index.removeStorageSync("rememberedAccount");
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:329", "清除记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:421", "清除记住的账号失败", e);
       }
     },
     async is_resigned(username) {
@@ -223,7 +292,7 @@ const _sfc_main = {
           this.doLogin();
         }
       }).catch((errors) => {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:359", "表单验证失败", errors);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:450", "表单验证失败", errors);
       });
     },
     async doLogin() {
@@ -265,7 +334,7 @@ const _sfc_main = {
       try {
         await vk.userCenter.bindWeixin();
       } catch (e) {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:401", "绑定微信失败:", e);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:492", "绑定微信失败:", e);
       }
     },
     toForget() {
@@ -295,6 +364,9 @@ const _sfc_main = {
           });
           return;
         }
+        if (codeRes.encryptedKey) {
+          this.encryptedKey = codeRes.encryptedKey;
+        }
         let checkWxRes = await vk.callFunction({
           url: "client/user/pub/isUser",
           title: "请求中...",
@@ -317,28 +389,25 @@ const _sfc_main = {
           return;
         }
         this.currentCodeRes = codeRes;
-        this.bindModalVisible = true;
+        this.bindAccountInput = "";
+        this.inputModalVisible = true;
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:458", "微信登录失败:", error);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:552", "微信登录失败:", error);
         common_vendor.index.showToast({
           title: "微信登录失败，请重试",
           icon: "none"
         });
       }
     },
-    confirmBind() {
-      this.bindModalVisible = false;
-      this.bindAccountInput = "";
-      this.inputModalVisible = true;
+    onInputPopupClose() {
     },
     async confirmInputBind() {
       const account = this.bindAccountInput.trim();
       if (!account) {
         common_vendor.index.showToast({
-          title: "请输入账号",
+          title: "请先输入手机号或点击获取微信手机号",
           icon: "none"
         });
-        this.inputModalVisible = true;
         return;
       }
       const codeRes = this.currentCodeRes;
@@ -428,8 +497,7 @@ if (!Array) {
   const _easycom_u_button2 = common_vendor.resolveComponent("u-button");
   const _easycom_u_form2 = common_vendor.resolveComponent("u-form");
   const _easycom_u_popup2 = common_vendor.resolveComponent("u-popup");
-  const _easycom_u_modal2 = common_vendor.resolveComponent("u-modal");
-  (_easycom_u_icon2 + _easycom_u_input2 + _easycom_u_form_item2 + _easycom_u_button2 + _easycom_u_form2 + _easycom_u_popup2 + _easycom_u_modal2)();
+  (_easycom_u_icon2 + _easycom_u_input2 + _easycom_u_form_item2 + _easycom_u_button2 + _easycom_u_form2 + _easycom_u_popup2)();
 }
 const _easycom_u_icon = () => "../../uni_modules/vk-uview-ui/components/u-icon/u-icon.js";
 const _easycom_u_input = () => "../../uni_modules/vk-uview-ui/components/u-input/u-input.js";
@@ -437,16 +505,21 @@ const _easycom_u_form_item = () => "../../uni_modules/vk-uview-ui/components/u-f
 const _easycom_u_button = () => "../../uni_modules/vk-uview-ui/components/u-button/u-button.js";
 const _easycom_u_form = () => "../../uni_modules/vk-uview-ui/components/u-form/u-form.js";
 const _easycom_u_popup = () => "../../uni_modules/vk-uview-ui/components/u-popup/u-popup.js";
-const _easycom_u_modal = () => "../../uni_modules/vk-uview-ui/components/u-modal/u-modal.js";
 if (!Math) {
-  (_easycom_u_icon + _easycom_u_input + _easycom_u_form_item + _easycom_u_button + _easycom_u_form + _easycom_u_popup + _easycom_u_modal)();
+  (_easycom_u_icon + _easycom_u_input + _easycom_u_form_item + _easycom_u_button + _easycom_u_form + _easycom_u_popup)();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: $data.statusBarHeight + "px",
-    b: common_assets._imports_0,
-    c: $data.logoMarginTop + "rpx",
-    d: common_vendor.p({
+    b: common_vendor.p({
+      name: "home",
+      size: "45"
+    }),
+    c: $data.backHomeTop + 6 + "px",
+    d: common_vendor.o((...args) => $options.goHome && $options.goHome(...args), "27"),
+    e: common_assets._imports_0,
+    f: $data.logoMarginTop + "rpx",
+    g: common_vendor.p({
       name: "account",
       size: "20",
       color: "#6c8cff",
@@ -454,8 +527,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         marginRight: "10rpx"
       }
     }),
-    e: common_vendor.o(($event) => $data.form.username = $event, "ec"),
-    f: common_vendor.p({
+    h: common_vendor.o(($event) => $data.form.username = $event, "3c"),
+    i: common_vendor.p({
       placeholder: "请输入账号",
       clearable: true,
       border: false,
@@ -464,12 +537,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       },
       modelValue: $data.form.username
     }),
-    g: common_vendor.p({
+    j: common_vendor.p({
       label: "账号",
       prop: "username",
       borderBottom: true
     }),
-    h: common_vendor.p({
+    k: common_vendor.p({
       name: "lock",
       size: "20",
       color: "#6c8cff",
@@ -477,8 +550,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         marginRight: "10rpx"
       }
     }),
-    i: common_vendor.o(($event) => $data.form.password = $event, "6b"),
-    j: common_vendor.p({
+    l: common_vendor.o(($event) => $data.form.password = $event, "d2"),
+    m: common_vendor.p({
       type: "password",
       placeholder: "请输入密码",
       clearable: true,
@@ -488,13 +561,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       },
       modelValue: $data.form.password
     }),
-    k: common_vendor.p({
+    n: common_vendor.p({
       label: "密码",
       prop: "password",
       borderBottom: true
     }),
-    l: common_vendor.o($options.handleLogin, "12"),
-    m: common_vendor.p({
+    o: common_vendor.o($options.handleLogin, "a0"),
+    p: common_vendor.p({
       type: "primary",
       shape: "circle",
       customStyle: {
@@ -506,38 +579,38 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         border: "none"
       }
     }),
-    n: common_vendor.sr("uForm", "d08ef7d4-0"),
-    o: common_vendor.p({
+    q: common_vendor.sr("uForm", "d08ef7d4-1"),
+    r: common_vendor.p({
       model: $data.form,
       labelPosition: "top"
     }),
-    p: $data.showThirdLogin
+    s: $data.showThirdLogin
   }, $data.showThirdLogin ? {} : {}, {
-    q: $data.showThirdLogin
+    t: $data.showThirdLogin
   }, $data.showThirdLogin ? {
-    r: common_vendor.p({
+    v: common_vendor.p({
       name: "weixin-fill",
       size: "52",
       color: "#ffffff"
     }),
-    s: common_vendor.o((...args) => $options.login_weixin && $options.login_weixin(...args), "b1")
+    w: common_vendor.o((...args) => $options.login_weixin && $options.login_weixin(...args), "e4")
   } : {}, {
-    t: $data.agreementChecked
+    x: $data.agreementChecked
   }, $data.agreementChecked ? {
-    v: common_vendor.p({
+    y: common_vendor.p({
       name: "checkmark",
       size: "16",
       color: "#ffffff"
     })
   } : {}, {
-    w: $data.agreementChecked ? 1 : "",
-    x: common_vendor.o((...args) => $options.showAgreementPopup && $options.showAgreementPopup(...args), "5c"),
-    y: common_vendor.o((...args) => $options.showPrivacyPopup && $options.showPrivacyPopup(...args), "b5"),
-    z: common_vendor.o((...args) => $options.toggleAgreement && $options.toggleAgreement(...args), "48"),
-    A: common_vendor.t($data.agreementTitle),
-    B: $data.agreementContent,
-    C: common_vendor.o(($event) => $data.agreementPopupVisible = $event, "aa"),
-    D: common_vendor.p({
+    z: $data.agreementChecked ? 1 : "",
+    A: common_vendor.o((...args) => $options.showAgreementPopup && $options.showAgreementPopup(...args), "f3"),
+    B: common_vendor.o((...args) => $options.showPrivacyPopup && $options.showPrivacyPopup(...args), "dc"),
+    C: common_vendor.o((...args) => $options.toggleAgreement && $options.toggleAgreement(...args), "1d"),
+    D: common_vendor.t($data.agreementTitle),
+    E: $data.agreementContent,
+    F: common_vendor.o(($event) => $data.agreementPopupVisible = $event, "53"),
+    G: common_vendor.p({
       mode: "bottom",
       closeable: true,
       ["mask-close-able"]: true,
@@ -545,32 +618,53 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["border-radius"]: 20,
       modelValue: $data.agreementPopupVisible
     }),
-    E: common_vendor.o($options.confirmBind, "74"),
-    F: common_vendor.o(($event) => $data.bindModalVisible = false, "f7"),
-    G: common_vendor.o(($event) => $data.bindModalVisible = $event, "10"),
-    H: common_vendor.p({
-      title: "提示",
-      content: "检测到您未绑定微信，是否要绑定到现有账号？",
-      showCancelButton: true,
-      modelValue: $data.bindModalVisible
-    }),
-    I: $data.inputModalVisible
-  }, $data.inputModalVisible ? {
-    J: common_vendor.o(($event) => $data.bindAccountInput = $event, "7a"),
-    K: common_vendor.p({
-      placeholder: "请输入您的手机号",
+    H: common_vendor.o(($event) => $data.bindAccountInput = $event, "55"),
+    I: common_vendor.p({
+      placeholder: "请输入手机号",
       type: "text",
       border: true,
-      focus: true,
+      customStyle: {
+        borderRadius: "16rpx",
+        height: "80rpx",
+        padding: "0 20rpx"
+      },
       modelValue: $data.bindAccountInput
-    })
-  } : {}, {
-    L: common_vendor.o($options.confirmInputBind, "00"),
-    M: common_vendor.o(($event) => $data.inputModalVisible = false, "a7"),
-    N: common_vendor.o(($event) => $data.inputModalVisible = $event, "1b"),
+    }),
+    J: common_vendor.p({
+      name: "phone-fill",
+      size: "28",
+      color: "#07c160",
+      customStyle: {
+        marginRight: "12rpx"
+      }
+    }),
+    K: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "64"),
+    L: common_vendor.o(($event) => $data.inputModalVisible = false, "e4"),
+    M: common_vendor.p({
+      type: "default",
+      shape: "circle",
+      customStyle: {
+        width: "180rpx"
+      }
+    }),
+    N: common_vendor.o($options.confirmInputBind, "b5"),
     O: common_vendor.p({
-      title: "绑定账号",
-      showCancelButton: true,
+      type: "primary",
+      shape: "circle",
+      customStyle: {
+        width: "180rpx",
+        background: "linear-gradient(135deg, #6c8cff, #a78bfa)",
+        border: "none"
+      }
+    }),
+    P: common_vendor.o($options.onInputPopupClose, "ae"),
+    Q: common_vendor.o(($event) => $data.inputModalVisible = $event, "fc"),
+    R: common_vendor.p({
+      mode: "bottom",
+      closeable: true,
+      ["mask-close-able"]: false,
+      height: "auto",
+      ["border-radius"]: 20,
       modelValue: $data.inputModalVisible
     })
   });

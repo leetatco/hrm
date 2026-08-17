@@ -1605,225 +1605,381 @@
 					pageSize: 1, // 此值为-1，代表导出所有数据
 				});
 			},
-			// 导出xls表格文件（全部数据）
-			exportExcelAll() {
-				if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
-					return vk.alert(`考勤日期不能为空！`);
-				}
-				const attendance_ym = this.queryForm1.formData.attendance_ym;
-				this.$refs.table1.exportExcel({
-					fileName: attendance_ym + '月份工资条',
-					title: "正在导出数据...",
-					columns: [{
-							"key": "attendance_ym",
-							"title": "考勤日期",
-							"type": "date",
-							"dateType": "date",
-							"fixed": true,
-							"valueFormat": "yyyy-MM",
-							"format": "yyyy-MM"
-						}, {
-							"key": "total_salary",
-							"title": "综合",
-							"type": "number"
-						},
-						{
-							"key": "attendance_ym_key",
-							"title": "月份",
-							"type": "text"
-						},
-						{
-							"key": "employee_name",
-							"title": "姓名",
-							"type": "text"
-						},
-						{
-							"key": "card",
-							"title": "身份证号码",
-							"type": "text"
-						},
-						{
-							"key": "department_name",
-							"title": "任职部门",
-							"type": "text"
-						},
-						{
-							"key": "position_name",
-							"title": "岗位",
-							"type": "text"
-						},
-						{
-							"key": "hire_date",
-							"title": "入职日期",
-							"type": "number"
-						},
-						{
-							"key": "resign_date",
-							"title": "离职日期",
-							"type": "text"
-						},
-						{
-							"key": "base_salary",
-							"title": "基本工资",
-							"type": "number"
-						},
-						{
-							"key": "performance_salary",
-							"title": "绩效工资",
-							"type": "number"
-						},
-						{
-							"key": "overtime_fee",
-							"title": "固定加班",
-							"type": "number"
-						},
-						{
-							"key": "penalty_fund",
-							"title": "社保补偿金",
-							"type": "number"
-						},
-						{
-							"key": "housing_fund",
-							"title": "公积补偿金",
-							"type": "number"
-						},
-						{
-							"key": "annual_allowance",
-							"title": "年度补偿金",
-							"type": "number"
-						},
-						{
-							"key": "floating_bonus",
-							"title": "浮动奖励",
-							"type": "number"
-						},
-						{
-							"key": "confidentiality_fee",
-							"title": "保密费",
-							"type": "number"
-						},
-						{
-							"key": "work_days",
-							"title": "应勤天数",
-							"type": "number"
-						},
-						{
-							"key": "real_days",
-							"title": "实际出勤",
-							"type": "number"
-						},
-						{
-							"key": "gross_salary",
-							"title": "应发工资",
-							"type": "number"
-						},
-						{
-							"key": "overtime_cost",
-							"title": "加班费",
-							"type": "number"
-						},
-						{
-							"key": "free_cost",
-							"title": "放假补助",
-							"type": "number"
-						},
-						{
-							"key": "grant",
-							"title": "补助",
-							"type": "number"
-						},
-						{
-							"key": "agency_fee",
-							"title": "介绍费",
-							"type": "text"
-						},
-						{
-							"key": "other_cost",
-							"title": "其它",
-							"type": "text"
-						},
-						{
-							"key": "we_cost",
-							"title": "水电",
-							"type": "number"
-						},
-						{
-							"key": "clothes_cost",
-							"title": "工衣",
-							"type": "number"
-						},
-						{
-							"key": "earlytime_cost",
-							"title": "迟到早退",
-							"type": "number"
-						},
-						{
-							"key": "missed_cost",
-							"title": "未打卡",
-							"type": "number"
-						},
-						{
-							"key": "loan_cost",
-							"title": "借款",
-							"type": "number"
-						},
-						{
-							"key": "this_month_sb",
-							"title": "本月社保",
-							"type": "number"
-						},
-						{
-							"key": "this_month_dk",
-							"title": "本月代扣部份",
-							"type": "number"
-						},
-						{
-							"key": "dkgs",
-							"title": "代扣个税",
-							"type": "number"
-						},
-						{
-							"key": "real_salary",
-							"title": "实发工资",
-							"type": "number"
-						},
-						// {
-						// 	"key": "comment",
-						// 	"title": "备注",
-						// 	"type": "text"
-						// },
-						{
-							"key": "company_sb",
-							"title": "公司部份社保",
-							"type": "number",
-						},
-						{
-							"key": "company_gjj",
-							"title": "公司部份公积金",
-							"type": "number",
-						},
-						{
-							"key": "last_month_sb",
-							"title": "下月社保",
-							"type": "number"
-						},
-						{
-							"key": "last_month_gjj",
-							"title": "下月公积金",
-							"type": "number"
-						},
-						{
-							"key": "status",
-							"title": "状态",
-							"type": "number",
-							formatter: function(val, row, column, index) {
-								return row.status == 1 ? '已签名' : '未签名';
-							}
-						}
-					],
-					pageIndex: 1,
-					pageSize: -1, // 此值为-1，代表导出所有数据
+			// 辅助获取数据
+			async fetchAllData(attendance_ym) {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/salary/sys/payslip/getList',
+					data: {
+						formData: this.queryForm1.formData,
+						columns: this.queryForm1.columns,
+						pageIndex: 1,
+						pageSize: -1
+					}
 				});
+				if (res.code === 0) {
+					return res.rows || [];
+				} else {
+					vk.alert(res.msg || '获取数据失败');
+					return [];
+				}
+			},
+			// 导出xls表格文件（全部数据）
+			async exportExcelAll() {
+				// 1. 校验月份
+				const attendance_ym = this.queryForm1.formData.attendance_ym;
+				if (vk.pubfn.isNull(attendance_ym)) {
+					return vk.alert('考勤日期不能为空！');
+				}
+
+				uni.showLoading({
+					title: '正在获取数据...'
+				});
+
+				try {
+					// 获取全部数据（建议 pageSize = -1）
+					const listData = await this.fetchAllData(attendance_ym);
+					
+					if (listData.length === 0) {
+						uni.hideLoading();
+						return vk.alert('无数据可导出');
+					}					
+
+					// 3. 引入依赖
+					const ExcelJS = require('exceljs');
+					const FileSaver = require('file-saver');
+
+					// 4. 创建工作簿
+					const workbook = new ExcelJS.Workbook();
+					const worksheet = workbook.addWorksheet('工资条', {
+						views: [{
+							state: 'frozen',
+							ySplit: 1
+						}] // 冻结首行
+					});
+
+					// 5. 定义列头（与原导出列保持一致，但新增了“签名”列）
+					const columnDefs = [{
+							header: '序号',
+							key: 'index',
+							width: 10
+						},
+						{
+							header: '考勤日期',
+							key: 'attendance_ym',
+							width: 15
+						},
+						{
+							header: '月份',
+							key: 'attendance_ym_key',
+							width: 15
+						},
+						{
+							header: '姓名',
+							key: 'employee_name',
+							width: 15
+						},
+						{
+							header: '签名',
+							key: 'signature_url',
+							width: 20
+						}, // 签名列
+						{
+							header: '身份证号码',
+							key: 'card',
+							width: 25
+						},
+						{
+							header: '任职部门',
+							key: 'department_name',
+							width: 20
+						},
+						{
+							header: '岗位',
+							key: 'position_name',
+							width: 20
+						},
+						{
+							header: '入职日期',
+							key: 'hire_date',
+							width: 15
+						},
+						{
+							header: '离职日期',
+							key: 'resign_date',
+							width: 15
+						},
+						{
+							header: '基本工资',
+							key: 'base_salary',
+							width: 15
+						},
+						{
+							header: '绩效工资',
+							key: 'performance_salary',
+							width: 15
+						},
+						{
+							header: '固定加班',
+							key: 'overtime_fee',
+							width: 15
+						},
+						{
+							header: '社保补偿金',
+							key: 'penalty_fund',
+							width: 15
+						},
+						{
+							header: '公积补偿金',
+							key: 'housing_fund',
+							width: 15
+						},
+						{
+							header: '年度补偿金',
+							key: 'annual_allowance',
+							width: 15
+						},
+						{
+							header: '浮动奖励',
+							key: 'floating_bonus',
+							width: 15
+						},
+						{
+							header: '保密费',
+							key: 'confidentiality_fee',
+							width: 15
+						},
+						{
+							header: '应勤天数',
+							key: 'work_days',
+							width: 15
+						},
+						{
+							header: '实际出勤',
+							key: 'real_days',
+							width: 15
+						},
+						{
+							header: '应发工资',
+							key: 'gross_salary',
+							width: 15
+						},
+						{
+							header: '加班费',
+							key: 'overtime_cost',
+							width: 15
+						},
+						{
+							header: '放假补助',
+							key: 'free_cost',
+							width: 15
+						},
+						{
+							header: '补助',
+							key: 'grant',
+							width: 15
+						},
+						{
+							header: '介绍费',
+							key: 'agency_fee',
+							width: 15
+						},
+						{
+							header: '其它',
+							key: 'other_cost',
+							width: 15
+						},
+						{
+							header: '水电',
+							key: 'we_cost',
+							width: 15
+						},
+						{
+							header: '工衣',
+							key: 'clothes_cost',
+							width: 15
+						},
+						{
+							header: '迟到早退',
+							key: 'earlytime_cost',
+							width: 15
+						},
+						{
+							header: '未打卡',
+							key: 'missed_cost',
+							width: 15
+						},
+						{
+							header: '借款',
+							key: 'loan_cost',
+							width: 15
+						},
+						{
+							header: '本月社保',
+							key: 'this_month_sb',
+							width: 15
+						},
+						{
+							header: '本月代扣部份',
+							key: 'this_month_dk',
+							width: 15
+						},
+						{
+							header: '代扣个税',
+							key: 'dkgs',
+							width: 15
+						},
+						{
+							header: '实发工资',
+							key: 'real_salary',
+							width: 15
+						},
+						{
+							header: '公司部份社保',
+							key: 'company_sb',
+							width: 15
+						},
+						{
+							header: '公司部份公积金',
+							key: 'company_gjj',
+							width: 15
+						},
+						{
+							header: '下月社保',
+							key: 'last_month_sb',
+							width: 15
+						},
+						{
+							header: '下月公积金',
+							key: 'last_month_gjj',
+							width: 15
+						},
+						{
+							header: '状态',
+							key: 'status',
+							width: 15
+						}
+					];
+					worksheet.columns = columnDefs;
+
+					// 6. 填充数据行（包括签名列文本，后续用图片覆盖）
+					listData.forEach((item, idx) => {
+						const row = {
+							index: idx + 1,
+							attendance_ym: item.attendance_ym,
+							attendance_ym_key: item.attendance_ym_key,
+							employee_name: item.employee_name,
+							signature_url: item.signature_url, // 临时放URL
+							card: item.card,
+							department_name: item.department_name,
+							position_name: item.position_name,
+							hire_date: item.hire_date,
+							resign_date: item.resign_date,
+							base_salary: item.base_salary,
+							performance_salary: item.performance_salary,
+							overtime_fee: item.overtime_fee,
+							penalty_fund: item.penalty_fund,
+							housing_fund: item.housing_fund,
+							annual_allowance: item.annual_allowance,
+							floating_bonus: item.floating_bonus,
+							confidentiality_fee: item.confidentiality_fee,
+							work_days: item.work_days,
+							real_days: item.real_days,
+							gross_salary: item.gross_salary,
+							overtime_cost: item.overtime_cost,
+							free_cost: item.free_cost,
+							grant: item.grant,
+							agency_fee: item.agency_fee,
+							other_cost: item.other_cost,
+							we_cost: item.we_cost,
+							clothes_cost: item.clothes_cost,
+							earlytime_cost: item.earlytime_cost,
+							missed_cost: item.missed_cost,
+							loan_cost: item.loan_cost,
+							this_month_sb: item.this_month_sb,
+							this_month_dk: item.this_month_dk,
+							dkgs: item.dkgs,
+							real_salary: item.real_salary,
+							company_sb: item.company_sb,
+							company_gjj: item.company_gjj,
+							last_month_sb: item.last_month_sb,
+							last_month_gjj: item.last_month_gjj,
+							status: item.status == 1 ? '已签名' : '未签名'
+						};
+						worksheet.addRow(row);
+					});
+
+					// 7. 批量获取签名图片 Base64（调用云函数）
+					const imageUrls = listData.map(item => item.signature_url).filter(Boolean);
+					let base64Map = {};
+					if (imageUrls.length > 0) {
+						uni.showLoading({
+							title: '正在下载签名图片...'
+						});
+						const batchRes = await vk.callFunction({
+							url: 'common/sys/getImagesBase64/index',
+							data: {
+								imageUrls
+							}
+						});
+						if (batchRes.code === 0) {
+							batchRes.data.forEach(item => {
+								if (item.success) {
+									base64Map[item.url] = item.base64;
+								}
+							});
+						} else {
+							console.warn('批量获取图片失败:', batchRes.msg);
+						}
+					}
+
+					// 8. 嵌入图片（E列，数据从第2行开始）
+					const dataStartRow = 2;
+					const colLetter = 'E';
+					for (let i = 0; i < listData.length; i++) {
+						const imageUrl = listData[i].signature_url;
+						if (!imageUrl) continue;
+						const base64 = base64Map[imageUrl];
+						if (!base64) continue;
+
+						try {
+							const imageId = workbook.addImage({
+								base64: base64,
+								extension: 'png' // 实际格式由base64决定，这里可填任意
+							});
+							const rowIndex = dataStartRow + i;
+							worksheet.addImage(imageId, {
+								tl: {
+									col: 4.2,
+									row: rowIndex - 1
+								}, // 偏移到E列
+								ext: {
+									width: 80,
+									height: 30
+								}
+							});
+							worksheet.getCell(`${colLetter}${rowIndex}`).value = ''; // 清空URL
+						} catch (err) {
+							console.warn(`嵌入第 ${i+1} 行图片失败:`, err);
+						}
+					}
+
+					// 9. 生成并下载文件
+					uni.showLoading({
+						title: '正在生成文件...'
+					});
+					const buffer = await workbook.xlsx.writeBuffer();
+					const blob = new Blob([buffer], {
+						type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+					});
+					FileSaver.saveAs(blob, `${attendance_ym}月份工资条（含签名）.xlsx`);
+
+					uni.hideLoading();
+					vk.alert('导出成功！');
+				} catch (err) {
+					console.error('导出失败:', err);
+					uni.hideLoading();
+					vk.alert(err.message || '导出失败，请重试');
+				}
 			}
 		},
 		// 监听属性

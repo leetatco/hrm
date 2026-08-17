@@ -27,6 +27,7 @@
         "bpmn-js-properties-panel": "^0.37.2",
         "camunda-bpmn-moddle": "^7.0.1",
         "element-ui": "2.15.14",
+        "exceljs": "^4.4.0",
         "file-saver": "^2.0.5",
         "node-xlsx": "^0.24.0",
         "umy-ui": "1.1.6",

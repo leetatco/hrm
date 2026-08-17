@@ -102,7 +102,7 @@ const _sfc_main = {
           this.currentNotice = res.rows[0];
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:264", "加载公告失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:263", "加载公告失败:", error);
       }
     },
     showDetail() {
@@ -121,7 +121,7 @@ const _sfc_main = {
           this.userInfo.notices = this.tabbar[1].count;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:283", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:282", "加载未读数量失败:", error);
       }
     },
     async loadUnApproveCount() {
@@ -138,7 +138,7 @@ const _sfc_main = {
           this.userInfo.tasks = res.total;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:300", "加载待办任务失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:299", "加载待办任务失败:", error);
       }
     },
     async loadAttendCount() {
@@ -153,7 +153,7 @@ const _sfc_main = {
           this.userInfo.attendance = res.totalDays;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/user/index.vue:315", "加载考勤天数失败:", error);
+        common_vendor.index.__f__("error", "at pages/user/index.vue:314", "加载考勤天数失败:", error);
       }
     },
     beforeTabSwitch(index) {
@@ -215,7 +215,7 @@ const _sfc_main = {
           vk.navigateToLogin();
         });
       } catch (e) {
-        common_vendor.index.__f__("log", "at pages/user/index.vue:375", "解除绑定微信失败:", e);
+        common_vendor.index.__f__("log", "at pages/user/index.vue:374", "解除绑定微信失败:", e);
         common_vendor.index.clearStorageSync();
         vk.navigateToLogin();
       }
@@ -227,7 +227,6 @@ const _sfc_main = {
       }
       const actionMap = {
         "approval": "/pages/workflow/application-form/list",
-        // 'attendance': '/pages/clockin/index',
         "document": "/pages/opendb-notice/index",
         "notice": "/pages/notice/index",
         "setting": "/pages/setting/index"
@@ -239,7 +238,7 @@ const _sfc_main = {
       }
     },
     tofeedback(e) {
-      common_vendor.index.__f__("log", "at pages/user/index.vue:399", "打开客服反馈");
+      common_vendor.index.__f__("log", "at pages/user/index.vue:397", "打开客服反馈");
     },
     logout() {
       common_vendor.index.showModal({
@@ -326,31 +325,22 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     r: !$options.hasLogin ? 1 : "",
     s: common_vendor.f($data.functionList, (item, index, i0) => {
-      return common_vendor.e({
+      return {
         a: "79e6a490-3-" + i0,
         b: common_vendor.p({
           name: item.icon,
-          size: "32",
+          size: "45",
           color: "#ffffff"
         }),
         c: item.bgColor,
         d: common_vendor.t(item.text),
-        e: item.badge
-      }, item.badge ? {
-        f: "79e6a490-4-" + i0,
-        g: common_vendor.p({
-          value: item.badge,
-          offset: [-5, -5],
-          size: "mini"
-        })
-      } : {}, {
-        h: index,
-        i: common_vendor.o(($event) => $options.handleFunction(item), index)
-      });
+        e: index,
+        f: common_vendor.o(($event) => $options.handleFunction(item), index)
+      };
     }),
     t: common_vendor.p({
       name: "account",
-      size: "24",
+      size: "40",
       color: "#ffffff"
     }),
     v: $data.profileUncompleted
@@ -360,10 +350,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    x: common_vendor.o(($event) => $options.goto("setting"), "44"),
+    x: common_vendor.o(($event) => $options.goto("setting"), "90"),
     y: common_vendor.p({
       name: "bell",
-      size: "24",
+      size: "40",
       color: "#ffffff"
     }),
     z: $data.unreadNotifications > 0
@@ -379,10 +369,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    C: common_vendor.o(($event) => $options.goto("notification"), "37"),
+    C: common_vendor.o(($event) => $options.goto("notification"), "15"),
     D: common_vendor.p({
       name: "chat",
-      size: "24",
+      size: "40",
       color: "#ffffff"
     }),
     E: common_vendor.p({
@@ -390,12 +380,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    F: common_vendor.o((...args) => $options.tofeedback && $options.tofeedback(...args), "47"),
+    F: common_vendor.o((...args) => $options.tofeedback && $options.tofeedback(...args), "06"),
     G: _ctx.$hasRole("admin")
   }, _ctx.$hasRole("admin") ? {
     H: common_vendor.p({
       name: "lock-open",
-      size: "24",
+      size: "40",
       color: "#ffffff"
     }),
     I: common_vendor.p({
@@ -403,11 +393,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    J: common_vendor.o(($event) => $options.goto("unbindWeixin"), "df")
+    J: common_vendor.o(($event) => $options.goto("unbindWeixin"), "eb")
   } : {}, {
     K: common_vendor.p({
       name: "info-circle",
-      size: "24",
+      size: "40",
       color: "#ffffff"
     }),
     L: common_vendor.p({
@@ -415,7 +405,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#c0c4cc",
       size: "20"
     }),
-    M: common_vendor.o(($event) => $options.goto("about"), "5c"),
+    M: common_vendor.o(($event) => $options.goto("about"), "31"),
     N: common_vendor.t($data.currentNotice.title),
     O: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
     P: $data.currentNotice.publisher_name
@@ -425,7 +415,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     R: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    S: common_vendor.o(($event) => $data.showDetailPopup = $event, "06"),
+    S: common_vendor.o(($event) => $data.showDetailPopup = $event, "0e"),
     T: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,

@@ -14,16 +14,29 @@
   flex-direction: column;
   align-items: center;
 }
-
-/* 状态栏占位 */
 .status-placeholder.data-v-d08ef7d4 {
   width: 100%;
   flex-shrink: 0;
 }
 
-/* ============================================================
-   Logo 区域（位于胶囊下方）
-   ============================================================ */
+/* 返回主页按钮 - 固定定位，与胶囊水平对齐 */
+.back-home-btn.data-v-d08ef7d4 {
+  position: fixed;
+  left: 20rpx;
+  z-index: 999;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.2s;
+}
+.back-home-btn.data-v-d08ef7d4:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.95);
+}
 .logo-box.data-v-d08ef7d4 {
   display: flex;
   flex-direction: column;
@@ -59,10 +72,6 @@
   color: #a8b5d9;
   letter-spacing: 1rpx;
 }
-
-/* ============================================================
-   表单卡片 - 磨砂玻璃效果
-   ============================================================ */
 .form-box.data-v-d08ef7d4 {
   width: 100%;
   max-width: 600rpx;
@@ -117,10 +126,6 @@
   font-size: 26rpx;
   color: #b0bcdb;
 }
-
-/* ============================================================
-   分割线
-   ============================================================ */
 .divider.data-v-d08ef7d4 {
   display: flex;
   align-items: center;
@@ -141,10 +146,6 @@
   font-weight: 400;
   letter-spacing: 2rpx;
 }
-
-/* ============================================================
-   第三方登录
-   ============================================================ */
 .third-login.data-v-d08ef7d4 {
   display: flex;
   justify-content: center;
@@ -180,10 +181,6 @@
   color: #b0bcdb;
   font-weight: 400;
 }
-
-/* ============================================================
-   底部协议 - 复选框 + 链接
-   ============================================================ */
 .agreement.data-v-d08ef7d4 {
   position: fixed;
   bottom: 48rpx;
@@ -236,10 +233,6 @@
 .agreement .agreement-checkbox .agreement-link.data-v-d08ef7d4:active {
   background: rgba(138, 164, 232, 0.15);
 }
-
-/* ============================================================
-   协议弹窗
-   ============================================================ */
 .agreement-popup.data-v-d08ef7d4 {
   height: 100%;
   display: flex;
@@ -297,29 +290,81 @@
   font-weight: 600;
 }
 
-/* ============================================================
-   弹窗输入框
-   ============================================================ */
-.modal-input-wrap.data-v-d08ef7d4 {
-  padding: 32rpx 20rpx 20rpx;
-  width: 100%;
-  box-sizing: border-box;
+/* 绑定弹窗样式 */
+.bind-popup.data-v-d08ef7d4 {
+  background: #ffffff;
+  border-radius: 20rpx 20rpx 0 0;
+  padding: 40rpx 36rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
-.modal-input-wrap.data-v-d08ef7d4 .u-input {
-  border-radius: 16rpx;
-  background: #f5f7fc;
-  padding: 0 20rpx;
+.bind-popup .bind-popup-header.data-v-d08ef7d4 {
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+.bind-popup .bind-popup-header .bind-popup-title.data-v-d08ef7d4 {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #4a4a6a;
+  display: block;
+  margin-bottom: 8rpx;
+}
+.bind-popup .bind-popup-header .bind-popup-desc.data-v-d08ef7d4 {
+  font-size: 26rpx;
+  color: #b0bcdb;
+}
+.bind-popup .bind-popup-body.data-v-d08ef7d4 {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+.bind-popup .wechat-phone-btn.data-v-d08ef7d4 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f7ff;
+  border: 2rpx solid #d4e3ff;
+  border-radius: 50rpx;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  color: #07c160;
+  font-weight: 500;
+  transition: all 0.2s;
+  background-color: transparent;
+  background: none;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+.bind-popup .wechat-phone-btn.data-v-d08ef7d4::after {
+  border: none;
+}
+.bind-popup .wechat-phone-btn.data-v-d08ef7d4:active {
+  background: rgba(7, 193, 96, 0.08);
+  transform: scale(0.97);
+}
+.bind-popup .wechat-phone-btn[type=default].data-v-d08ef7d4 {
+  background: #f0f7ff;
+  border: 2rpx solid #d4e3ff;
+  border-radius: 50rpx;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  color: #07c160;
+  font-weight: 500;
+  line-height: 1;
+}
+.bind-popup .bind-popup-actions.data-v-d08ef7d4 {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 16rpx;
+}
+.bind-popup .bind-popup-actions .u-button.data-v-d08ef7d4 {
   height: 76rpx;
-  border: 2rpx solid #e8edf5;
-  transition: border-color 0.3s;
-}
-.modal-input-wrap.data-v-d08ef7d4 .u-input:focus {
-  border-color: #6c8cff;
+  font-size: 28rpx;
 }
 
-/* ============================================================
-   响应式适配
-   ============================================================ */
+/* 响应式适配 */
 @media (max-width: 750px) {
 .container.data-v-d08ef7d4 {
     padding: 0 36rpx 32rpx;
@@ -387,6 +432,26 @@
 }
 .agreement-popup .popup-content p.data-v-d08ef7d4 {
     font-size: 25rpx;
+}
+.bind-popup.data-v-d08ef7d4 {
+    padding: 32rpx 24rpx 40rpx;
+}
+.bind-popup .bind-popup-header.data-v-d08ef7d4 {
+    margin-bottom: 24rpx;
+}
+.bind-popup .bind-popup-header .bind-popup-title.data-v-d08ef7d4 {
+    font-size: 32rpx;
+}
+.bind-popup .bind-popup-header .bind-popup-desc.data-v-d08ef7d4 {
+    font-size: 24rpx;
+}
+.bind-popup .wechat-phone-btn.data-v-d08ef7d4 {
+    font-size: 26rpx;
+    padding: 14rpx 0;
+}
+.bind-popup .bind-popup-actions .u-button.data-v-d08ef7d4 {
+    height: 68rpx;
+    font-size: 26rpx;
 }
 }
 @media (max-width: 400px) {

@@ -72,13 +72,15 @@ module.exports = {
 				type: "asc"
 			}],
 			// 副表
-			foreignDB: [{
-				dbName: "uni-id-users",
-				localKey: "update_id",
-				foreignKey: "_id",
-				as: "users",
-				limit: 1
-			}]
+			// foreignDB: [{
+			// 	dbName: "uni-id-users",
+			// 	localKey: "update_id",
+			// 	foreignKey: "_id",
+			// 	as: "users",
+			// 	pageIndex:1,
+			// 	pageSize:-1,
+			// 	limit: 1
+			// }]
 		});
 
 		res.totalSummary = resTotal.rows[0];

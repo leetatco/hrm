@@ -3,6 +3,11 @@
 		<!-- 状态栏占位（适配胶囊按钮） -->
 		<view class="status-placeholder" :style="{ height: statusBarHeight + 'px' }"></view>
 
+		<!-- 返回主页按钮（与微信胶囊同行） -->
+		<view class="back-home-btn" :style="{ top: backHomeTop + 6 +'px' }" @click="goHome">
+			<u-icon name="home" size="45"></u-icon>
+		</view>
+
 		<!-- 头部logo区域（位于胶囊下方） -->
 		<view class="logo-box" :style="{ marginTop: logoMarginTop + 'rpx' }">
 			<view class="logo-wrapper">
@@ -44,7 +49,7 @@
 					</u-button>
 
 					<view class="register-link">
-						<text class="tip-text">还没有账号？点微信登录</text>						
+						<text class="tip-text">还没有账号？点手机号快捷登录</text>
 					</view>
 				</view>
 			</u-form>
@@ -64,7 +69,7 @@
 				<view class="third-icon wechat">
 					<u-icon name="weixin-fill" size="52" color="#ffffff"></u-icon>
 				</view>
-				<text class="third-text">微信</text>
+				<text class="third-text">手机号快捷登录</text>
 			</view>
 			<!-- #endif -->
 
@@ -73,9 +78,10 @@
 				<view class="third-icon wechat">
 					<u-icon name="weixin-fill" size="52" color="#ffffff"></u-icon>
 				</view>
-				<text class="third-text">微信</text>
+				<text class="third-text">手机号快捷登录</text>
 			</view>
 			<!-- #endif -->
+			<!-- 移除了返回主页项，已移至左上角 -->
 		</view>
 
 		<!-- 协议声明（复选框 + 链接） -->
@@ -104,17 +110,33 @@
 			</view>
 		</u-popup>
 
-		<!-- 绑定提示 -->
-		<u-modal v-model="bindModalVisible" title="提示" content="检测到您未绑定微信，是否要绑定到现有账号？" showCancelButton
-			@confirm="confirmBind" @cancel="bindModalVisible = false"></u-modal>
+		<!-- ========== 【修改】绑定账号弹窗：直接弹出，不再经过中间提示 ========== -->
+		<u-popup v-model="inputModalVisible" :mode="'bottom'" :closeable="true" :mask-close-able="false"
+			:height="'auto'" :border-radius="20" @close="onInputPopupClose">
+			<view class="bind-popup">
+				<view class="bind-popup-header">
+					<text class="bind-popup-title">绑定账号</text>
+					<text class="bind-popup-desc">请绑定您的手机号以完成登录</text>
+				</view>
+				<view class="bind-popup-body">
+					<u-input v-model="bindAccountInput" placeholder="请输入手机号" type="text" border
+						:customStyle="{ borderRadius: '16rpx', height: '80rpx', padding: '0 20rpx' }" />
 
-		<!-- 绑定账号输入 -->
-		<u-modal v-model="inputModalVisible" title="绑定账号" showCancelButton @confirm="confirmInputBind"
-			@cancel="inputModalVisible = false">
-			<view class="modal-input-wrap" v-if="inputModalVisible">
-				<u-input v-model="bindAccountInput" placeholder="请输入您的手机号" type="text" border focus />
+					<button class="wechat-phone-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">
+						<u-icon name="phone-fill" size="28" color="#07c160"
+							:customStyle="{ marginRight: '12rpx' }"></u-icon>
+						获取本机号码
+					</button>
+
+					<view class="bind-popup-actions">
+						<u-button type="default" shape="circle" @click="inputModalVisible = false"
+							:customStyle="{ width: '180rpx' }">取消</u-button>
+						<u-button type="primary" shape="circle" @click="confirmInputBind"
+							:customStyle="{ width: '180rpx', background: 'linear-gradient(135deg, #6c8cff, #a78bfa)', border: 'none' }">确定</u-button>
+					</view>
+				</view>
 			</view>
-		</u-modal>
+		</u-popup>
 	</view>
 </template>
 
@@ -124,6 +146,7 @@
 			return {
 				statusBarHeight: 20,
 				logoMarginTop: 0,
+				backHomeTop: 30, // 返回按钮的 top 值，动态计算
 				form: {
 					username: '',
 					password: '',
@@ -156,23 +179,22 @@
 						}
 					]
 				},
-				bindModalVisible: false,
 				inputModalVisible: false,
 				bindAccountInput: '',
 				currentCodeRes: null,
-				// 协议弹窗
 				agreementPopupVisible: false,
 				agreementTitle: '用户协议',
 				agreementContent: '',
 				privacyContent: '',
-				// 协议复选框
-				agreementChecked: false
+				agreementChecked: false,
+				encryptedKey: ''
 			}
 		},
 		onLoad() {
 			this.loadRememberedAccount();
 			this.initLayout();
 			this.loadAgreementContent();
+			this.prepareEncryptedKey();
 		},
 		onReady() {
 			this.$refs.uForm.setRules(this.rules);
@@ -190,14 +212,83 @@
 			}
 		},
 		methods: {
-			// 切换协议复选框状态
+			// 返回主页
+			goHome() {
+				uni.switchTab({
+					url: '/pages/index/index'
+				});
+			},
+			// 预先获取 encryptedKey
+			async prepareEncryptedKey() {
+				try {
+					const res = await vk.userCenter.code2SessionWeixin({
+						data: {
+							needCache: true
+						}
+					});
+					if (res && res.encryptedKey) {
+						this.encryptedKey = res.encryptedKey;
+					}
+				} catch (e) {
+					console.log('获取 encryptedKey 失败', e);
+				}
+			},
+
+			// 获取微信手机号
+			getPhoneNumber(e) {
+				const {
+					encryptedData,
+					iv
+				} = e.detail;
+				if (!encryptedData || !iv) {
+					uni.showToast({
+						title: '授权失败，请手动输入',
+						icon: 'none'
+					});
+					return;
+				}
+				if (!this.encryptedKey) {
+					uni.showToast({
+						title: '加密密钥未准备好，请重试',
+						icon: 'none'
+					});
+					return;
+				}
+				vk.userCenter.getPhoneNumber({
+					data: {
+						encryptedData,
+						iv,
+						encryptedKey: this.encryptedKey
+					},
+					success: (data) => {
+						if (data.mobile) {
+							this.bindAccountInput = data.mobile;
+							uni.showToast({
+								title: '已获取手机号',
+								icon: 'success'
+							});
+						} else {
+							uni.showToast({
+								title: '未能获取手机号，请手动输入',
+								icon: 'none'
+							});
+						}
+					},
+					fail: (err) => {
+						console.error('获取手机号失败', err);
+						uni.showToast({
+							title: err.msg || '获取失败，请手动输入',
+							icon: 'none'
+						});
+					}
+				});
+			},
+
 			toggleAgreement() {
 				this.agreementChecked = !this.agreementChecked;
 			},
 
-			// 加载协议内容
 			loadAgreementContent() {
-				// 用户协议内容
 				this.agreementContent = `
 					<h2>用户协议</h2>
 					<p>欢迎您使用本应用！请您仔细阅读以下条款：</p>
@@ -231,7 +322,6 @@
 					<p>如有任何疑问，请通过应用内的客服功能联系我们。</p>
 				`;
 
-				// 隐私政策内容
 				this.privacyContent = `
 					<h2>隐私政策</h2>
 					<p>本应用非常重视您的隐私保护。本隐私政策将说明我们如何收集、使用和保护您的个人信息。</p>
@@ -266,14 +356,12 @@
 				`;
 			},
 
-			// 显示用户协议弹窗
 			showAgreementPopup() {
 				this.agreementTitle = '用户协议';
-				this.agreementContent = this.agreementContent; // 确保内容正确
+				this.agreementContent = this.agreementContent;
 				this.agreementPopupVisible = true;
 			},
 
-			// 显示隐私政策弹窗
 			showPrivacyPopup() {
 				this.agreementTitle = '隐私政策';
 				this.agreementContent = this.privacyContent;
@@ -290,14 +378,18 @@
 					const capsuleBottom = menuRect.top + menuRect.height;
 					const pxToRpx = 750 / sysInfo.windowWidth;
 					this.logoMarginTop = (capsuleBottom + 10) * pxToRpx;
+					// 计算返回按钮的 top：胶囊垂直居中位置 (top + height/2)
+					this.backHomeTop = menuRect.top + menuRect.height / 2 - 22; // 22为图标高度一半（44/2）
 					// #endif
 
 					// #ifndef MP-WEIXIN
 					this.logoMarginTop = 20;
+					this.backHomeTop = this.statusBarHeight + 20;
 					// #endif
 				} catch (e) {
 					console.error('获取布局信息失败:', e);
 					this.logoMarginTop = 40;
+					this.backHomeTop = 40;
 				}
 			},
 			loadRememberedAccount() {
@@ -343,7 +435,6 @@
 				return res && res.total > 0;
 			},
 			handleLogin() {
-				// 检查协议是否勾选
 				if (!this.agreementChecked) {
 					uni.showToast({
 						title: '请先阅读并同意用户协议和隐私政策',
@@ -413,8 +504,6 @@
 			},
 			async login_weixin() {
 				try {
-					
-					// 检查协议是否勾选
 					if (!this.agreementChecked) {
 						uni.showToast({
 							title: '请先阅读并同意用户协议和隐私政策',
@@ -422,7 +511,7 @@
 						});
 						return;
 					}
-					
+
 					let codeRes = await vk.userCenter.code2SessionWeixin();
 					if (!codeRes || !codeRes.openid) {
 						uni.showToast({
@@ -431,6 +520,10 @@
 						});
 						return;
 					}
+					if (codeRes.encryptedKey) {
+						this.encryptedKey = codeRes.encryptedKey;
+					}
+
 					let checkWxRes = await vk.callFunction({
 						url: 'client/user/pub/isUser',
 						title: '请求中...',
@@ -453,7 +546,8 @@
 						return;
 					}
 					this.currentCodeRes = codeRes;
-					this.bindModalVisible = true;
+					this.bindAccountInput = '';
+					this.inputModalVisible = true;
 				} catch (error) {
 					console.error('微信登录失败:', error);
 					uni.showToast({
@@ -462,19 +556,18 @@
 					});
 				}
 			},
-			confirmBind() {
-				this.bindModalVisible = false;
-				this.bindAccountInput = '';
-				this.inputModalVisible = true;
+
+			onInputPopupClose() {
+				// 可在此重置一些状态
 			},
+
 			async confirmInputBind() {
 				const account = this.bindAccountInput.trim();
 				if (!account) {
 					uni.showToast({
-						title: '请输入账号',
+						title: '请先输入手机号或点击获取微信手机号',
 						icon: 'none'
 					});
-					this.inputModalVisible = true;
 					return;
 				}
 				const codeRes = this.currentCodeRes;
@@ -573,15 +666,32 @@
 		align-items: center;
 	}
 
-	/* 状态栏占位 */
 	.status-placeholder {
 		width: 100%;
 		flex-shrink: 0;
 	}
 
-	/* ============================================================
-	   Logo 区域（位于胶囊下方）
-	   ============================================================ */
+	/* 返回主页按钮 - 固定定位，与胶囊水平对齐 */
+	.back-home-btn {
+		position: fixed;
+		left: 20rpx;
+		z-index: 999;
+		width: 44rpx;
+		height: 44rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		// background: rgba(255, 255, 255, 0.8);
+		border-radius: 50%;
+		box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+		transition: all 0.2s;
+
+		&:active {
+			transform: scale(0.92);
+			background: rgba(255, 255, 255, 0.95);
+		}
+	}
+
 	.logo-box {
 		display: flex;
 		flex-direction: column;
@@ -622,9 +732,6 @@
 		}
 	}
 
-	/* ============================================================
-	   表单卡片 - 磨砂玻璃效果
-	   ============================================================ */
 	.form-box {
 		width: 100%;
 		max-width: 600rpx;
@@ -692,9 +799,6 @@
 		}
 	}
 
-	/* ============================================================
-	   分割线
-	   ============================================================ */
 	.divider {
 		display: flex;
 		align-items: center;
@@ -718,9 +822,6 @@
 		}
 	}
 
-	/* ============================================================
-	   第三方登录
-	   ============================================================ */
 	.third-login {
 		display: flex;
 		justify-content: center;
@@ -762,9 +863,6 @@
 		}
 	}
 
-	/* ============================================================
-	   底部协议 - 复选框 + 链接
-	   ============================================================ */
 	.agreement {
 		position: fixed;
 		bottom: 48rpx;
@@ -823,9 +921,6 @@
 		}
 	}
 
-	/* ============================================================
-	   协议弹窗
-	   ============================================================ */
 	.agreement-popup {
 		height: 100%;
 		display: flex;
@@ -891,31 +986,91 @@
 		}
 	}
 
-	/* ============================================================
-	   弹窗输入框
-	   ============================================================ */
-	.modal-input-wrap {
-		padding: 32rpx 20rpx 20rpx;
-		width: 100%;
-		box-sizing: border-box;
+	/* 绑定弹窗样式 */
+	.bind-popup {
+		background: #ffffff;
+		border-radius: 20rpx 20rpx 0 0;
+		padding: 40rpx 36rpx 48rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
 
-		::v-deep .u-input {
-			border-radius: 16rpx;
-			background: #f5f7fc;
-			padding: 0 20rpx;
-			height: 76rpx;
-			border: 2rpx solid #e8edf5;
-			transition: border-color 0.3s;
+		.bind-popup-header {
+			text-align: center;
+			margin-bottom: 32rpx;
 
-			&:focus {
-				border-color: #6c8cff;
+			.bind-popup-title {
+				font-size: 36rpx;
+				font-weight: 600;
+				color: #4a4a6a;
+				display: block;
+				margin-bottom: 8rpx;
+			}
+
+			.bind-popup-desc {
+				font-size: 26rpx;
+				color: #b0bcdb;
+			}
+		}
+
+		.bind-popup-body {
+			display: flex;
+			flex-direction: column;
+			gap: 24rpx;
+		}
+
+		.wechat-phone-btn {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #f0f7ff;
+			border: 2rpx solid #d4e3ff;
+			border-radius: 50rpx;
+			padding: 18rpx 0;
+			font-size: 28rpx;
+			color: #07c160;
+			font-weight: 500;
+			transition: all 0.2s;
+			background-color: transparent;
+			background: none;
+			border: none;
+			box-shadow: none;
+			outline: none;
+
+			&::after {
+				border: none;
+			}
+
+			&:active {
+				background: rgba(7, 193, 96, 0.08);
+				transform: scale(0.97);
+			}
+
+			&[type="default"] {
+				background: #f0f7ff;
+				border: 2rpx solid #d4e3ff;
+				border-radius: 50rpx;
+				padding: 18rpx 0;
+				font-size: 28rpx;
+				color: #07c160;
+				font-weight: 500;
+				line-height: 1;
+			}
+		}
+
+		.bind-popup-actions {
+			display: flex;
+			justify-content: space-around;
+			margin-top: 16rpx;
+
+			.u-button {
+				height: 76rpx;
+				font-size: 28rpx;
 			}
 		}
 	}
 
-	/* ============================================================
-	   响应式适配
-	   ============================================================ */
+	/* 响应式适配 */
 	@media (max-width: 750px) {
 		.container {
 			padding: 0 36rpx 32rpx;
@@ -965,13 +1120,14 @@
 
 		.agreement {
 			bottom: 32rpx;
-			
+
 			.agreement-checkbox {
 				.checkbox-icon {
 					width: 32rpx;
 					height: 32rpx;
 					margin-right: 6rpx;
 				}
+
 				.agreement-text,
 				.agreement-link {
 					font-size: 22rpx;
@@ -987,20 +1143,52 @@
 					font-size: 30rpx;
 				}
 			}
+
 			.popup-scroll {
 				padding: 0 32rpx 32rpx;
 			}
+
 			.popup-content {
 				font-size: 26rpx;
 
 				h2 {
 					font-size: 30rpx;
 				}
+
 				h3 {
 					font-size: 28rpx;
 				}
+
 				p {
 					font-size: 25rpx;
+				}
+			}
+		}
+
+		.bind-popup {
+			padding: 32rpx 24rpx 40rpx;
+
+			.bind-popup-header {
+				margin-bottom: 24rpx;
+
+				.bind-popup-title {
+					font-size: 32rpx;
+				}
+
+				.bind-popup-desc {
+					font-size: 24rpx;
+				}
+			}
+
+			.wechat-phone-btn {
+				font-size: 26rpx;
+				padding: 14rpx 0;
+			}
+
+			.bind-popup-actions {
+				.u-button {
+					height: 68rpx;
+					font-size: 26rpx;
 				}
 			}
 		}

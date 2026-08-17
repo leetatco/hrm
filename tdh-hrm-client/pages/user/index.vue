@@ -56,10 +56,9 @@
 				<view class="grid-item" v-for="(item, index) in functionList" :key="index"
 					@click="handleFunction(item)">
 					<view class="item-icon" :style="{ background: item.bgColor }">
-						<u-icon :name="item.icon" size="32" color="#ffffff"></u-icon>
+						<u-icon :name="item.icon" size="45" color="#ffffff"></u-icon>
 					</view>
-					<text class="item-text">{{ item.text }}</text>
-					<u-badge v-if="item.badge" :value="item.badge" :offset="[-5, -5]" size="mini"></u-badge>
+					<text class="item-text">{{ item.text }}</text>					
 				</view>
 			</view>
 		</view>
@@ -75,7 +74,7 @@
 				<view class="account-item" @click="goto('setting')">
 					<view class="item-left">
 						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #2979ff, #4dabff);">
-							<u-icon name="account" size="24" color="#ffffff"></u-icon>
+							<u-icon name="account" size="40" color="#ffffff"></u-icon>
 						</view>
 						<text class="item-title">个人资料</text>
 					</view>
@@ -88,7 +87,7 @@
 				<view class="account-item" @click="goto('notification')">
 					<view class="item-left">
 						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #ff9900, #ffad33);">
-							<u-icon name="bell" size="24" color="#ffffff"></u-icon>
+							<u-icon name="bell" size="40" color="#ffffff"></u-icon>
 						</view>
 						<text class="item-title">消息通知</text>
 					</view>
@@ -105,7 +104,7 @@
 						<view class="item-left">
 							<view class="item-icon-wrapper"
 								style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">
-								<u-icon name="chat" size="24" color="#ffffff"></u-icon>
+								<u-icon name="chat" size="40" color="#ffffff"></u-icon>
 							</view>
 							<text class="item-title">我的客服</text>
 						</view>
@@ -117,7 +116,7 @@
 				<view class="account-item" @click="goto('unbindWeixin')" v-if="$hasRole('admin')">
 					<view class="item-left">
 						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #4cd964, #6ddb7a);">
-							<u-icon name="lock-open" size="24" color="#ffffff"></u-icon>
+							<u-icon name="lock-open" size="40" color="#ffffff"></u-icon>
 						</view>
 						<text class="item-title">解除绑定</text>
 					</view>
@@ -128,7 +127,7 @@
 				<view class="account-item" @click="goto('about')">
 					<view class="item-left">
 						<view class="item-icon-wrapper" style="background: linear-gradient(135deg, #909399, #b0b3b8);">
-							<u-icon name="info-circle" size="24" color="#ffffff"></u-icon>
+							<u-icon name="info-circle" size="40" color="#ffffff"></u-icon>
 						</view>
 						<text class="item-title">关于我们</text>
 					</view>
@@ -384,7 +383,6 @@
 				}
 				const actionMap = {
 					'approval': '/pages/workflow/application-form/list',
-					// 'attendance': '/pages/clockin/index',
 					'document': '/pages/opendb-notice/index',
 					'notice': '/pages/notice/index',
 					'setting': '/pages/setting/index'
@@ -424,40 +422,23 @@
 
 <style lang="scss" scoped>
 	/* ============================================================
-	   设计变量（与首页完全一致）
-	   ============================================================ */
-	:root {
-		--color-primary: #2979ff;
-		--color-primary-light: #5a9cff;
-		--color-bg: #f5f7fa;
-		--color-card: #ffffff;
-		--color-text-primary: #1a1a2e;
-		--color-text-secondary: #666;
-		--color-text-light: #999;
-		--color-border: #f0f0f0;
-		--shadow-card: 0 8rpx 30rpx rgba(0, 0, 0, 0.05);
-		--shadow-hover: 0 12rpx 40rpx rgba(0, 0, 0, 0.08);
-		--radius-card: 20rpx;
-		--card-gap: 24rpx;  /* 👈 统一间距变量，与首页完全一致 */
-	}
-
-	/* ============================================================
-	   页面背景 - 与首页完全一致
+	   全局样式 – 与设置页面完全一致
 	   ============================================================ */
 	.page {
 		min-height: 100vh;
-		background: var(--color-bg);
+		background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
 		padding-bottom: 120rpx;
+		padding: 1rpx 0;
 		box-sizing: border-box;
 	}
 
 	/* ============================================================
-	   用户信息卡片 ———— 间距 24rpx（8网格标准）
+	   用户卡片（保留渐变，但间距与设置统一）
 	   ============================================================ */
 	.user-card {
 		background: linear-gradient(145deg, #4a7aff 0%, #6c8cff 60%, #8aa4ff 100%);
-		border-radius: var(--radius-card);
-		margin: var(--card-gap) 24rpx;  /* 上下24rpx，与首页完全一致 */
+		border-radius: 24rpx;
+		margin: 24rpx 24rpx; /* 上下左右统一 24rpx */
 		padding: 40rpx 32rpx 32rpx;
 		position: relative;
 		overflow: hidden;
@@ -468,7 +449,7 @@
 			box-shadow: 0 16rpx 48rpx rgba(255, 107, 107, 0.25);
 		}
 
-		/* 装饰光晕 - 与首页一致 */
+		/* 装饰光晕 */
 		&::before {
 			content: '';
 			position: absolute;
@@ -592,54 +573,43 @@
 	}
 
 	/* ============================================================
-	   区块通用样式 ———— 所有区块 margin: 24rpx 24rpx
+	   功能区块 & 账户设置 – 白色卡片，与设置完全一致
 	   ============================================================ */
 	.function-section,
 	.account-section {
-		background: var(--color-card);
-		margin: var(--card-gap) 24rpx;  /* 上下24rpx，与首页完全一致 */
-		border-radius: var(--radius-card);
-		box-shadow: var(--shadow-card);
+		background: #ffffff;
+		border-radius: 24rpx;
+		margin: 0 24rpx 24rpx; /* 左右24，底部24（顶部由上一元素间距撑开） */
+		box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.05);
 		overflow: hidden;
-		transition: box-shadow 0.2s;
-
-		&:hover {
-			box-shadow: var(--shadow-hover);
-		}
+		padding: 0 32rpx; /* 左右内边距与设置一致 */
 	}
 
+	/* 区块标题 – 仿设置页面的 .list-title */
 	.section-header {
-		padding: 18rpx 24rpx 8rpx;
-
 		.section-title {
-			font-size: 30rpx;
-			font-weight: 600;
-			color: var(--color-text-primary);
-			letter-spacing: 0.5rpx;
-
+			display: block;
+			font-size: 28rpx;
+			color: #999999;
+			padding: 32rpx 0 24rpx;
+			border-bottom: 1rpx solid #f0f0f0;
+			// 去除之前伪元素
 			&::before {
-				content: '';
-				display: inline-block;
-				width: 6rpx;
-				height: 28rpx;
-				background: #2979ff;
-				border-radius: 4rpx;
-				margin-right: 14rpx;
-				vertical-align: middle;
+				display: none;
 			}
 		}
 	}
 
 	/* ============================================================
-	   我的功能
+	   我的功能 – 网格布局（图标统一 44rpx，文字 28rpx）
 	   ============================================================ */
 	.function-section {
-		padding: 6rpx 8rpx 16rpx;
+		padding: 0 32rpx 16rpx; /* 底部留白 */
 
 		.function-grid {
 			display: flex;
 			justify-content: space-around;
-			padding: 0 8rpx;
+			padding: 20rpx 0 12rpx;
 
 			.grid-item {
 				display: flex;
@@ -657,13 +627,13 @@
 				}
 
 				.item-icon {
-					width: 72rpx;
-					height: 72rpx;
-					border-radius: 18rpx;
+					width: 80rpx;  /* 适应44rpx图标 */
+					height: 80rpx;
+					border-radius: 20rpx;
 					display: flex;
 					align-items: center;
 					justify-content: center;
-					margin-bottom: 14rpx;
+					margin-bottom: 16rpx;
 					box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.08);
 					transition: transform 0.2s;
 				}
@@ -673,8 +643,8 @@
 				}
 
 				.item-text {
-					font-size: 24rpx;
-					color: var(--color-text-secondary);
+					font-size: 28rpx;  /* 与设置标签一致 */
+					color: #666666;
 					font-weight: 500;
 					text-align: center;
 				}
@@ -683,26 +653,24 @@
 	}
 
 	/* ============================================================
-	   账户设置
+	   账户设置 – 列表项与设置完全一致
 	   ============================================================ */
 	.account-section {
-		padding: 6rpx 0 4rpx;
+		padding: 0 32rpx 4rpx; /* 底部留白 */
 
 		.account-list {
 			.account-item {
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
-				padding: 24rpx 24rpx;
+				height: 100rpx; /* 固定高度，与设置一致 */
+				border-bottom: 1rpx solid #f0f0f0;
 				transition: all 0.2s;
-				min-height: 80rpx;
-
+				&:last-child {
+					border-bottom: none;
+				}
 				&:active {
 					background: rgba(0, 0, 0, 0.02);
-				}
-
-				&:not(:last-child) {
-					border-bottom: 1rpx solid #f0f2f5;
 				}
 
 				.item-left {
@@ -717,15 +685,15 @@
 						display: flex;
 						align-items: center;
 						justify-content: center;
-						margin-right: 18rpx;
+						margin-right: 24rpx; /* 与设置间距一致 */
 						box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
 						flex-shrink: 0;
 					}
 
 					.item-title {
-						font-size: 28rpx;
-						color: var(--color-text-primary);
-						font-weight: 500;
+						font-size: 32rpx; /* 与设置标签一致 */
+						color: #333333;
+						font-weight: 400;
 					}
 				}
 
@@ -765,7 +733,7 @@
 	}
 
 	/* ============================================================
-	   公告详情弹窗
+	   公告详情弹窗（保持不变）
 	   ============================================================ */
 	.detail-popup {
 		height: 100%;
@@ -780,7 +748,7 @@
 		.detail-title {
 			font-size: 36rpx;
 			font-weight: 600;
-			color: var(--color-text-primary);
+			color: #1a1a2e;
 			margin-bottom: 20rpx;
 			line-height: 1.4;
 		}
@@ -796,13 +764,13 @@
 
 		.detail-content {
 			font-size: 28rpx;
-			color: var(--color-text-secondary);
+			color: #666666;
 			line-height: 1.8;
 		}
 	}
 
 	/* ============================================================
-	   响应式适配 ———— 与首页完全一致
+	   响应式适配 – 与设置页面保持一致
 	   ============================================================ */
 	@media (max-width: 750px) {
 		.user-card,
@@ -811,85 +779,42 @@
 			margin-left: 20rpx;
 			margin-right: 20rpx;
 		}
-
 		.user-card {
 			padding: 32rpx 24rpx 24rpx;
-
-			.user-detail .user-name {
-				font-size: 30rpx;
-			}
-			.user-status {
-				.status-value {
-					font-size: 28rpx;
-				}
-				.status-label {
-					font-size: 20rpx;
-				}
-			}
-			.avatar-section ::v-deep .u-avatar {
-				width: 80rpx !important;
-				height: 80rpx !important;
-			}
 		}
-
-		.function-section {
-			padding: 4rpx 4rpx 12rpx;
-
-			.function-grid .grid-item {
-				min-width: 80rpx;
-				padding: 8rpx 8rpx;
-
-				.item-icon {
-					width: 64rpx;
-					height: 64rpx;
-				}
-				.item-text {
-					font-size: 22rpx;
-				}
-			}
+		.function-section,
+		.account-section {
+			padding-left: 24rpx;
+			padding-right: 24rpx;
 		}
-
-		.account-section .account-list .account-item {
-			padding: 20rpx 20rpx;
-			min-height: 72rpx;
-
-			.item-left .item-title {
-				font-size: 26rpx;
-			}
-			.item-left .item-icon-wrapper {
-				width: 40rpx;
-				height: 40rpx;
-			}
+		.function-section .function-grid .grid-item .item-text {
+			font-size: 26rpx;
 		}
-
-		.section-header {
-			padding: 14rpx 20rpx 6rpx;
-			.section-title {
-				font-size: 28rpx;
-			}
+		.account-section .account-list .account-item .item-left .item-title {
+			font-size: 28rpx;
+		}
+		.section-header .section-title {
+			font-size: 26rpx;
+			padding: 28rpx 0 20rpx;
 		}
 	}
 
 	@media (max-width: 400px) {
 		.user-card {
 			padding: 24rpx 18rpx 18rpx;
-
-			.user-status .status-value {
-				font-size: 24rpx;
-			}
-			.user-status .status-label {
-				font-size: 18rpx;
-			}
 		}
 		.function-section .function-grid .grid-item {
 			min-width: 60rpx;
 			.item-icon {
-				width: 56rpx;
-				height: 56rpx;
+				width: 64rpx;
+				height: 64rpx;
 			}
 			.item-text {
-				font-size: 20rpx;
+				font-size: 24rpx;
 			}
+		}
+		.account-section .account-list .account-item {
+			height: 88rpx;
 		}
 	}
 </style>

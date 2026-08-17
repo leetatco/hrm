@@ -31,7 +31,7 @@ module.exports = {
 		const hrmService = new HrmService(vk, db);
 		const employeeInfo = await hrmService.getEmployeeInfoByUsername(username);
 
-		if (!employeeInfo || !vk.pubfn.isNotNull(employeeInfo.card)) {
+		if (!employeeInfo || vk.pubfn.isNull(employeeInfo.card) || employeeInfo.status == 2) {
 			res.msg = "该账号未在人事系统中建立";
 			return res;
 		}
@@ -41,7 +41,7 @@ module.exports = {
 		let userRes = await vk.baseDao.selects({
 			dbName,
 			whereJson: _.or([{
-				mobile: mobile ? mobile : 'null'
+				mobile: mobile ? mobile : 'null',
 			}, {
 				username: username ? username : 'null'
 			}]),

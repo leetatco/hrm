@@ -388,77 +388,204 @@
 				this.table1.multipleSelection = list;
 			},
 
+			// 辅助获取数据
+			async fetchAllData(attendance_ym) {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/salary/sys/payslip/getList',
+					data: {
+						formData: this.queryForm1.formData,
+						columns: this.queryForm1.columns,
+						pageIndex: 1,
+						pageSize: -1
+					}
+				});
+				if (res.code === 0) {
+					return res.rows || [];
+				} else {
+					vk.alert(res.msg || '获取数据失败');
+					return [];
+				}
+			},
+
 			// 导出xls表格文件（全部数据）
-			exportExcelAll() {
-				if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
+			async exportExcelAll() {
+				const attendance_ym = this.queryForm1.formData.attendance_ym;
+				if (vk.pubfn.isNull(attendance_ym)) {
 					return vk.alert(`考勤日期不能为空！`);
 				}
-				const attendance_ym = this.queryForm1.formData.attendance_ym;
-				this.$refs.table1.exportExcel({
-					fileName: attendance_ym + '月份工资条',
-					title: "正在导出数据...",
-					columns: [{
-							"key": "attendance_ym",
-							"title": "考勤日期",
-							"type": "date",
-							"dateType": "date",
-							"fixed": true,
-							"valueFormat": "yyyy-MM",
-							"format": "yyyy-MM"
-						},
-						{
-							"key": "attendance_ym_key",
-							"title": "月份",
-							"type": "text"
-						},
-						{
-							"key": "employee_name",
-							"title": "姓名",
-							"type": "text"
-						},
-						// ========== 新增签名图片列 ==========
-						{
-							"key": "signature_url",
-							"title": "签名",
-							"type": "image" // 指定为图片类型，导出时将嵌入图片
-						},
-						{
-							"key": "card",
-							"title": "身份证号码",
-							"type": "text"
-						},
-						{
-							"key": "department_name",
-							"title": "任职部门",
-							"type": "text"
-						},
-						{
-							"key": "position_name",
-							"title": "岗位",
-							"type": "text"
-						},
-						{
-							"key": "hire_date",
-							"title": "入职日期",
-							"type": "number"
-						},
-						{
-							"key": "resign_date",
-							"title": "离职日期",
-							"type": "text"
-						},
-						{
-							"key": "status",
-							"title": "状态",
-							"type": "number",
-							formatter: function(val, row, column, index) {
-								return row.status == 1 ? '已签名' : '未签名';
-							}
-						}
-					],
-					pageIndex: 1,
-					pageSize: -1, // 此值为-1，代表导出所有数据
+				
+				uni.showLoading({
+					title: '正在获取数据...'
 				});
+
+				// 获取全部数据（建议 pageSize = -1）
+				const listData = await this.fetchAllData(attendance_ym);
+				if (!listData || listData.length === 0) {
+					uni.hideLoading();
+					return vk.alert('无数据可导出');
+				}
+
+				const ExcelJS = require('exceljs');
+				const FileSaver = require('file-saver');
+				const workbook = new ExcelJS.Workbook();
+				const worksheet = workbook.addWorksheet('工资条', {
+					views: [{
+						state: 'frozen',
+						ySplit: 1
+					}]
+				});
+
+				// 定义列
+				worksheet.columns = [{
+						header: '序号',
+						key: 'index',
+						width: 10
+					},
+					{
+						header: '考勤日期',
+						key: 'attendance_ym',
+						width: 15
+					},
+					{
+						header: '月份',
+						key: 'attendance_ym_key',
+						width: 15
+					},
+					{
+						header: '姓名',
+						key: 'employee_name',
+						width: 15
+					},
+					{
+						header: '签名',
+						key: 'signature_url',
+						width: 20
+					},
+					{
+						header: '身份证号码',
+						key: 'card',
+						width: 25
+					},
+					{
+						header: '任职部门',
+						key: 'department_name',
+						width: 20
+					},
+					{
+						header: '岗位',
+						key: 'position_name',
+						width: 20
+					},
+					{
+						header: '入职日期',
+						key: 'hire_date',
+						width: 15
+					},
+					{
+						header: '离职日期',
+						key: 'resign_date',
+						width: 15
+					},
+					{
+						header: '状态',
+						key: 'status',
+						width: 15
+					}
+				];
+
+				// 填充文本数据
+				listData.forEach((item, idx) => {
+					worksheet.addRow({
+						index: idx + 1,
+						attendance_ym: item.attendance_ym,
+						attendance_ym_key: item.attendance_ym_key,
+						employee_name: item.employee_name,
+						signature_url: item.signature_url,
+						card: item.card,
+						department_name: item.department_name,
+						position_name: item.position_name,
+						hire_date: item.hire_date,
+						resign_date: item.resign_date,
+						status: item.status == 1 ? '已签名' : '未签名'
+					});
+				});
+
+				// ========== 图片处理：调用云函数批量获取 base64 ==========
+				const colLetter = 'E';
+				const dataStartRow = 2;
+
+				// 收集所有有图片的 URL
+				const imageUrls = listData.map(item => item.signature_url).filter(Boolean);
+				let base64Map = {};
+				if (imageUrls.length > 0) {
+					try {
+						const batchRes = await vk.callFunction({
+							url: 'common/sys/getImagesBase64/index',
+							data: {
+								imageUrls
+							}
+						});
+						if (batchRes.code === 0) {
+							batchRes.data.forEach(item => {
+								if (item.success) {
+									base64Map[item.url] = item.base64;
+								}
+							});
+						} else {
+							console.warn('批量获取图片失败:', batchRes.msg);
+						}
+					} catch (err) {
+						console.error('调用云函数失败:', err);
+					}
+				}
+
+				// 循环嵌入图片
+				for (let i = 0; i < listData.length; i++) {
+					const row = listData[i];
+					const imageUrl = row.signature_url;
+					if (!imageUrl) continue;
+
+					const base64 = base64Map[imageUrl];
+					if (!base64) continue; // 未获取到则跳过
+
+					try {
+						// 添加图片到工作簿
+						const imageId = workbook.addImage({
+							base64: base64,
+							extension: 'png' // 实际格式由 base64 内容决定
+						});
+
+						const rowIndex = dataStartRow + i;
+						worksheet.addImage(imageId, {
+							tl: {
+								col: 4.2,
+								row: rowIndex - 1
+							},
+							ext: {
+								width: 80,
+								height: 30
+							}
+						});
+
+						// 清空单元格文本
+						worksheet.getCell(`${colLetter}${rowIndex}`).value = '';
+					} catch (error) {
+						uni.hideLoading();
+						console.error(`第 ${i+1} 行图片嵌入失败：`, error);
+						vk.alert(error.message || '导出失败，请重试');
+						// 保留 URL 文本
+					}
+				}
+				// ========== 图片处理结束 ==========
+
+				// 导出
+				const buffer = await workbook.xlsx.writeBuffer();
+				const blob = new Blob([buffer], {
+					type: 'application/octet-stream'
+				});
+				FileSaver.saveAs(blob, `${attendance_ym}月份工资条（含签名）.xlsx`);
+				uni.hideLoading();
+				vk.alert('导出成功！');
 			}
 		},
 		// 监听属性
