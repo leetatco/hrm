@@ -67,7 +67,7 @@
 			<!-- #ifdef MP-WEIXIN -->
 			<view class="third-item" @click="login_weixin">
 				<view class="third-icon wechat">
-					<u-icon name="weixin-fill" size="52" color="#ffffff"></u-icon>
+					<u-icon name="moments-circel-fill" size="52" color="#ffffff"></u-icon>
 				</view>
 				<text class="third-text">手机号快捷登录</text>
 			</view>
@@ -76,7 +76,7 @@
 			<!-- #ifdef APP-PLUS -->
 			<view class="third-item" @click="login_weixin">
 				<view class="third-icon wechat">
-					<u-icon name="weixin-fill" size="52" color="#ffffff"></u-icon>
+					<u-icon name="moments-circel-fill" size="52" color="#ffffff"></u-icon>
 				</view>
 				<text class="third-text">手机号快捷登录</text>
 			</view>
@@ -565,7 +565,7 @@
 				const account = this.bindAccountInput.trim();
 				if (!account) {
 					uni.showToast({
-						title: '请先输入手机号或点击获取微信手机号',
+						title: '请先输入手机号或点击获取本机号码',
 						icon: 'none'
 					});
 					return;

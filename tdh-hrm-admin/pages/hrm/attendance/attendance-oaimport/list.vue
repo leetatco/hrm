@@ -57,7 +57,7 @@
 		data() {
 			return {
 				table1: {
-					action: "admin/hrm/attendance/sys/oaImport/getList",
+					action: "admin/hrm/attendance/sys/oaimport/getList",
 					// 右侧内置按钮：将 detail_auto 替换为自定义按钮，通过监听 detail 事件或重写 onClick
 					rightBtns: [{
 						mode: 'detail_auto',

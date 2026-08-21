@@ -6,7 +6,6 @@ const _sfc_main = {
       loading: false,
       list: [],
       refreshing: false
-      // 下拉刷新状态
     };
   },
   onShow() {
@@ -50,7 +49,7 @@ const _sfc_main = {
           title: "网络异常",
           icon: "none"
         });
-        common_vendor.index.__f__("error", "at pages/payslip/index.vue:77", e);
+        common_vendor.index.__f__("error", "at pages/payslip/index.vue:76", e);
       } finally {
         this.loading = false;
         if (fromRefresh) {
@@ -58,7 +57,6 @@ const _sfc_main = {
         }
       }
     },
-    // 下拉刷新处理
     onRefresh() {
       if (this.loading)
         return;

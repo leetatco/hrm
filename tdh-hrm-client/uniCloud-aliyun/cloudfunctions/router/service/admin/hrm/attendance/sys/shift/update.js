@@ -1,85 +1,62 @@
 module.exports = {
 	/**
-	 * 修改数据
-	 * @url admin/hrm/attendance/sys/shift/update 前端调用的url参数地址
-	 * data 请求参数 说明
-	 * res 返回参数说明
-	 * @params {Number} code 错误码，0表示成功
-	 * @params {String} msg 详细信息
+	 * 更新班次
+	 * @url admin/hrm/attendance/sys/shift/update
 	 */
 	main: async (event) => {
 		let {
-			data = {}, userInfo, util, filterResponse, originalParam
+			data = {}, userInfo, util
 		} = event;
 		let {
-			customUtil,
-			uniID,
-			config,
-			pubFun,
 			vk,
-			db,
-			_
+			db
 		} = util;
-		let {
-			uid
-		} = data;
 		let res = {
 			code: 0,
 			msg: 'ok'
 		};
-		// 业务逻辑开始-----------------------------------------------------------
-		// 获取前端传过来的参数
+
 		let {
 			_id,
 			shift_name,
 			shift_type,
-			start_time,
-			end_time,
-			is_cross_day,
-			flexible_start_earliest,
-			flexible_start_latest,
-			flexible_end_earliest,
-			flexible_end_latest,
-			rest_start_time,
-			rest_end_time,
-			rest_duration,
-			status,
-			remark,
-			update_date,
-			updat_id
+			segments,
+			status = true,
+			remark
 		} = data;
-		// 参数验证开始
-		if (vk.pubfn.isNull(_id)) return {
-			code: -1,
-			msg: 'id不能为空'
-		};
 
-		// 参数验证结束
-		let dbName = 'hrm-attendance-shift'; // 表名
-		// 执行 数据库 updateById 命令
+		if (!_id) return {
+			code: -1,
+			msg: '缺少ID'
+		};
+		if (!shift_name || !shift_type) {
+			return {
+				code: -1,
+				msg: '班次名称和类型不能为空'
+			};
+		}
+		if (!Array.isArray(segments) || segments.length === 0) {
+			return {
+				code: -1,
+				msg: '至少需要一个班次时段'
+			};
+		}
+
+		let dbName = 'hrm-attendance-shift';
 		await vk.baseDao.updateById({
 			dbName,
 			id: _id,
 			dataJson: {
 				shift_name,
 				shift_type,
-				start_time,
-				end_time,
-				is_cross_day,
-				flexible_start_earliest,
-				flexible_start_latest,
-				flexible_end_earliest,
-				flexible_end_latest,
-				rest_start_time,
-				rest_end_time,
-				rest_duration,
+				segments,
 				status,
 				remark,
-				update_id: uid,
+				update_id: userInfo.uid,
 				update_date: new Date().getTime()
-			},
+			}
 		});
-		// 业务逻辑结束-----------------------------------------------------------
+
 		return res;
-	},
+	}
 };

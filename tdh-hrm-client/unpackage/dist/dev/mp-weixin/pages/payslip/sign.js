@@ -15,6 +15,8 @@ const _sfc_main = {
       showSignBoard: false,
       refreshing: false,
       loading: false,
+      lastSignatureUrl: "",
+      // 新增：历史签名图片URL
       fieldLabels: {
         base_salary: "基本工资",
         performance_salary: "绩效工资",
@@ -46,6 +48,41 @@ const _sfc_main = {
         last_month_sb: "下月社保",
         last_month_gjj: "下月公积金"
       },
+      group1: [
+        "base_salary",
+        "performance_salary",
+        "overtime_fee",
+        "penalty_fund",
+        "housing_fund",
+        "annual_allowance",
+        "floating_bonus",
+        "confidentiality_fee",
+        "work_days",
+        "real_days",
+        "gross_salary",
+        "overtime_cost",
+        "free_cost",
+        "grant",
+        "agency_fee",
+        "other_cost"
+      ],
+      group2: [
+        "we_cost",
+        "clothes_cost",
+        "earlytime_cost",
+        "missed_cost",
+        "loan_cost",
+        "this_month_sb",
+        "this_month_dk",
+        "dkgs"
+      ],
+      group3: ["real_salary"],
+      group4: [
+        "company_sb",
+        "company_gjj",
+        "last_month_sb",
+        "last_month_gjj"
+      ],
       showPickerColor: false,
       ctx: "",
       canvasWidth: 0,
@@ -117,6 +154,7 @@ const _sfc_main = {
       if (fromRefresh) {
         this.refreshing = true;
       }
+      const card = vk.getVuex("$user.employeeInfo.card") || "";
       try {
         if (!this._id && !this.attendance_ym) {
           this.$refs.toast.showToast("参数错误");
@@ -125,17 +163,24 @@ const _sfc_main = {
         const res = await vk.callFunction({
           url: "admin/hrm/salary/sys/payslip/getDetail",
           data: {
-            _id: this._id
+            _id: this._id,
+            card
           }
         });
         if (res.code === 0) {
           this.salaryData = res.rows[0] || {};
+          const extra = res.extra;
+          if (extra.lastSignatureUrl) {
+            this.lastSignatureUrl = extra.lastSignatureUrl;
+          } else {
+            this.lastSignatureUrl = "";
+          }
         } else {
           this.$refs.toast.showToast(res.msg || "获取薪资失败");
         }
       } catch (e) {
         this.$refs.toast.showToast("网络异常");
-        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:207", e);
+        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:271", e);
       } finally {
         this.loading = false;
         if (fromRefresh) {
@@ -161,12 +206,17 @@ const _sfc_main = {
         this.getCanvasSize();
       });
     },
+    // 修改 getCanvasSize，加载历史签名
     getCanvasSize() {
       common_vendor.index.createSelectorQuery().select(".handCenter").boundingClientRect((rect) => {
         if (rect && rect.width) {
           this.canvasWidth = rect.width;
           this.canvasHeight = rect.height;
           this.clear();
+          if (this.lastSignatureUrl) {
+            this.historyList.push(this.lastSignatureUrl);
+            this.drawByImage(this.lastSignatureUrl);
+          }
         } else {
           setTimeout(this.getCanvasSize, 100);
         }
@@ -261,7 +311,7 @@ const _sfc_main = {
       } catch (e) {
         this.$refs.toast.hide();
         this.$refs.toast.showToast("操作失败");
-        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:353", e);
+        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:422", e);
       }
     },
     getPickerColor(color) {
@@ -497,12 +547,36 @@ const _sfc_main = {
       if (!this.canvasWidth || !this.canvasHeight)
         return;
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-      try {
-        this.ctx.drawImage(url, 0, 0, this.canvasWidth, this.canvasHeight);
-        this.ctx.draw && this.ctx.draw(true);
-      } catch (e) {
-        this.historyList.length = 0;
-      }
+      common_vendor.index.getImageInfo({
+        src: url,
+        success: (res) => {
+          const {
+            width,
+            height,
+            path
+          } = res;
+          const isLandscape = width > height;
+          if (isLandscape) {
+            this.ctx.save();
+            this.ctx.translate(this.canvasWidth / 2, this.canvasHeight / 2);
+            this.ctx.rotate(90 * Math.PI / 180);
+            const scaleX = this.canvasHeight / width;
+            const scaleY = this.canvasWidth / height;
+            const scale = Math.min(scaleX, scaleY);
+            const drawWidth = width * scale;
+            const drawHeight = height * scale;
+            this.ctx.drawImage(path, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+            this.ctx.restore();
+          } else {
+            this.ctx.drawImage(path, 0, 0, this.canvasWidth, this.canvasHeight);
+          }
+          this.ctx.draw(true);
+        },
+        fail: (err) => {
+          common_vendor.index.__f__("error", "at pages/payslip/sign.vue:676", "加载历史签名失败", err);
+          this.historyList.length = 0;
+        }
+      });
     },
     clear() {
       if (!this.canvasWidth || !this.canvasHeight) {
@@ -560,47 +634,66 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: !$data.showSignBoard
   }, !$data.showSignBoard ? common_vendor.e({
-    b: common_vendor.o($options.onRefresh, "02"),
+    b: common_vendor.o($options.onRefresh, "7a"),
     c: common_vendor.p({
       ["refresher-triggered"]: $data.refreshing
     }),
     d: $data.salaryData
-  }, $data.salaryData ? {
+  }, $data.salaryData ? common_vendor.e({
     e: common_vendor.t($data.salaryData.department_name),
     f: common_vendor.t($options.formatDate($data.salaryData.attendance_ym)),
-    g: common_vendor.f($data.fieldLabels, (label, key, i0) => {
+    g: common_vendor.f($data.group1, (key, k0, i0) => {
       return common_vendor.e({
         a: $data.salaryData[key]
       }, $data.salaryData[key] ? {
-        b: common_vendor.t(label),
+        b: common_vendor.t($data.fieldLabels[key]),
+        c: common_vendor.t($data.salaryData[key]),
+        d: key === "gross_salary" ? 1 : ""
+      } : {}, {
+        e: key
+      });
+    }),
+    h: common_vendor.f($data.group2, (key, k0, i0) => {
+      return common_vendor.e({
+        a: $data.salaryData[key]
+      }, $data.salaryData[key] ? {
+        b: common_vendor.t($data.fieldLabels[key]),
         c: common_vendor.t($data.salaryData[key])
       } : {}, {
         d: key
       });
-    })
-  } : {}, {
-    h: $data.refreshing,
-    i: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "0e"),
-    j: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "68")
+    }),
+    i: $data.salaryData.real_salary
+  }, $data.salaryData.real_salary ? {
+    j: common_vendor.t($data.salaryData.real_salary)
+  } : {}) : {}, {
+    k: $data.salaryData
+  }, $data.salaryData ? {} : {}, {
+    l: $data.refreshing,
+    m: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "22"),
+    n: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "0e")
   }) : {
-    k: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "2a"),
-    l: $data.selectColor === "black" ? "/static/other/color_black_selected.png" : "/static/other/color_black.png",
-    m: $data.selectColor === "red" ? "/static/other/color_red_selected.png" : "/static/other/color_red.png",
-    n: common_vendor.o((...args) => $options.clear && $options.clear(...args), "48"),
-    o: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "5e"),
-    p: common_vendor.o((...args) => $options.undo && $options.undo(...args), "1e"),
-    q: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "25"),
-    r: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "42"),
-    s: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "e3"),
-    t: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "7c"),
-    v: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "61"),
-    w: common_vendor.o($options.getPickerColor, "66"),
-    x: common_vendor.p({
+    o: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "df"),
+    p: $data.selectColor === "black" ? "/static/other/color_black_selected.png" : "/static/other/color_black.png",
+    q: $data.selectColor === "red" ? "/static/other/color_red_selected.png" : "/static/other/color_red.png",
+    r: common_vendor.o((...args) => $options.clear && $options.clear(...args), "e7"),
+    s: $data.lastSignatureUrl,
+    t: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "d6"),
+    v: $data.lastSignatureUrl,
+    w: common_vendor.o((...args) => $options.undo && $options.undo(...args), "c7"),
+    x: $data.lastSignatureUrl,
+    y: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "2d"),
+    z: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "79"),
+    A: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "4a"),
+    B: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "03"),
+    C: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "d6"),
+    D: common_vendor.o($options.getPickerColor, "b7"),
+    E: common_vendor.p({
       isShow: $data.showPickerColor,
       bottom: 0
     })
   }, {
-    y: common_vendor.sr("toast", "9ee76dc8-2")
+    F: common_vendor.sr("toast", "9ee76dc8-2")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

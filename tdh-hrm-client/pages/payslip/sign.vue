@@ -9,18 +9,56 @@
 
 				<!-- 薪资卡片 -->
 				<view class="detail-card" v-if="salaryData">
-					<view class="detail-header">
-						<text class="name">{{ salaryData.department_name }}</text>
-						<text class="ym">{{ formatDate(salaryData.attendance_ym) }}</text>
-					</view>
-					<view class="detail-body" v-for="(label, key) in fieldLabels" :key="key">
-						<view class="row" v-if="salaryData[key]">
-							<text class="label">{{ label }}</text>
-							<text class="value">{{ salaryData[key] }}</text>
-						</view>
-					</view>
+				  <view class="detail-header">
+				    <text class="name">{{ salaryData.department_name }}</text>
+				    <text class="ym">{{ formatDate(salaryData.attendance_ym) }}</text>
+				  </view>
+				
+				  <!-- 第一块：应发工资 -->
+				  <view class="group">
+				    <!-- <view class="group-title">应发工资</view> -->
+				    <view class="detail-body" v-for="key in group1" :key="key">
+				      <!-- 加粗应发工资行 -->
+				      <view class="row" v-if="salaryData[key]" :class="{ 'gross-row': key === 'gross_salary' }">
+				        <text class="label">{{ fieldLabels[key] }}</text>
+				        <text class="value">{{ salaryData[key] }}</text>
+				      </view>
+				    </view>
+				  </view>
+				
+				  <!-- 第二块：应扣项 -->
+				  <view class="group">
+				    <view class="group-title">应扣项</view>
+				    <view class="detail-body" v-for="key in group2" :key="key">
+				      <view class="row" v-if="salaryData[key]">
+				        <text class="label">{{ fieldLabels[key] }}</text>
+				        <text class="value">{{ salaryData[key] }}</text>
+				      </view>
+				    </view>
+				  </view>
+				
+				  <!-- 第三块：实发工资（加粗加大） -->
+				  <view class="row real-salary-row" v-if="salaryData.real_salary">
+				    <text class="real-salary-label">实发工资</text>
+				    <text class="real-salary-value">{{ salaryData.real_salary }}</text>
+				  </view>		  
+				
+				  <!-- 第四块：其他 
+				  <view class="group">
+				    <view class="group-title" >其他</view>
+				    <view class="detail-body" v-for="key in group4" :key="key">
+				      <view class="row" v-if="salaryData[key]">
+				        <text class="label">{{ fieldLabels[key] }}</text>
+				        <text class="value">{{ salaryData[key] }}</text>
+				      </view>
+				    </view>
+				  </view>-->
 				</view>
 				<view v-else class="loading-detail">加载明细中...</view>
+				<!-- 温馨提醒 -->
+				<view class="reminder" v-if="salaryData">
+				  <text>温馨提醒：请尊重薪酬隐私，不打听不泄露；核对工资后签名，有疑问请3日内联系人事，逾期未签名将视同无异议。</text>
+				</view>
 			</scroll-view>
 
 			<!-- ====== 签名按钮（固定在底部） ====== -->
@@ -44,9 +82,9 @@
 					<!-- #ifndef MP-WEIXIN -->
 					<div class="color_pic" :style="{background:lineColor}" @click="showPickerColor=true"></div>
 					<!-- #endif -->
-					<button @click="clear" class="delBtn">清空</button>
-					<button @click="previewCanvasImg" class="previewBtn">预览</button>
-					<button @click="undo" class="undoBtn">撤销</button>
+					<button @click="clear" :disabled="lastSignatureUrl" class="delBtn">清空</button>
+					<button @click="previewCanvasImg" :disabled="lastSignatureUrl" class="previewBtn">预览</button>
+					<button @click="undo" :disabled="lastSignatureUrl" class="undoBtn">撤销</button>
 					<button @click="closeSignBoard" class="closeBtn">关闭</button>
 					<button @click="submitSign" class="subBtn">确认</button>
 				</view>
@@ -83,6 +121,7 @@
 				showSignBoard: false,
 				refreshing: false,
 				loading: false,
+				lastSignatureUrl: '', // 新增：历史签名图片URL
 				fieldLabels: {
 					base_salary: '基本工资',
 					performance_salary: '绩效工资',
@@ -114,6 +153,23 @@
 					last_month_sb: "下月社保",
 					last_month_gjj: "下月公积金"
 				},
+				group1: [
+					'base_salary', 'performance_salary', 'overtime_fee',
+					'penalty_fund', 'housing_fund', 'annual_allowance',
+					'floating_bonus', 'confidentiality_fee', 'work_days',
+					'real_days', 'gross_salary', 'overtime_cost',
+					'free_cost', 'grant', 'agency_fee', 'other_cost'
+				],
+				group2: [
+					'we_cost', 'clothes_cost', 'earlytime_cost',
+					'missed_cost', 'loan_cost', 'this_month_sb',
+					'this_month_dk', 'dkgs'
+				],
+				group3: ['real_salary'],
+				group4: [
+					'company_sb', 'company_gjj',
+					'last_month_sb', 'last_month_gjj'
+				],
 				showPickerColor: false,
 				ctx: '',
 				canvasWidth: 0,
@@ -185,6 +241,7 @@
 				if (fromRefresh) {
 					this.refreshing = true;
 				}
+				const card = vk.getVuex('$user.employeeInfo.card') || '';
 				try {
 					if (!this._id && !this.attendance_ym) {
 						this.$refs.toast.showToast('参数错误');
@@ -193,12 +250,19 @@
 					const res = await vk.callFunction({
 						url: 'admin/hrm/salary/sys/payslip/getDetail',
 						data: {
-							_id: this._id
+							_id: this._id,
+							card
 						}
 					});
-
 					if (res.code === 0) {
 						this.salaryData = res.rows[0] || {};
+						const extra = res.extra;
+						// 新增：如果当前工资条已有签名，则保存为历史签名
+						if (extra.lastSignatureUrl) {
+							this.lastSignatureUrl = extra.lastSignatureUrl;
+						} else {
+							this.lastSignatureUrl = ''; // 无历史签名
+						}
 					} else {
 						this.$refs.toast.showToast(res.msg || '获取薪资失败');
 					}
@@ -230,12 +294,17 @@
 					this.getCanvasSize();
 				});
 			},
+			// 修改 getCanvasSize，加载历史签名
 			getCanvasSize() {
 				uni.createSelectorQuery().select('.handCenter').boundingClientRect(rect => {
 					if (rect && rect.width) {
 						this.canvasWidth = rect.width;
 						this.canvasHeight = rect.height;
-						this.clear();
+						this.clear(); // 清空并重置历史列表
+						if (this.lastSignatureUrl) {
+							this.historyList.push(this.lastSignatureUrl); // 加入历史，支持撤销
+							this.drawByImage(this.lastSignatureUrl);
+						}
 					} else {
 						setTimeout(this.getCanvasSize, 100);
 					}
@@ -575,12 +644,39 @@
 			drawByImage(url) {
 				if (!this.canvasWidth || !this.canvasHeight) return;
 				this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-				try {
-					this.ctx.drawImage(url, 0, 0, this.canvasWidth, this.canvasHeight);
-					this.ctx.draw && this.ctx.draw(true);
-				} catch (e) {
-					this.historyList.length = 0;
-				}
+				uni.getImageInfo({
+					src: url,
+					success: (res) => {
+						const {
+							width,
+							height,
+							path
+						} = res;
+						const isLandscape = width > height;
+						if (isLandscape) {
+							// 横屏图片 -> 顺时针旋转90度，并居中缩放显示
+							this.ctx.save();
+							this.ctx.translate(this.canvasWidth / 2, this.canvasHeight / 2);
+							this.ctx.rotate(90 * Math.PI / 180); // 顺时针 90°
+							// 计算缩放比例，使图片完全显示在画布内（等比例）
+							const scaleX = this.canvasHeight / width;
+							const scaleY = this.canvasWidth / height;
+							const scale = Math.min(scaleX, scaleY);
+							const drawWidth = width * scale;
+							const drawHeight = height * scale;
+							this.ctx.drawImage(path, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+							this.ctx.restore();
+						} else {
+							// 竖屏图片直接拉伸填满
+							this.ctx.drawImage(path, 0, 0, this.canvasWidth, this.canvasHeight);
+						}
+						this.ctx.draw(true);
+					},
+					fail: (err) => {
+						console.error('加载历史签名失败', err);
+						this.historyList.length = 0;
+					}
+				});
 			},
 			clear() {
 				if (!this.canvasWidth || !this.canvasHeight) {
@@ -639,13 +735,75 @@
 		display: flex;
 		flex-direction: column;
 	}
+	
+	/* 分组容器，添加分割线 */
+	.group {
+	  border-bottom: 1rpx solid #f0f0f0;
+	  padding: 10rpx 0;
+	}
+	.group:last-child {
+	  border-bottom: none;
+	}
+	
+	/* 分组标题 */
+	.group-title {
+	  font-size: 30rpx;
+	  font-weight: bold;
+	  color: #333;
+	  padding: 10rpx 0 6rpx 0;
+	}
+	
+	/* 应发工资行加粗 */
+	.gross-row .label,
+	.gross-row .value {
+	  font-weight: bold;
+	  font-size: 30rpx; /* 稍大于普通行（28rpx） */
+	}
+	
+	.real-salary-row {
+	  display: flex;
+	  justify-content: space-between;
+	  font-size: 30rpx;        /* 与 detail-header 一致 */
+	  font-weight: bold;       /* 加粗 */
+	  padding: 20rpx 0;
+	  border-bottom: 1rpx solid #eee; /* 与 detail-header 下边框一致 */
+	}
+	.real-salary-label,
+	.real-salary-value {
+	  color: #333;             /* 与 detail-header 文字颜色一致 */
+	}
+	
+	.reminder {
+	  padding: 20rpx 24rpx;
+	  margin-top: 20rpx;
+	  background: #f9f9f9;
+	  border-radius: 12rpx;
+	  font-size: 24rpx;
+	  color: #999;
+	  line-height: 1.8;
+	  text-align: justify;
+	  border-left: 6rpx solid #f56c6c;
+	}
+	
+	/* 原有 .row 样式保持不变，但可微调 */
+	.detail-body .row {
+	  display: flex;
+	  justify-content: space-between;
+	  padding: 14rpx 0;
+	  font-size: 28rpx;
+	  border-bottom: 1rpx solid #f6f6f6;
+	}
+	.detail-body .row:last-child {
+	  border-bottom: none;
+	}
 
 	/* ================= 明细容器（Flex 列，填满剩余空间） ================= */
 	.detail-container {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		min-height: 0; /* 防止内容撑大，允许 flex 收缩 */
+		min-height: 0;
+		/* 防止内容撑大，允许 flex 收缩 */
 		overflow: hidden;
 		background: #fbfbfb;
 	}
@@ -653,9 +811,11 @@
 	/* 滚动区域：flex:1 + height:0 撑满剩余高度，启用内部滚动 */
 	.detail-scroll {
 		flex: 1;
-		height: 0; /* 配合 flex:1 正确计算高度 */
+		height: 0;
+		/* 配合 flex:1 正确计算高度 */
 		min-height: 0;
-		overflow: hidden; /* 避免外部溢出 */
+		overflow: hidden;
+		/* 避免外部溢出 */
 		padding: 20rpx 20rpx 0 20rpx;
 		box-sizing: border-box;
 	}
@@ -684,6 +844,7 @@
 		border-bottom: 1rpx solid #f6f6f6;
 		font-size: 28rpx;
 	}
+
 	.detail-body .row:last-child {
 		border-bottom: 1rpx solid #f6f6f6;
 	}

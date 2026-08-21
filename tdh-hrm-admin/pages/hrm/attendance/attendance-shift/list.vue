@@ -1,6 +1,6 @@
 <template>
 	<view class="page-body">
-		<!-- 搜索区域：完全复用工作日历的写法 -->
+		<!-- 搜索区域 -->
 		<vk-data-table-query ref="queryForm1" v-model="queryForm1.formData" :columns="queryForm1.columns"
 			@search="search" @reset="resetForm">
 		</vk-data-table-query>
@@ -20,10 +20,10 @@
 		</vk-data-table>
 
 		<!-- 添加/编辑弹窗 -->
-		<vk-data-dialog v-model="form1.props.show" :title="form1.props.title" width="950px" mode="form"
+		<vk-data-dialog v-model="form1.props.show" :title="form1.props.title" width="750px" mode="form"
 			:close-on-click-modal="false">
 			<vk-data-form ref="form1" v-model="form1.data" :rules="form1.props.rules" :action="form1.props.action"
-				:form-type="form1.props.formType" :columns='form1.props.columns' label-width="160px" :inline="true"
+				:form-type="form1.props.formType" :columns='form1.props.columns' label-width="90px" :inline="true"
 				:columnsNumber="2" @success="form1.props.show = false;refresh();" :border="true"></vk-data-form>
 		</vk-data-dialog>
 	</view>
@@ -41,7 +41,7 @@
 					rightBtns: [{
 							mode: 'detail_auto',
 							title: '详细',
-							show: (item) => this.$hasRole('admin') || this.$hasPermission('attendance-params-view')
+							show: (item) => this.$hasRole('admin') || this.$hasPermission('attendance-shift-view')
 						}, {
 							mode: 'update',
 							title: '编辑',
@@ -63,7 +63,7 @@
 						{
 							key: "shift_type",
 							title: "班次类型",
-							type: "number",
+							type: "select",
 							width: colWidth - 40,
 							data: [{
 									value: 1,
@@ -77,69 +77,14 @@
 							formatter: (val) => val == 1 ? '固定班次' : '弹性班次'
 						},
 						{
-							key: "start_time",
-							title: "上班时间",
+							key: "segments",
+							title: "班次时段",
 							type: "text",
-							width: colWidth - 60
-						},
-						{
-							key: "end_time",
-							title: "下班时间",
-							type: "text",
-							width: colWidth - 60
-						},
-						{
-							key: "is_cross_day",
-							title: "是否跨天",
-							type: "switch",
-							width: colWidth - 80,
-							formatter: (val) => val ? '是' : '否'
-						},
-						{
-							key: "flexible_start_earliest",
-							title: "最早签到",
-							type: "text",
-							width: colWidth - 60,
-							formatter: (val, row) => row.shift_type == 2 ? val : ''
-						},
-						{
-							key: "flexible_start_latest",
-							title: "核心上班",
-							type: "text",
-							width: colWidth - 60,
-							formatter: (val, row) => row.shift_type == 2 ? val : ''
-						},
-						{
-							key: "flexible_end_earliest",
-							title: "核心下班",
-							type: "text",
-							width: colWidth - 60,
-							formatter: (val, row) => row.shift_type == 2 ? val : ''
-						},
-						{
-							key: "flexible_end_latest",
-							title: "最晚签退",
-							type: "text",
-							width: colWidth - 60,
-							formatter: (val, row) => row.shift_type == 2 ? val : ''
-						},
-						{
-							key: "rest_start_time",
-							title: "休息开始",
-							type: "text",
-							width: colWidth - 60
-						},
-						{
-							key: "rest_end_time",
-							title: "休息结束",
-							type: "text",
-							width: colWidth - 60
-						},
-						{
-							key: "rest_duration",
-							title: "休息时长(分)",
-							type: "number",
-							width: colWidth - 40
+							width: colWidth * 2,
+							formatter: (val) => {
+								if (!val || !Array.isArray(val) || val.length === 0) return '-';
+								return val.map(seg => `${seg.name} ${seg.start_time}~${seg.end_time}`).join('，');
+							}
 						},
 						{
 							key: "status",
@@ -217,17 +162,18 @@
 					data: {
 						shift_name: '',
 						shift_type: 1,
-						start_time: '09:00',
-						end_time: '18:00',
-						is_cross_day: false,
-						flexible_start_earliest: '08:00',
-						flexible_start_latest: '09:30',
-						flexible_end_earliest: '17:30',
-						flexible_end_latest: '20:00',
-						rest_start_time: '12:00',
-						rest_end_time: '13:00',
-						rest_duration: 60,
-						status: 1,
+						segments: [{
+								name: '上午',
+								start_time: '08:30',
+								end_time: '12:00'
+							},
+							{
+								name: '下午',
+								start_time: '13:30',
+								end_time: '18:00'
+							}
+						],
+						status: true,
 						remark: ''
 					},
 					props: {
@@ -256,108 +202,6 @@
 								]
 							},
 							{
-								key: "start_time",
-								title: "上班时间",
-								type: "time",
-								width: colWidth - 60,
-								required: true,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								}
-							},
-							{
-								key: "end_time",
-								title: "下班时间",
-								type: "time",
-								width: colWidth - 60,
-								required: true,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								}
-							},
-							{
-								key: "is_cross_day",
-								title: "是否跨天",
-								type: "switch",
-								width: colWidth - 80
-							},
-							{
-								key: "flexible_start_earliest",
-								title: "弹性最早签到",
-								type: "time",
-								width: colWidth - 60,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								},
-								hidden: true,
-								required: false
-							},
-							{
-								key: "flexible_start_latest",
-								title: "核心上班时间",
-								type: "time",
-								width: colWidth - 60,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								},
-								hidden: true,
-								required: false
-							},
-							{
-								key: "flexible_end_earliest",
-								title: "核心下班时间",
-								type: "time",
-								width: colWidth - 60,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								},
-								hidden: true,
-								required: false
-							},
-							{
-								key: "flexible_end_latest",
-								title: "弹性最晚签退",
-								type: "time",
-								width: colWidth - 60,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								},
-								hidden: true,
-								required: false
-							},
-							{
-								key: "rest_start_time",
-								title: "休息开始",
-								type: "time",
-								width: colWidth - 60,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								}
-							},
-							{
-								key: "rest_end_time",
-								title: "休息结束",
-								type: "time",
-								width: colWidth - 60,
-								valueFormat: "HH:mm",
-								pickerOptions: {
-									format: "HH:mm"
-								}
-							},
-							{
-								key: "rest_duration",
-								title: "休息时长(分)",
-								type: "number",
-								width: colWidth - 60
-							},
-							{
 								key: "status",
 								title: "启用状态",
 								type: "switch",
@@ -367,9 +211,68 @@
 							{
 								key: "remark",
 								title: "备注",
-								type: "textarea",
-								maxlength: 500,
-								width: colWidth * 3
+								type: "text",
+								width: colWidth
+							},
+							{
+								key: "segments",
+								title: "班次时段",
+								type: "array<object>",
+								itemWidth: 300,
+								showAdd: true,
+								showClear: true,
+								columnIndexWidth: 50,
+								// 新增一行时的默认值
+								defaultValue: {
+									name: "",
+									start_time: "",
+									end_time: ""
+								},
+								rightBtns: ['copy', 'delete'],
+								// 子字段编辑规则
+								columns: [{
+										key: "name",
+										title: "时段名称",
+										type: "text",
+										width: 150,
+										isUnique: true,
+										rules: [{
+											required: true,
+											message: "名称不能为空",
+											trigger: ["change", "blur"]
+										}]
+									},
+									{
+										key: "start_time",
+										title: "上班时间",
+										type: "time",
+										width: 180,
+										valueFormat: "HH:mm",
+										pickerOptions: {
+											format: "HH:mm"
+										},
+										rules: [{
+											required: true,
+											message: "上班时间不能为空",
+											trigger: ["change", "blur"]
+										}]
+									},
+									{
+										key: "end_time",
+										title: "下班时间",
+										type: "time",
+										width: 180,
+										valueFormat: "HH:mm",
+										pickerOptions: {
+											format: "HH:mm"
+										},
+										rules: [{
+											required: true,
+											message: "下班时间不能为空",
+											trigger: ["change", "blur"]
+										}]
+									}
+								]
 							}
 						],
 						rules: {
@@ -383,55 +286,18 @@
 								message: "班次类型不能为空",
 								trigger: "change"
 							}],
-							start_time: [{
-								required: true,
-								message: "上班时间不能为空",
-								trigger: "blur"
-							}],
-							end_time: [{
-								required: true,
-								message: "下班时间不能为空",
-								trigger: "blur"
-							}],
-							flexible_start_earliest: [{
+							segments: [{
 								validator: (rule, value, callback) => {
-									if (this.form1.data.shift_type == 2 && !value) {
-										callback(new Error('弹性最早签到不能为空'));
+									if (!value || value.length === 0) {
+										callback(new Error('至少需要一个时段'));
+									} else if (value.some(seg => !seg.name || !seg.start_time || !seg
+											.end_time)) {
+										callback(new Error('时段信息不完整'));
 									} else {
 										callback();
 									}
 								},
-								trigger: 'blur'
-							}],
-							flexible_start_latest: [{
-								validator: (rule, value, callback) => {
-									if (this.form1.data.shift_type == 2 && !value) {
-										callback(new Error('核心上班时间不能为空'));
-									} else {
-										callback();
-									}
-								},
-								trigger: 'blur'
-							}],
-							flexible_end_earliest: [{
-								validator: (rule, value, callback) => {
-									if (this.form1.data.shift_type == 2 && !value) {
-										callback(new Error('核心下班时间不能为空'));
-									} else {
-										callback();
-									}
-								},
-								trigger: 'blur'
-							}],
-							flexible_end_latest: [{
-								validator: (rule, value, callback) => {
-									if (this.form1.data.shift_type == 2 && !value) {
-										callback(new Error('弹性最晚签退不能为空'));
-									} else {
-										callback();
-									}
-								},
-								trigger: 'blur'
+								trigger: 'change'
 							}]
 						},
 						formType: "",
@@ -443,16 +309,7 @@
 		},
 		watch: {
 			'form1.data.shift_type'(newVal) {
-				const cols = this.form1.props.columns;
-				const flexFields = ['flexible_start_earliest', 'flexible_start_latest', 'flexible_end_earliest',
-					'flexible_end_latest'
-				];
-				cols.forEach(col => {
-					if (flexFields.includes(col.key)) {
-						col.hidden = (newVal != 2);
-						col.required = (newVal == 2);
-					}
-				});
+				// 弹性班次逻辑后续扩展
 			}
 		},
 		onLoad() {
@@ -485,7 +342,8 @@
 				this.form1.props.title = '编辑班次';
 				this.form1.props.show = true;
 				this.form1.data = {
-					...item
+					...item,
+					segments: item.segments || []
 				};
 			},
 			deleteBtn({

@@ -2023,48 +2023,39 @@
 							return vk.alert('清理旧数据失败，导入终止');
 						}
 
-						// 3. 转换数据（需调用转换接口获取完整员工数据）
-						vk.toast('开始导入数据...');
-						const transformedItems = [];
-						for (const item of validData) {
-							const empRes = await vk.callFunction({
-								url: 'admin/hrm/employees/pub/getImportEmployees',
-								data: {
-									item
-								}
-							});
-							if (empRes.code !== 0) {
-								errors.push({
-									employee_id: item.employee_id,
-									reason: '数据转换失败'
-								});
-								continue;
-							}
-							transformedItems.push(empRes.item);
-						}
-
-						if (transformedItems.length === 0) {
-							return vk.alert('没有可导入的有效数据');
-						}
-
-						// 4. 批量新增
-						const addRes = await vk.callFunction({
-							url: 'admin/hrm/employees/sys/all/addAll',
-							title: '批量导入中...',
-							data: {
-								items: transformedItems
-							}
+						// 转换数据（一次性调用）
+						vk.toast('数据转换中...');
+						const empRes = await vk.callFunction({
+						    url: 'admin/hrm/employees/pub/getImportEmployees',
+						    data: { items: validData },
+						    title: '数据转换中...'
 						});
-
+						if (empRes.code !== 0) {
+						    return vk.alert(empRes.msg || '数据转换失败');
+						}
+						
+						const transformedItems = empRes.items || [];
+						if (transformedItems.length === 0) {
+						    return vk.alert('没有可导入的有效数据');
+						}
+						
+						// 可选：提示部分转换失败
+						if (empRes.errors && empRes.errors.length > 0) {
+						    vk.toast(`有 ${empRes.errors.length} 条数据转换失败，已跳过`);
+						}
+						
+						// 批量新增
+						const addRes = await vk.callFunction({
+						    url: 'admin/hrm/employees/sys/all/addAll',
+						    data: { items: transformedItems },
+						    title: '批量导入中...'
+						});
+						
 						if (addRes.code === 0) {
-							const successCount = addRes.id?.length || transformedItems.length;
-							let message = `成功导入 ${successCount} 条`;
-							if (errors.length > 0) {
-								message += `，${errors.length} 条失败`;
-							}
-							vk.alert(message, '导入完成', () => this.refresh());
+						    const successCount = addRes.id?.length || transformedItems.length;
+						    vk.alert(`成功导入 ${successCount} 条`, '导入完成', () => this.refresh());
 						} else {
-							vk.alert('批量导入失败，请稍后重试');
+						    vk.alert('批量导入失败，请稍后重试');
 						}
 					});
 				} catch (error) {

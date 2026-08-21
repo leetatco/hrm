@@ -8,7 +8,7 @@
 				<view class="top-section">
 					<!-- 状态栏占位（与胶囊按钮对齐） -->
 					<view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
-					
+
 					<!-- 用户头部 -->
 					<view class="header">
 						<view class="user-info">
@@ -191,6 +191,7 @@
 					title: '欢迎使用'
 				}],
 				menuList: [],
+				payslipList: [],
 				menuSort: [666],
 				showDetailPopup: false,
 				noticeList: [],
@@ -266,10 +267,11 @@
 		async onLoad() {
 			const sysInfo = uni.getSystemInfoSync();
 			this.statusBarHeight = sysInfo.statusBarHeight || 20;
-			
+
 			this.pageLoading = true;
 			this.loadUserInfo();
 			await Promise.all([
+				this.loadPayslipList(),
 				this.loadSwiperList(),
 				this.loadMenuList(),
 				this.loadNoticeList()
@@ -279,7 +281,13 @@
 				content: '暂无内容',
 				publish_date: ''
 			};
+			if (this.payslipList.length > 0) {
+				vk.alert(`您有${this.payslipList.length}条薪资条未签名，请及时签名维护自己正当权益！`, '温馨提示', '确定', () => {
+					vk.navigateTo('/pages/payslip/index');
+				});
+			}
 			this.pageLoading = false;
+
 		},
 		onShow() {
 			this.refreshData();
@@ -291,7 +299,32 @@
 				uni.stopPullDownRefresh();
 			}, 1000);
 		},
+		mounted() {
+
+
+		},
 		methods: {
+			async loadPayslipList() {
+				try {
+					if (!this.hasLogin) return;
+					const card = vk.getVuex('$user.employeeInfo.card') || '';
+					const res = await vk.callFunction({
+						url: 'admin/hrm/salary/sys/payslip/getDetail',
+						title: '加载中...',
+						data: {
+							card: card,
+							status: 0,
+							pageSize: -1,
+							pageIndex: 1
+						}
+					});
+					if (res.code === 0) {
+						this.payslipList = res.rows;
+					}
+				} catch (error) {
+					console.error('加载轮播图失败:', error);
+				}
+			},
 			async loadSwiperList() {
 				try {
 					const res = await this.vk.callFunction({
@@ -489,7 +522,8 @@
 		--shadow-hover: 0 12rpx 40rpx rgba(0, 0, 0, 0.08);
 		--radius-card: 20rpx;
 		--radius-inner: 16rpx;
-		--card-gap: 24rpx;  /* 👈 统一间距变量，方便全局调整 */
+		--card-gap: 24rpx;
+		/* 👈 统一间距变量，方便全局调整 */
 	}
 
 	.search-btn {
@@ -572,10 +606,13 @@
 	}
 
 	@keyframes floatGlow {
-		0%, 100% {
+
+		0%,
+		100% {
 			transform: translate(0, 0) scale(1);
 			opacity: 0.9;
 		}
+
 		50% {
 			transform: translate(8rpx, -12rpx) scale(1.03);
 			opacity: 1;
@@ -969,19 +1006,24 @@
 	   ============================================================ */
 	@media (max-width: 750px) {
 		.sticky-card {
-			margin: 20rpx 20rpx; /* 小屏适当缩小，仍保持8网格节奏 */
+			margin: 20rpx 20rpx;
+			/* 小屏适当缩小，仍保持8网格节奏 */
 		}
+
 		.top-section {
 			padding: 0 20rpx 0;
 		}
+
 		.swiper-box {
 			padding: 0 20rpx 16rpx;
 		}
+
 		.menu-box,
 		.notice-box,
 		.quick-access {
 			margin: 20rpx 20rpx;
 		}
+
 		.section-header {
 			padding: 14rpx 20rpx 4rpx;
 		}
@@ -1161,6 +1203,7 @@
 		0% {
 			background-position: 200% 0;
 		}
+
 		100% {
 			background-position: -200% 0;
 		}

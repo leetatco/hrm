@@ -18,6 +18,7 @@ const _sfc_main = {
         title: "欢迎使用"
       }],
       menuList: [],
+      payslipList: [],
       menuSort: [666],
       showDetailPopup: false,
       noticeList: [],
@@ -98,6 +99,7 @@ const _sfc_main = {
     this.pageLoading = true;
     this.loadUserInfo();
     await Promise.all([
+      this.loadPayslipList(),
       this.loadSwiperList(),
       this.loadMenuList(),
       this.loadNoticeList()
@@ -107,6 +109,11 @@ const _sfc_main = {
       content: "暂无内容",
       publish_date: ""
     };
+    if (this.payslipList.length > 0) {
+      vk.alert(`您有${this.payslipList.length}条薪资条未签名，请及时签名维护自己正当权益！`, "温馨提示", "确定", () => {
+        vk.navigateTo("/pages/payslip/index");
+      });
+    }
     this.pageLoading = false;
   },
   onShow() {
@@ -119,7 +126,31 @@ const _sfc_main = {
       common_vendor.index.stopPullDownRefresh();
     }, 1e3);
   },
+  mounted() {
+  },
   methods: {
+    async loadPayslipList() {
+      try {
+        if (!this.hasLogin)
+          return;
+        const card = vk.getVuex("$user.employeeInfo.card") || "";
+        const res = await vk.callFunction({
+          url: "admin/hrm/salary/sys/payslip/getDetail",
+          title: "加载中...",
+          data: {
+            card,
+            status: 0,
+            pageSize: -1,
+            pageIndex: 1
+          }
+        });
+        if (res.code === 0) {
+          this.payslipList = res.rows;
+        }
+      } catch (error) {
+        common_vendor.index.__f__("error", "at pages/index/index.vue:325", "加载轮播图失败:", error);
+      }
+    },
     async loadSwiperList() {
       try {
         const res = await this.vk.callFunction({
@@ -136,7 +167,7 @@ const _sfc_main = {
           }));
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:311", "加载轮播图失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:344", "加载轮播图失败:", error);
       }
     },
     async loadMenuList() {
@@ -158,7 +189,7 @@ const _sfc_main = {
           }));
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:334", "加载常用功能失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:367", "加载常用功能失败:", error);
       }
     },
     async loadNoticeList() {
@@ -176,7 +207,7 @@ const _sfc_main = {
           this.noticeList = res.rows;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:351", "加载通知失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:384", "加载通知失败:", error);
       }
     },
     async loadUnreadCount() {
@@ -195,18 +226,18 @@ const _sfc_main = {
           this.tabbar[1].count = res.data.count || 0;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:369", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:402", "加载未读数量失败:", error);
       }
     },
     loadUserInfo() {
       try {
         this.userInfo = vk.getVuex("$user.userInfo") || {};
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:376", "加载用户信息失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:409", "加载用户信息失败:", error);
       }
     },
     refreshData() {
-      common_vendor.index.__f__("log", "at pages/index/index.vue:380", "刷新数据");
+      common_vendor.index.__f__("log", "at pages/index/index.vue:413", "刷新数据");
     },
     getColor(index) {
       return this.colorPool[index % this.colorPool.length];
@@ -349,11 +380,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "32",
       color: "#999"
     }),
-    h: common_vendor.o((...args) => $options.onSearch && $options.onSearch(...args), "e6")
+    h: common_vendor.o((...args) => $options.onSearch && $options.onSearch(...args), "c3")
   } : {}, {
     i: $options.hasLogin
   }, $options.hasLogin ? {
-    j: common_vendor.o($options.onSwiperClick, "88"),
+    j: common_vendor.o($options.onSwiperClick, "c4"),
     k: common_vendor.p({
       list: $data.swiperList.length ? $data.swiperList : $data.defaultSwiper,
       height: "320",
@@ -366,7 +397,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       radius: "16"
     })
   } : {}, {
-    l: common_vendor.o((...args) => $options.viewAllFunctions && $options.viewAllFunctions(...args), "f7"),
+    l: common_vendor.o((...args) => $options.viewAllFunctions && $options.viewAllFunctions(...args), "59"),
     m: common_vendor.f($options.displayMenuList, (item, index, i0) => {
       return common_vendor.e({
         a: item.imgUrl && item._imgLoaded !== false
@@ -399,8 +430,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     o: $options.hasLogin
   }, $options.hasLogin ? {
-    p: common_vendor.o((...args) => $options.viewAllNotices && $options.viewAllNotices(...args), "7c"),
-    q: common_vendor.o($options.onNoticeClick, "e8"),
+    p: common_vendor.o((...args) => $options.viewAllNotices && $options.viewAllNotices(...args), "c6"),
+    q: common_vendor.o($options.onNoticeClick, "2c"),
     r: common_vendor.p({
       list: $data.noticeList.map((item) => item.title),
       duration: 4e3,
@@ -412,7 +443,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     s: common_vendor.t($data.currentNotice.title || "暂无通知"),
     t: common_vendor.t($data.currentNotice.publish_date ? _ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "MM-dd") : ""),
     v: $data.currentNotice.content || "暂无内容",
-    w: common_vendor.o(($event) => $options.showDetail($data.currentNotice), "ce")
+    w: common_vendor.o(($event) => $options.showDetail($data.currentNotice), "34")
   } : {}, {
     x: $options.hasLogin
   }, $options.hasLogin ? {
@@ -442,7 +473,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     E: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    F: common_vendor.o(($event) => $data.showDetailPopup = $event, "00"),
+    F: common_vendor.o(($event) => $data.showDetailPopup = $event, "34"),
     G: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,

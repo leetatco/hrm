@@ -405,7 +405,7 @@ const _sfc_main = {
       const account = this.bindAccountInput.trim();
       if (!account) {
         common_vendor.index.showToast({
-          title: "请先输入手机号或点击获取微信手机号",
+          title: "请先输入手机号或点击获取本机号码",
           icon: "none"
         });
         return;
@@ -589,7 +589,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     t: $data.showThirdLogin
   }, $data.showThirdLogin ? {
     v: common_vendor.p({
-      name: "weixin-fill",
+      name: "moments-circel-fill",
       size: "52",
       color: "#ffffff"
     }),
@@ -604,12 +604,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}, {
     z: $data.agreementChecked ? 1 : "",
-    A: common_vendor.o((...args) => $options.showAgreementPopup && $options.showAgreementPopup(...args), "f3"),
-    B: common_vendor.o((...args) => $options.showPrivacyPopup && $options.showPrivacyPopup(...args), "dc"),
-    C: common_vendor.o((...args) => $options.toggleAgreement && $options.toggleAgreement(...args), "1d"),
+    A: common_vendor.o((...args) => $options.showAgreementPopup && $options.showAgreementPopup(...args), "c4"),
+    B: common_vendor.o((...args) => $options.showPrivacyPopup && $options.showPrivacyPopup(...args), "7d"),
+    C: common_vendor.o((...args) => $options.toggleAgreement && $options.toggleAgreement(...args), "3a"),
     D: common_vendor.t($data.agreementTitle),
     E: $data.agreementContent,
-    F: common_vendor.o(($event) => $data.agreementPopupVisible = $event, "53"),
+    F: common_vendor.o(($event) => $data.agreementPopupVisible = $event, "94"),
     G: common_vendor.p({
       mode: "bottom",
       closeable: true,
@@ -618,7 +618,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["border-radius"]: 20,
       modelValue: $data.agreementPopupVisible
     }),
-    H: common_vendor.o(($event) => $data.bindAccountInput = $event, "55"),
+    H: common_vendor.o(($event) => $data.bindAccountInput = $event, "e9"),
     I: common_vendor.p({
       placeholder: "请输入手机号",
       type: "text",
@@ -638,8 +638,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         marginRight: "12rpx"
       }
     }),
-    K: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "64"),
-    L: common_vendor.o(($event) => $data.inputModalVisible = false, "e4"),
+    K: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "eb"),
+    L: common_vendor.o(($event) => $data.inputModalVisible = false, "ad"),
     M: common_vendor.p({
       type: "default",
       shape: "circle",
@@ -647,7 +647,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         width: "180rpx"
       }
     }),
-    N: common_vendor.o($options.confirmInputBind, "b5"),
+    N: common_vendor.o($options.confirmInputBind, "7b"),
     O: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -657,8 +657,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         border: "none"
       }
     }),
-    P: common_vendor.o($options.onInputPopupClose, "ae"),
-    Q: common_vendor.o(($event) => $data.inputModalVisible = $event, "fc"),
+    P: common_vendor.o($options.onInputPopupClose, "c3"),
+    Q: common_vendor.o(($event) => $data.inputModalVisible = $event, "6c"),
     R: common_vendor.p({
       mode: "bottom",
       closeable: true,

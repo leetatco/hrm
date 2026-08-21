@@ -91,7 +91,7 @@
 		data() {
 			return {
 				table1: {
-					action: "admin/hrm/attendance/sys/leaveRecord/getList",
+					action: "admin/hrm/attendance/sys/leaverecord/getList",
 					customRightBtns: [{
 						mode: 'custom',
 						title: '详情',

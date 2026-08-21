@@ -226,7 +226,7 @@
 								key: "department_id",
 								title: "部门代码",
 								type: "text",
-								show: ["add"]
+								// show: ["add"]
 							},
 							{
 								key: "department_name",

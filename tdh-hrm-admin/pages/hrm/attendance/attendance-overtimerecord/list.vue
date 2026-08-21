@@ -92,7 +92,7 @@
 		data() {
 			return {
 				table1: {
-					action: "admin/hrm/attendance/sys/overtimeRecord/getList",
+					action: "admin/hrm/attendance/sys/overtimerecord/getList",
 					customRightBtns: [{
 						mode: 'custom',
 						title: '详情',

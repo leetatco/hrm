@@ -75,7 +75,7 @@
 		data() {
 			return {
 				table1: {
-					action: "admin/hrm/attendance/sys/tripRecord/getList",
+					action: "admin/hrm/attendance/sys/triprecord/getList",
 					customRightBtns: [{
 						mode: 'custom',
 						title: '详情',

@@ -77,7 +77,7 @@
 						<el-descriptions-item label="员工工号">{{ detailDialog.data.employee_id }}</el-descriptions-item>
 						<el-descriptions-item
 							label="员工姓名">{{ detailDialog.data.employee_name || '-' }}</el-descriptions-item>
-						<el-descriptions-item label="日期">{{ detailDialog.data.attendance_date }}</el-descriptions-item>
+						<el-descriptions-item label="日期">{{ vk.pubfn.timeFormat(new Date(detailDialog.data.attendance_date), 'yyyy-MM-dd')}}</el-descriptions-item>
 						<el-descriptions-item
 							label="班次">{{ detailDialog.data.shift_name || '-' }}</el-descriptions-item>
 						<el-descriptions-item
@@ -257,6 +257,11 @@
 									value: 5,
 									label: "旷工",
 									tagType: "danger"
+								},
+								{
+									value: 6,
+									label: "加班",
+									tagType: "warning"
 								}
 							]
 						}
@@ -337,6 +342,10 @@
 								{
 									value: 5,
 									label: "旷工"
+								},
+								{
+									value: 6,
+									label: "加班"
 								}
 							],
 							mode: "="

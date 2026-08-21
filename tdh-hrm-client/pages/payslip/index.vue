@@ -13,8 +13,10 @@
 		<view v-else class="list">
 			<view v-for="item in list" :key="item._id" class="item" @click="goSign(item)">
 				<text class="ym">{{ formatDate(item.attendance_ym) }}</text>
-				<text class="name">{{ item.employee_name }}/{{ item.department_name }}</text>
-				<text class="badge">待签名</text>
+				<view class="right">
+					<text class="sign-badge">待签名</text>
+					<text class="name">{{ item.employee_name }}/{{ item.department_name }}</text>
+				</view>
 			</view>
 		</view>
 	</scroll-view>
@@ -26,22 +28,20 @@
 			return {
 				loading: false,
 				list: [],
-				refreshing: false, // 下拉刷新状态
+				refreshing: false,
 			};
 		},
 		onShow() {
-			// 每次页面显示时刷新（从签名页返回时）
 			this.loadData();
 		},
 		methods: {
 			async loadData(fromRefresh = false) {
-				if (this.loading) return; // 防止重复请求
+				if (this.loading) return;
 				this.loading = true;
 				if (fromRefresh) {
-					this.refreshing = true; // 显示下拉动画
+					this.refreshing = true;
 				}
 				try {
-					// 获取当前员工的身份证号（card）
 					const card = vk.getVuex('$user.employeeInfo.card') || '';
 					if (!card) {
 						uni.showToast({
@@ -51,7 +51,6 @@
 						return;
 					}
 
-					// 调用云函数
 					const res = await vk.callFunction({
 						url: 'admin/hrm/salary/sys/payslip/getDetail',
 						title: '加载中...',
@@ -78,11 +77,10 @@
 				} finally {
 					this.loading = false;
 					if (fromRefresh) {
-						this.refreshing = false; // 复位下拉动画
+						this.refreshing = false;
 					}
 				}
 			},
-			// 下拉刷新处理
 			onRefresh() {
 				if (this.loading) return;
 				this.loadData(true);
@@ -104,11 +102,9 @@
 <style scoped>
 	.unsign-list {
 		height: 100vh;
-		/* 撑满全屏 */
 		background: #f5f5f5;
 		box-sizing: border-box;
 		padding: 30rpx;
-		/* 内边距置于 scroll-view 上，避免内容紧贴边缘 */
 	}
 
 	.status-text {
@@ -127,6 +123,7 @@
 		justify-content: space-between;
 		align-items: center;
 		box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+		position: relative;
 	}
 
 	.ym {
@@ -135,16 +132,23 @@
 		color: #333;
 	}
 
-	.name {
-		color: #666;
-		font-size: 28rpx;
+	.right {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 12rpx;
 	}
 
-	.badge {
+	.name {
+		color: #999;
+		font-size: 26rpx;
+	}
+
+	.sign-badge {
 		background: #f56c6c;
 		color: #fff;
-		padding: 6rpx 24rpx;
-		border-radius: 30rpx;
-		font-size: 24rpx;
+		padding: 4rpx 16rpx;
+		border-radius: 20rpx;
+		font-size: 22rpx;
 	}
 </style>

@@ -77,7 +77,7 @@
 		data() {
 			return {
 				table1: {
-					action: "admin/hrm/attendance/sys/compensatoryRecord/getList",
+					action: "admin/hrm/attendance/sys/compensatoryrecord/getList",
 					customRightBtns: [{
 						mode: 'custom',
 						title: '详情',

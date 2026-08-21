@@ -1,13 +1,4 @@
 module.exports = {
-	/**
-	 * 计算日考勤结果
-	 * data: {
-	 *   employee_id?: string,
-	 *   date?: string,        // 单个日期，或与 employee_id 配合
-	 *   start_date?: string,
-	 *   end_date?: string
-	 * }
-	 */
 	main: async (event) => {
 		const {
 			data = {}, util
@@ -18,33 +9,29 @@ module.exports = {
 		} = util;
 		const {
 			employee_id,
-			date,
 			start_date,
 			end_date
 		} = data;
 
-		// 确定日期范围
+		// ========== 1. 日期范围生成（本地日期，避免UTC偏移） ==========
 		let dates = [];
-		if (date) {
-			dates = [date];
-		} else if (start_date && end_date) {
+		if (start_date && end_date) {
 			const start = new Date(start_date);
 			const end = new Date(end_date);
 			for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-				dates.push(d.toISOString().slice(0, 10));
+				dates.push(vk.pubfn.timeFormat(d, 'yyyy-MM-dd'));
 			}
 		} else {
-			// 默认计算昨天
 			const yesterday = new Date();
 			yesterday.setDate(yesterday.getDate() - 1);
-			dates.push(yesterday.toISOString().slice(0, 10));
+			dates.push(vk.pubfn.timeFormat(yesterday, 'yyyy-MM-dd'));
 		}
 
+		// ========== 2. 获取员工列表 ==========
 		let employees = [];
 		if (employee_id) {
 			employees = [employee_id];
 		} else {
-			// 查询所有在职员工
 			const empRes = await vk.baseDao.selects({
 				dbName: 'hrm-employees',
 				whereJson: {
@@ -57,217 +44,430 @@ module.exports = {
 			employees = empRes.rows.map(e => e.employee_id);
 		}
 
-		let total = 0;
+		console.log('计算范围：员工数=', employees.length, '日期数=', dates.length);
+
+		const stats = {
+			total: 0,
+			success: 0,
+			skipped: {
+				no_data: 0,
+				error: 0
+			},
+			errors: []
+		};
+
 		for (const empId of employees) {
 			for (const dateStr of dates) {
+				stats.total++;
 				try {
-					await calcOneDay(empId, dateStr, util);
-					total++;
+					const result = await calcOneDay(empId, dateStr, util);
+					if (result.status === 'success') {
+						stats.success++;
+					} else {
+						stats.skipped[result.status]++;
+					}
 				} catch (e) {
-					console.error(`计算失败 ${empId} ${dateStr}:`, e.message);
+					stats.skipped.error++;
+					stats.errors.push({
+						empId,
+						dateStr,
+						error: e.message
+					});
+					console.error(`计算异常 ${empId} ${dateStr}:`, e.message);
 				}
 			}
 		}
+
+		console.log('统计结果:', stats);
 		return {
 			code: 0,
-			msg: `成功计算${total}条记录`,
-			total
+			msg: `成功计算${stats.success}条记录，跳过${stats.total - stats.success}条`,
+			total: stats.total,
+			stats
 		};
 	}
 };
 
-// 计算单个员工某一天的考勤
+// ==================== 辅助函数 ====================
+function extractHHmmFromTimestamp(timestamp) {
+	if (!timestamp) return null;
+	const date = new Date(timestamp);
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	return `${hours}:${minutes}`;
+}
+
+function toMinutes(hhmm) {
+	const [h, m] = hhmm.split(':').map(Number);
+	return h * 60 + m;
+}
+
+function diffMinutes(a, b) {
+	return toMinutes(b) - toMinutes(a);
+}
+
+function calcOverlapHours(start1, end1, start2, end2) {
+	const overlapStart = Math.max(start1, start2);
+	const overlapEnd = Math.min(end1, end2);
+	if (overlapStart >= overlapEnd) return 0;
+	return (overlapEnd - overlapStart) / (1000 * 60 * 60);
+}
+
+// ==================== 单日计算 ====================
 async function calcOneDay(employeeId, dateStr, util) {
 	const {
 		vk,
 		db
 	} = util;
 
-	// 1. 获取排班
-	const scheduleRes = await vk.baseDao.selects({
-		dbName: 'hrm-attendance-schedule',
-		whereJson: {
-			employee_id: employeeId,
-			schedule_date: dateStr
-		},
-		limit: 1
-	});
-	const schedule = scheduleRes.rows[0];
-	if (!schedule || !schedule.shift_id) {
-		// 无排班，可能是休息日，不生成日结果（或生成休息日记录）
-		return;
-	}
+	const dayStartTs = new Date(dateStr + 'T00:00:00').getTime();
+	const dayEndTs = new Date(dateStr + 'T23:59:59.999').getTime();
 
-	// 2. 获取班次信息
-	const shiftRes = await vk.baseDao.findById({
-		dbName: 'hrm-attendance-shift',
-		id: schedule.shift_id
-	});
-	if (!shiftRes || shiftRes.status === false) return;
-	const shift = shiftRes;
-	const onTime = shift.start_time; // 如 09:00
-	const offTime = shift.end_time; // 如 18:00
+	// ========== 1. 并行查询请假、出差、调休、补卡、加班、排班、打卡（独立查询） ==========
+	const [leaveRes, tripRes, compRes, remedyRes, overtimeRes, scheduleRes, clockRes] = await Promise.all([
+		vk.baseDao.selects({
+			dbName: 'hrm-attendance-leaverecord',
+			whereJson: {
+				employee_id: employeeId,
+				leave_date: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs))
+			}
+		}),
+		vk.baseDao.selects({
+			dbName: 'hrm-attendance-triprecord',
+			whereJson: {
+				employee_id: employeeId,
+				start_time: db.command.lte(dayEndTs),
+				end_time: db.command.gte(dayStartTs)
+			}
+		}),
+		vk.baseDao.selects({
+			dbName: 'hrm-attendance-compensatoryrecord',
+			whereJson: {
+				employee_id: employeeId,
+				compensatory_date: dateStr
+			}
+		}),
+		vk.baseDao.selects({
+			dbName: 'bpmn-application-form',
+			whereJson: {
+				applicant_id: employeeId,
+				form_type_code: 'MISS_PUNCH_RECORD',
+				status: 'approved',
+				'form_data.remedy_date': dateStr
+			}
+		}),
+		vk.baseDao.selects({
+			dbName: 'hrm-attendance-overtimerecord',
+			whereJson: {
+				employee_id: employeeId,
+				overtime_date: dateStr,
+				import_status: 1
+			}
+		}),
+		vk.baseDao.selects({
+			dbName: 'hrm-attendance-schedule',
+			whereJson: {
+				employee_id: employeeId,
+				schedule_date: dateStr
+			},
+			limit: 1
+		}),
+		vk.baseDao.selects({
+			dbName: 'hrm-clockin',
+			whereJson: {
+				employee_id: employeeId,
+				type: '公司卡',
+				clockintime: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs))
+			},
+			sortArr: [{
+				name: 'clockintime',
+				type: 'asc'
+			}]
+		})
+	]);
 
-	// 3. 获取打卡记录（当天所有打卡）
-	const clockRes = await vk.baseDao.selects({
-		dbName: 'hrm-clockin',
-		whereJson: {
-			employee_id: employeeId,
-			clockintime: db.command.gte(dateStr + ' 00:00:00').and(db.command.lte(dateStr + ' 23:59:59'))
-		},
-		sortArr: [{
-			name: 'clockintime',
-			type: 'asc'
-		}]
-	});
-	const punches = clockRes.rows;
-
-	// 4. 获取请假记录（当天）
-	const leaveRes = await vk.baseDao.selects({
-		dbName: 'hrm-attendance-leaverecord',
-		whereJson: {
-			employee_id: employeeId,
-			leave_date: new Date(dateStr).getTime() // 由于leave_date存时间戳，需转换查询
-		}
-	});
-	const leaveRecords = leaveRes.rows;
-	const leaveHours = leaveRecords.reduce((sum, r) => sum + r.total_hours, 0);
-
-	// 5. 获取出差记录（时间范围包含当天）
-	const dayStart = new Date(dateStr + 'T00:00:00').getTime();
-	const dayEnd = new Date(dateStr + 'T23:59:59').getTime();
-	const tripRes = await vk.baseDao.selects({
-		dbName: 'hrm-attendance-triprecord',
-		whereJson: {
-			employee_id: employeeId,
-			start_time: db.command.lte(dayEnd),
-			end_time: db.command.gte(dayStart)
-		}
-	});
-	const tripRecords = tripRes.rows;
-	const tripHours = tripRecords.reduce((sum, r) => {
-		// 计算该出差记录在当天的重叠小时数（简化：直接使用记录里的total_hours，或精确计算）
-		return sum + (r.total_hours || 0);
+	// 计算各类小时数
+	const leaveHours = leaveRes.rows.reduce((sum, r) => sum + (r.total_hours || 0), 0);
+	const tripHours = tripRes.rows.reduce((sum, r) => {
+		return sum + calcOverlapHours(r.start_time, r.end_time, dayStartTs, dayEndTs);
 	}, 0);
+	const compHours = compRes.rows.reduce((sum, r) => sum + (r.total_hours || 0), 0);
+	const overtimeHoursFromRecord = overtimeRes.rows.reduce((sum, r) => sum + (r.total_hours || 0), 0);
 
-	// 6. 获取调休记录（当天）
-	const compRes = await vk.baseDao.selects({
-		dbName: 'hrm-attendance-compensatoryrecord',
-		whereJson: {
-			employee_id: employeeId,
-			compensatory_date: dateStr
-		}
-	});
-	const compRecords = compRes.rows;
-	const compHours = compRecords.reduce((sum, r) => sum + r.total_hours, 0);
-
-	// 7. 获取补卡记录（当天）
-	const remedyRes = await vk.baseDao.selects({
-		dbName: 'bpmn-application-form', // 直接查OA审批表
-		whereJson: {
-			applicant_id: employeeId,
-			form_type_code: 'MISS_PUNCH_RECORD',
-			status: 'approved',
-			'form_data.remedy_date': dateStr
-		}
-	});
 	const remedyRecords = remedyRes.rows;
 	let remedyIn, remedyOut;
 	if (remedyRecords.length > 0) {
-		const last = remedyRecords[0]; // 取最近一条
-		remedyIn = last.form_data.actual_clock_in;
-		remedyOut = last.form_data.actual_clock_out;
+		const last = remedyRecords[0];
+		remedyIn = last.form_data && last.form_data.actual_clock_in;
+		remedyOut = last.form_data && last.form_data.actual_clock_out;
 	}
 
-	// 8. 确定打卡时间
-	let clockIn = null,
-		clockOut = null;
-	if (punches.length > 0) {
-		const firstPunch = punches[0];
-		const lastPunch = punches[punches.length - 1];
-		clockIn = firstPunch.clockintime.split(' ')[1]?.slice(0, 5); // HH:mm
-		clockOut = lastPunch.clockintime.split(' ')[1]?.slice(0, 5);
-	}
-
-	// 9. 应用补卡修正
-	if (remedyIn && !clockIn) clockIn = remedyIn;
-	if (remedyOut && !clockOut) clockOut = remedyOut;
-
-	// 10. 计算迟到早退旷工
-	let lateMinutes = 0,
-		earlyMinutes = 0,
-		absentMinutes = 0;
-	// 迟到：有上班打卡且晚于onTime一定阈值（迟到阈值从参数配置中获取，这里简化：晚1分钟算迟到）
-	if (clockIn && onTime) {
-		const [onH, onM] = onTime.split(':').map(Number);
-		const [inH, inM] = clockIn.split(':').map(Number);
-		const onTotal = onH * 60 + onM;
-		const inTotal = inH * 60 + inM;
-		if (inTotal > onTotal) lateMinutes = inTotal - onTotal;
-	}
-	// 早退：有下班打卡且早于offTime
-	if (clockOut && offTime) {
-		const [offH, offM] = offTime.split(':').map(Number);
-		const [outH, outM] = clockOut.split(':').map(Number);
-		const offTotal = offH * 60 + offM;
-		const outTotal = outH * 60 + outM;
-		if (outTotal < offTotal) earlyMinutes = offTotal - outTotal;
-	}
-	// 旷工：既无打卡也无请假/出差/调休，或迟到早退超过一定时长（例如30分钟以上）
-	const absentThreshold = 30; // 可从全局参数获取
-	if (!clockIn && !clockOut && leaveHours === 0 && tripHours === 0 && compHours === 0) {
-		absentMinutes = 8 * 60; // 全天旷工
-	} else if (lateMinutes >= absentThreshold || earlyMinutes >= absentThreshold) {
-		absentMinutes = lateMinutes >= absentThreshold ? lateMinutes : earlyMinutes;
-	}
-
-	// 11. 加班计算（简化：加班小时可暂不在此计算，或根据打卡和班次下班后时间计算）
-	let overtimeHours = 0;
-	if (clockOut && offTime) {
-		const [offH, offM] = offTime.split(':').map(Number);
-		const [outH, outM] = clockOut.split(':').map(Number);
-		const offTotal = offH * 60 + offM;
-		const outTotal = outH * 60 + outM;
-		if (outTotal > offTotal) {
-			overtimeHours = (outTotal - offTotal) / 60;
+	// 排班与班次信息
+	const schedule = scheduleRes.rows[0];
+	let shift = null;
+	let segments = [];
+	if (schedule && schedule.shift_id) {
+		// 此处班次查询依赖于排班结果，单独查询
+		const shiftRes = await vk.baseDao.findById({
+			dbName: 'hrm-attendance-shift',
+			id: schedule.shift_id
+		});
+		if (shiftRes && shiftRes.status) {
+			shift = shiftRes;
+			segments = shift.segments || [];
 		}
 	}
 
-	// 12. 考勤状态
-	let attendanceStatus = 0; // 异常
-	if (leaveHours > 0) attendanceStatus = 2;
-	else if (tripHours > 0) attendanceStatus = 3;
-	else if (compHours > 0) attendanceStatus = 4;
-	else if (absentMinutes > 0) attendanceStatus = 5;
-	else if (lateMinutes === 0 && earlyMinutes === 0) attendanceStatus = 1;
-	else if (lateMinutes > 0 || earlyMinutes > 0) attendanceStatus = 0; // 异常
+	// ========== 2. 无排班但有特殊记录（请假/出差/调休/加班） ==========
+	if (!shift || segments.length === 0) {
+		const hasSpecialRecord = leaveHours > 0 || tripHours > 0 || compHours > 0 || overtimeHoursFromRecord > 0;
+		if (!hasSpecialRecord) {
+			console.log(`[跳过] ${employeeId} ${dateStr} 无排班且无特殊记录`);
+			return {
+				status: 'no_data'
+			};
+		}
 
-	// 13. 构造记录
+		// 按优先级确定状态
+		let attendanceStatus = 0;
+		if (leaveHours > 0) attendanceStatus = 2;
+		else if (tripHours > 0) attendanceStatus = 3;
+		else if (compHours > 0) attendanceStatus = 4;
+		else if (overtimeHoursFromRecord > 0) attendanceStatus = 6;
+
+		const record = {
+			employee_id: employeeId,
+			attendance_date: dayStartTs,
+			shift_id: null,
+			shift_name: '',
+			segments: [],
+			late_minutes: 0,
+			early_minutes: 0,
+			absent_minutes: 0,
+			overtime_hours: overtimeHoursFromRecord,
+			leave_hours: leaveHours,
+			trip_hours: tripHours,
+			compensatory_hours: compHours,
+			remedy_flag: false,
+			attendance_status: attendanceStatus,
+			update_id: 'system',
+			update_date: Date.now()
+		};
+
+		await upsertDailyRecord(employeeId, dayStartTs, record, util);
+		console.log(`[成功] ${employeeId} ${dateStr} 状态=${attendanceStatus} (无排班特殊记录)`);
+		return {
+			status: 'success'
+		};
+	}
+
+	// ========== 3. 有排班，优先处理特殊状态（忽略打卡） ==========
+	if (leaveHours > 0) {
+		await createSpecialRecord(employeeId, dayStartTs, shift, leaveHours, tripHours, compHours,
+			overtimeHoursFromRecord, 2, util);
+		console.log(`[成功] ${employeeId} ${dateStr} 状态=2 (请假)`);
+		return {
+			status: 'success'
+		};
+	}
+
+	if (tripHours > 0) {
+		await createSpecialRecord(employeeId, dayStartTs, shift, leaveHours, tripHours, compHours,
+			overtimeHoursFromRecord, 3, util);
+		console.log(`[成功] ${employeeId} ${dateStr} 状态=3 (出差)`);
+		return {
+			status: 'success'
+		};
+	}
+
+	if (compHours > 0) {
+		await createSpecialRecord(employeeId, dayStartTs, shift, leaveHours, tripHours, compHours,
+			overtimeHoursFromRecord, 4, util);
+		console.log(`[成功] ${employeeId} ${dateStr} 状态=4 (调休)`);
+		return {
+			status: 'success'
+		};
+	}
+
+	// ========== 4. 正常打卡计算 ==========
+	const punches = clockRes.rows;
+	console.log(`[计算] ${employeeId} ${dateStr} 打卡记录数=${punches.length}`);
+
+	const PUNCH_WINDOW = 90; // 分钟
+	const segmentResults = [];
+	const usedPunchIndexes = new Set();
+
+	for (const seg of segments) {
+		const segStartMin = toMinutes(seg.start_time);
+		const segEndMin = toMinutes(seg.end_time);
+
+		let inPunch = null,
+			outPunch = null;
+		let missingIn = false,
+			missingOut = false;
+		let bestInDiff = Infinity,
+			bestOutDiff = Infinity;
+		let bestInIdx = -1,
+			bestOutIdx = -1;
+
+		// 找签到卡
+		for (let i = 0; i < punches.length; i++) {
+			if (usedPunchIndexes.has(i)) continue;
+			const hhmm = extractHHmmFromTimestamp(punches[i].clockintime);
+			const pMin = toMinutes(hhmm);
+			const diff = Math.abs(pMin - segStartMin);
+			if (diff <= PUNCH_WINDOW && diff < bestInDiff) {
+				bestInDiff = diff;
+				bestInIdx = i;
+				inPunch = hhmm;
+			}
+		}
+
+		// 找签退卡
+		for (let i = 0; i < punches.length; i++) {
+			if (usedPunchIndexes.has(i)) continue;
+			if (i === bestInIdx) continue;
+			const hhmm = extractHHmmFromTimestamp(punches[i].clockintime);
+			const pMin = toMinutes(hhmm);
+			const diff = Math.abs(pMin - segEndMin);
+			if (diff <= PUNCH_WINDOW && diff < bestOutDiff) {
+				bestOutDiff = diff;
+				bestOutIdx = i;
+				outPunch = hhmm;
+			}
+		}
+
+		if (bestInIdx !== -1) usedPunchIndexes.add(bestInIdx);
+		if (bestOutIdx !== -1) usedPunchIndexes.add(bestOutIdx);
+
+		if (!inPunch) missingIn = true;
+		if (!outPunch) missingOut = true;
+
+		let segLate = 0,
+			segEarly = 0;
+		if (inPunch) {
+			const inMin = toMinutes(inPunch);
+			const startMin = toMinutes(seg.start_time);
+			if (inMin > startMin) segLate = inMin - startMin;
+		}
+		if (outPunch) {
+			const outMin = toMinutes(outPunch);
+			const endMin = toMinutes(seg.end_time);
+			if (outMin < endMin) segEarly = endMin - outMin;
+		}
+
+		segmentResults.push({
+			segment_name: seg.name,
+			start_time: seg.start_time,
+			end_time: seg.end_time,
+			clock_in: inPunch,
+			clock_out: outPunch,
+			late_minutes: segLate,
+			early_minutes: segEarly,
+			missing_in: missingIn,
+			missing_out: missingOut
+		});
+	}
+
+	// 补卡修正
+	if (remedyRecords.length > 0) {
+		for (const seg of segmentResults) {
+			if (seg.missing_in && remedyIn) {
+				seg.clock_in = remedyIn;
+				seg.missing_in = false;
+			}
+			if (seg.missing_out && remedyOut) {
+				seg.clock_out = remedyOut;
+				seg.missing_out = false;
+			}
+		}
+	}
+
+	const totalLate = segmentResults.reduce((sum, s) => sum + s.late_minutes, 0);
+	const totalEarly = segmentResults.reduce((sum, s) => sum + s.early_minutes, 0);
+	const totalMissingCount = segmentResults.filter(s => s.missing_in || s.missing_out).length;
+	const hasAnyMissing = totalMissingCount > 0;
+
+	// 旷工判断
+	const absentThreshold = 30;
+	let absentMinutes = 0;
+	const allSegmentsMissing = segmentResults.every(s => s.missing_in && s.missing_out);
+	if (allSegmentsMissing && leaveHours === 0 && tripHours === 0 && compHours === 0) {
+		absentMinutes = 8 * 60;
+	} else if (totalLate >= absentThreshold || totalEarly >= absentThreshold) {
+		absentMinutes = Math.max(totalLate, totalEarly);
+	}
+
+	// 加班：使用审批记录
+	const finalOvertime = overtimeHoursFromRecord;
+
+	// 出勤状态
+	let attendanceStatus = 0;
+	if (absentMinutes > 0) attendanceStatus = 5;
+	else if (!hasAnyMissing && totalLate === 0 && totalEarly === 0) attendanceStatus = 1;
+	else attendanceStatus = 0;
+
 	const record = {
 		employee_id: employeeId,
-		attendance_date: dateStr,
+		attendance_date: dayStartTs,
 		shift_id: shift._id,
 		shift_name: shift.shift_name,
-		schedule_type: 1, // 可进一步从日历获取
-		clock_in: clockIn,
-		clock_out: clockOut,
-		late_minutes: lateMinutes,
-		early_minutes: earlyMinutes,
+		segments: segmentResults,
+		late_minutes: totalLate,
+		early_minutes: totalEarly,
 		absent_minutes: absentMinutes,
-		overtime_hours: overtimeHours,
+		overtime_hours: finalOvertime,
 		leave_hours: leaveHours,
 		trip_hours: tripHours,
 		compensatory_hours: compHours,
 		remedy_flag: remedyRecords.length > 0,
-		attendance_status: attendanceStatus
+		attendance_status: attendanceStatus,
+		update_id: 'system',
+		update_date: Date.now()
 	};
 
-	// 14. 插入或更新
+	await upsertDailyRecord(employeeId, dayStartTs, record, util);
+	console.log(`[成功] ${employeeId} ${dateStr} 状态=${attendanceStatus}`);
+	return {
+		status: 'success'
+	};
+}
+
+// 创建特殊状态记录（请假/出差/调休）
+async function createSpecialRecord(employeeId, dayStartTs, shift, leaveHours, tripHours, compHours, overtimeHours,
+	status, util) {
+	const record = {
+		employee_id: employeeId,
+		attendance_date: dayStartTs,
+		shift_id: shift._id,
+		shift_name: shift.shift_name,
+		segments: [],
+		late_minutes: 0,
+		early_minutes: 0,
+		absent_minutes: 0,
+		overtime_hours: overtimeHours,
+		leave_hours: leaveHours,
+		trip_hours: tripHours,
+		compensatory_hours: compHours,
+		remedy_flag: false,
+		attendance_status: status,
+		update_id: 'system',
+		update_date: Date.now()
+	};
+	await upsertDailyRecord(employeeId, dayStartTs, record, util);
+}
+
+// 写入或更新日考勤记录
+async function upsertDailyRecord(employeeId, attendanceDateTs, record, util) {
+	const {
+		vk,
+		db
+	} = util;
 	const existRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-daily',
 		whereJson: {
 			employee_id: employeeId,
-			attendance_date: dateStr
+			attendance_date: attendanceDateTs
 		},
 		limit: 1
 	});
