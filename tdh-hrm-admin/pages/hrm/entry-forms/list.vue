@@ -757,7 +757,7 @@
 				transferRules: {}
 			};
 		},
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
 			this.initTransferColumns(); // 初始化转换表单字段
@@ -1338,7 +1338,7 @@
 			deleteBtn({
 				item,
 				deleteFn
-			}) {				
+			}) {
 				deleteFn({
 					action: "admin/hrm/entry-forms/sys/delete",
 					data: {
@@ -1591,9 +1591,12 @@
 						if (res.confirm) {
 							this.transferDialog.data = defaultData;
 							this.transferDialog.show = true;
+							return;
 						}
 					})
 				}
+				this.transferDialog.data = defaultData;
+				this.transferDialog.show = true;
 			},
 			async submitTransfer() {
 				this.$refs.transferForm.validate(async (valid) => {
@@ -1621,7 +1624,8 @@
 									if (delRes.code === 0) {
 										this.refresh();
 									} else {
-										this.$message.warning('员工档案已添加，但入职登记记录删除失败，请手动处理');
+										this.$message.warning(
+											'员工档案已添加，但入职登记记录删除失败，请手动处理');
 										this.refresh();
 									}
 								}

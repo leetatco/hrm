@@ -1,9 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "listsb-vk-data-form-last_month_sb": "/pages/hrm/salary/cost/listsb-vk-data-form-last_month_sb",
-    "listsb-vk-data-form-last_month_dk": "/pages/hrm/salary/cost/listsb-vk-data-form-last_month_dk",
-    "listsb-vk-data-form-this_month_sb": "/pages/hrm/salary/cost/listsb-vk-data-form-this_month_sb",
-    "listsb-vk-data-form-this_month_dk": "/pages/hrm/salary/cost/listsb-vk-data-form-this_month_dk"
-  }
-}

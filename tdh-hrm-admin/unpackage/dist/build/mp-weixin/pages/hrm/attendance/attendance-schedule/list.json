@@ -1,5 +1,0 @@
-{
-  "usingComponents": {
-    "batch-generate": "/components/attendance-batchGenerate/index"
-  }
-}

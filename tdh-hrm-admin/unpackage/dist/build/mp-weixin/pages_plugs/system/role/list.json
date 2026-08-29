@@ -1,6 +1,0 @@
-{
-  "usingComponents": {
-    "bind-permission": "/pages_plugs/system/role/form/bindPermission",
-    "bind-menu": "/pages_plugs/system/role/form/bindMenu"
-  }
-}

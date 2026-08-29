@@ -22,7 +22,7 @@
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-add')"> 下载模版
 				</el-button>
 				<el-button type="danger" size="small" icon="el-icon-delete" @click="deleteAll" v-if="$hasRole('admin')">
-					删除考勤日期数据
+					删除时间数据
 				</el-button>
 			</el-row>
 		</view>
@@ -108,7 +108,7 @@
 					// 表格字段显示规则
 					columns: [{
 							"key": "attendance_ym",
-							"title": "考勤日期",
+							"title": "时间",
 							"type": "date",
 							"dateType": "date",
 							"fixed": true,
@@ -162,6 +162,12 @@
 							"key": "department_name",
 							"title": "部门",
 							"fixed": true,
+							"type": "text",
+							"width": colWidth
+						},
+						{
+							"key": "employees.mobile",
+							"title": "手机号码",
 							"type": "text",
 							"width": colWidth
 						},
@@ -415,7 +421,7 @@
 					// 查询表单的字段规则 fieldName:指定数据库字段名,不填默认等于key
 					columns: [{
 							key: "attendance_ym",
-							title: "考勤日期",
+							title: "时间",
 							type: "date",
 							dateType: "date",
 							valueFormat: "yyyy-MM",
@@ -460,6 +466,32 @@
 							]
 						},
 						{
+							key: "department_name",
+							title: "部门名称",
+							type: "remote-select",
+							placeholder: "请选择部门名称",
+							width: colWidth,
+							action: "admin/hrm/salary/sys/payslip/getList",
+							props: {
+								list: "rows",
+								value: "department_name",
+								label: "department_name"
+							},
+							dataPreprocess: (list) => {
+								const departmentList = [...new Set(
+									list.map(item => item.department_name)
+								)].map(name => ({
+									department_name: name
+								}));
+								return departmentList;
+							},
+							showAll: true,
+							actionData: {
+								pageSize: -1,
+								pageIndex: 1
+							}
+						},
+						{
 							key: "status",
 							title: "状态",
 							type: "select",
@@ -488,52 +520,23 @@
 						// 表单字段显示规则
 						columns: [{
 								key: "attendance_ym",
-								title: "考勤日期",
+								title: "时间",
 								type: "date",
 								dateType: "date",
-								disabled: true,
+								disabled: false,
 								valueFormat: "yyyy-MM",
 								format: "yyyy-MM",
 								"width": colWidth
-
-							}, {
-								key: "card",
-								title: "姓名",
-								type: "table-select",
-								disabled: true,
-								placeholder: "选择员工",
-								action: "admin/hrm/salary/sys/payslip/getList",
-								multiple: false,
-								columns: [{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										nameKey: true
-									},
-									{
-										key: "card",
-										title: "身份证号码",
-										type: "text",
-										idKey: true
-
-									}
-								],
-								queryColumns: [{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "card",
-										title: "身份证号码",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									}
-
-								]
+							},
+							{
+								key: "attendance_ym_key",
+								title: "月份",
+								type: "date",
+								dateType: "date",
+								disabled: false,
+								valueFormat: "yyyy-MM",
+								format: "yyyy-MM",
+								"width": colWidth
 							},
 							{
 								"key": "total_salary",
@@ -824,7 +827,6 @@
 		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
-			this.getSumList();
 		},
 		// 监听 - 页面【首次渲染完成时】执行。注意如果渲染速度快，会在页面进入动画完成前触发
 		onReady() {
@@ -840,151 +842,16 @@
 		},
 		// 函数
 		methods: {
-			//得到所有的合计数据
-			async getSumList() {
-				const attendance_ym = this.queryForm1.formData.attendance_ym || nowym;
-				let res = await vk.callFunction({
-					url: 'admin/hrm/salary/pub/getSumList',
-					title: '请求中...',
-					data: {
-						attendance_ym
-					},
-				});
-				if (res.code == 0) {
-					this.sumList = res.rows
-				}
-			},
-
-			//合计行
-			summaryMethod({
-				columns,
-				data
-			}) {
-				const totalSummary = this.sumList[0] || {};
-				const means = ['']; // 第一列空白占位
-				// 定义需要合计的字段及其单位、精度
-				const totalOption = [{
-						key: 'work_days',
-						unit: '',
-						precision: 2
-					},
-					{
-						key: 'real_days',
-						unit: '',
-						precision: 2
-					},
-					{
-						key: 'gross_salary',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'overtime_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'free_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'grant',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'agency_fee',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'other_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'we_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'clothes_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'earlytime_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'missed_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'loan_cost',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'this_month_sb',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'this_month_dk',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'dkgs',
-						unit: '元',
-						precision: 2
-					},
-					{
-						key: 'real_salary',
-						unit: '元',
-						precision: 2
-					},
-				];
-
-				for (let columnIndex = 0; columnIndex < columns.length; columnIndex++) {
-					const column = columns[columnIndex];
-					if (columnIndex === 0) {
-						means.push('合计');
-					} else {
-						const columnItem = totalOption.find(item => item.key === column.property);
-						if (!columnItem) {
-							means.push(''); // 非合计字段留空
-							continue;
-						}
-						const {
-							key,
-							precision = 2,
-							unit
-						} = columnItem;
-						// 从总计对象中取值，若不存在则设为0
-						let totalValue = totalSummary[key] || 0;
-
-						totalValue = vk.pubfn.toDecimal(totalValue, precision);
-						// 可添加货币样式
-						means[columnIndex] = `<span style="color: red">${totalValue}${unit}</span>`;
-					}
-				}
-				return [means];
-			},
 			//删除导入的数据
 			async deleteAll() {
 				try {
 					if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
-						return vk.alert(`考勤日期不能为空！`);
+						return vk.alert(`时间不能为空！`);
 					}
 					const attendance_ym = this.queryForm1.formData.attendance_ym;
 					// 删除旧数据
 					let delRes = await vk.callFunction({
-						url: 'admin/hrm/salary/sys/payslip/all/deleteAll',
+						url: 'admin/hrm/salary/sys/payslip/all/deleteKeyAll',
 						title: '删除中...',
 						data: {
 							attendance_ym: attendance_ym
@@ -1165,7 +1032,7 @@
 
 				try {
 					if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
-						return vk.alert(`考勤日期不能为空！`);
+						return vk.alert(`时间不能为空！`);
 					}
 
 					const attendance_ym = this.queryForm1.formData.attendance_ym;
@@ -1175,19 +1042,6 @@
 							return vk.alert('Excel中没有数据！');
 						}
 
-						// 删除旧数据
-						let delRes = await vk.callFunction({
-							url: 'admin/hrm/salary/sys/payslip/all/deleteAll',
-							title: '删除中...',
-							data: {
-								attendance_ym: attendance_ym
-							}
-						})
-
-						if (delRes.code != 0) {
-							return vk.alert(`${attendance_ym}月工资条明细删除失败！`);
-						}
-
 						// 1. 数据验证
 						const validationResult = this.validateExcelData(res);
 						if (!validationResult.valid) {
@@ -1195,9 +1049,30 @@
 						}
 
 						// 2. 提取所有身份证号码
-						const cards = res.map(item => item.card).filter(card => card);
-						if (cards.length === 0) {
-							return vk.alert('Excel中没有有效的身份证号码！');
+						const cards = [],
+							keys = [];
+						for (const item of res) {
+							if (item.card) cards.push(item.card);
+							const key = vk.myfn.toFormatDate(item.attendance_ym_key);
+							if (key) keys.push(key);
+						}
+
+						if (cards.length === 0 || keys.length === 0) {
+							return vk.alert('Excel中没有有效的身份证号码或月份！');
+						}
+
+						// 删除旧数据
+						let delRes = await vk.callFunction({
+							url: 'admin/hrm/salary/sys/payslip/all/deleteAll',
+							title: '删除中...',
+							data: {
+								cards,
+								keys
+							}
+						})
+
+						if (delRes.code != 0) {
+							return vk.alert(`${attendance_ym}月工资条明细删除失败！`);
 						}
 
 						// 3. 准备要处理的数据
@@ -1215,7 +1090,7 @@
 							if (!item.attendance_ym) {
 								errorData.push({
 									item,
-									reason: '考勤日期不能为空'
+									reason: '时间不能为空'
 								});
 								continue;
 							}
@@ -1311,7 +1186,7 @@
 					};
 				}
 
-				// 检查是否有重复的身份证+考勤日期组合
+				// 检查是否有重复的身份证+时间组合
 				const keySet = new Set();
 				const duplicates = [];
 
@@ -1351,7 +1226,6 @@
 			},
 			// 搜索
 			async search() {
-				await this.getSumList();
 				this.$refs.table1.search();
 			},
 			// 刷新
@@ -1628,7 +1502,7 @@
 				// 1. 校验月份
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
 				if (vk.pubfn.isNull(attendance_ym)) {
-					return vk.alert('考勤日期不能为空！');
+					return vk.alert('时间不能为空！');
 				}
 
 				uni.showLoading({
@@ -1636,13 +1510,12 @@
 				});
 
 				try {
-					// 获取全部数据（建议 pageSize = -1）
+					// 2. 获取全部数据（建议后端分页，前端合并；单表超过 500 条建议改服务端导出）
 					const listData = await this.fetchAllData(attendance_ym);
-					
 					if (listData.length === 0) {
 						uni.hideLoading();
 						return vk.alert('无数据可导出');
-					}					
+					}
 
 					// 3. 引入依赖
 					const ExcelJS = require('exceljs');
@@ -1654,17 +1527,17 @@
 						views: [{
 							state: 'frozen',
 							ySplit: 1
-						}] // 冻结首行
+						}]
 					});
 
-					// 5. 定义列头（与原导出列保持一致，但新增了“签名”列）
+					// 5. 定义列头
 					const columnDefs = [{
 							header: '序号',
 							key: 'index',
 							width: 10
 						},
 						{
-							header: '考勤日期',
+							header: '时间',
 							key: 'attendance_ym',
 							width: 15
 						},
@@ -1682,7 +1555,7 @@
 							header: '签名',
 							key: 'signature_url',
 							width: 20
-						}, // 签名列
+						},
 						{
 							header: '身份证号码',
 							key: 'card',
@@ -1691,6 +1564,11 @@
 						{
 							header: '任职部门',
 							key: 'department_name',
+							width: 20
+						},
+						{
+							header: '手机号码',
+							key: 'mobile',
 							width: 20
 						},
 						{
@@ -1861,16 +1739,17 @@
 					];
 					worksheet.columns = columnDefs;
 
-					// 6. 填充数据行（包括签名列文本，后续用图片覆盖）
+					// 6. 填充数据行（先写文本，签名列临时放 URL，后面覆盖）
 					listData.forEach((item, idx) => {
-						const row = {
+						worksheet.addRow({
 							index: idx + 1,
 							attendance_ym: item.attendance_ym,
 							attendance_ym_key: item.attendance_ym_key,
 							employee_name: item.employee_name,
-							signature_url: item.signature_url, // 临时放URL
+							signature_url: item.signature_url, // 先占位，后面清空
 							card: item.card,
 							department_name: item.department_name,
+							mobile: item.employees?.mobile,
 							position_name: item.position_name,
 							hire_date: item.hire_date,
 							resign_date: item.resign_date,
@@ -1904,64 +1783,91 @@
 							last_month_sb: item.last_month_sb,
 							last_month_gjj: item.last_month_gjj,
 							status: item.status == 1 ? '已签名' : '未签名'
-						};
-						worksheet.addRow(row);
+						});
 					});
 
-					// 7. 批量获取签名图片 Base64（调用云函数）
+					// ========== 核心修改 1：分批获取签名 Base64（防止一次传太多被云函数拒绝） ==========
 					const imageUrls = listData.map(item => item.signature_url).filter(Boolean);
 					let base64Map = {};
+					let failCount = 0;
+
 					if (imageUrls.length > 0) {
-						uni.showLoading({
-							title: '正在下载签名图片...'
-						});
-						const batchRes = await vk.callFunction({
-							url: 'common/sys/getImagesBase64/index',
-							data: {
-								imageUrls
+						const BATCH_SIZE = 80; // 低于云函数 maxCount(100)，留有余量
+						const total = imageUrls.length;
+						const batches = [];
+						for (let i = 0; i < total; i += BATCH_SIZE) {
+							batches.push(imageUrls.slice(i, i + BATCH_SIZE));
+						}
+
+						// 串行调用云函数，避免触发云函数并发 QPS 限制
+						for (let i = 0; i < batches.length; i++) {
+							const current = Math.min((i + 1) * BATCH_SIZE, total);
+							uni.showLoading({
+								title: `下载签名 ${current}/${total}`
+							});
+							const res = await vk.callFunction({
+								url: 'common/sys/getImagesBase64/index',
+								data: {
+									imageUrls: batches[i],
+									concurrency: 5,
+									timeout: 30000,
+									retries: 1
+								}
+							});
+
+							if (res.code === 0) {
+								res.data.forEach(item => {
+									if (item.success) {
+										base64Map[item.url] = item.base64;
+									} else {
+										failCount++;
+										console.warn('签名下载失败:', item.url, item.error);
+									}
+								});
+							} else {
+								// 整批失败
+								failCount += batches[i].length;
+								console.warn('整批签名下载失败:', res.msg);
 							}
+						}
+					}
+
+					// ========== 核心修改 2：并行嵌入图片（内存操作，Promise.all 提速） ==========
+					uni.showLoading({
+						title: '正在写入签名...'
+					});
+
+					const embedTasks = listData.map((item, idx) => {
+						return new Promise((resolve) => {
+							const url = item.signature_url;
+							if (!url || !base64Map[url]) return resolve();
+
+							try {
+								const imageId = workbook.addImage({
+									base64: base64Map[url],
+									extension: 'png'
+								});
+								// 第 2 行开始（idx=0 → row=1，ExcelJS 是 0-based）
+								worksheet.addImage(imageId, {
+									tl: {
+										col: 4.2,
+										row: idx + 1
+									},
+									ext: {
+										width: 80,
+										height: 30
+									}
+								});
+								// 清空原 URL 文本，只保留图片
+								worksheet.getCell(`E${idx + 2}`).value = '';
+							} catch (err) {
+								failCount++;
+								console.warn(`嵌入第 ${idx + 1} 行签名失败:`, err);
+							}
+							resolve();
 						});
-						if (batchRes.code === 0) {
-							batchRes.data.forEach(item => {
-								if (item.success) {
-									base64Map[item.url] = item.base64;
-								}
-							});
-						} else {
-							console.warn('批量获取图片失败:', batchRes.msg);
-						}
-					}
-
-					// 8. 嵌入图片（E列，数据从第2行开始）
-					const dataStartRow = 2;
-					const colLetter = 'E';
-					for (let i = 0; i < listData.length; i++) {
-						const imageUrl = listData[i].signature_url;
-						if (!imageUrl) continue;
-						const base64 = base64Map[imageUrl];
-						if (!base64) continue;
-
-						try {
-							const imageId = workbook.addImage({
-								base64: base64,
-								extension: 'png' // 实际格式由base64决定，这里可填任意
-							});
-							const rowIndex = dataStartRow + i;
-							worksheet.addImage(imageId, {
-								tl: {
-									col: 4.2,
-									row: rowIndex - 1
-								}, // 偏移到E列
-								ext: {
-									width: 80,
-									height: 30
-								}
-							});
-							worksheet.getCell(`${colLetter}${rowIndex}`).value = ''; // 清空URL
-						} catch (err) {
-							console.warn(`嵌入第 ${i+1} 行图片失败:`, err);
-						}
-					}
+					});
+					await Promise.all(embedTasks);
 
 					// 9. 生成并下载文件
 					uni.showLoading({
@@ -1974,7 +1880,14 @@
 					FileSaver.saveAs(blob, `${attendance_ym}月份工资条（含签名）.xlsx`);
 
 					uni.hideLoading();
-					vk.alert('导出成功！');
+
+					// 友好提示
+					if (failCount > 0) {
+						vk.alert(`导出完成，${failCount} 张签名未能嵌入，请检查网络或重新导出`);
+					} else {
+						vk.alert('导出成功！');
+					}
+
 				} catch (err) {
 					console.error('导出失败:', err);
 					uni.hideLoading();

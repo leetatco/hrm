@@ -1,6 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "list-vk-data-table-sort": "/pages/opendb-banner/list-vk-data-table-sort"
-  }
-}

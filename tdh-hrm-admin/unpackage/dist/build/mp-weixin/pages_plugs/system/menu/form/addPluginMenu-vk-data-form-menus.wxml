@@ -1,1 +1,0 @@
-<view class="data-v-20ad6dba"><vk-data-table style="margin-top:0;" vue-id="1368431b-3" data="{{table1.data}}" columns="{{table1.columns}}" row-key="menu_id" default-expand-all="{{true}}" class="data-v-20ad6dba" bind:__l="__l"></vk-data-table></view>

@@ -1,0 +1,1 @@
+import{o,c as s,h as r}from"./index-CFmgLQ8S.js";import{_ as e}from"./_plugin-vue_export-helper.BCo6x5W8.js";const a=e({props:{},data:()=>({}),methods:{}},[["render",function(e,a,t,n,p,i){const c=r;return o(),s(c,{class:"u-loading-page"})}]]);export{a as _};

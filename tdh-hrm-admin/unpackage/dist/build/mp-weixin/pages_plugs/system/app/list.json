@@ -1,6 +1,0 @@
-{
-  "usingComponents": {
-    "add-update": "/pages_plugs/system/app/form/addUpdate",
-    "create-publish-html": "/pages_plugs/system/app/form/createPublishHtml"
-  }
-}

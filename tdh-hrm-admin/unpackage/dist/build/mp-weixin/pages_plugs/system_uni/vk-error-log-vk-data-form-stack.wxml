@@ -1,1 +1,0 @@
-<view class="stack-view data-v-6f87f29d"><block wx:if="{{form.err}}"><text style="font-size:13px;" space="ensp" class="data-v-6f87f29d">{{form.err.stack}}</text></block></view>

@@ -1,6 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "vk-error-log-vk-data-form-stack": "/pages_plugs/system_uni/vk-error-log-vk-data-form-stack"
-  }
-}

@@ -3,20 +3,16 @@
 		@refresherrefresh="onRefresh">
 		<!-- uView 自定义下拉刷新组件 -->
 		<u-refresh slot="refresher" :refresher-triggered="refreshing" @refresh="onRefresh"></u-refresh>
-
 		<!-- 加载状态 -->
 		<view v-if="loading" class="status-text">加载中...</view>
 		<!-- 空状态 -->
 		<view v-else-if="list.length === 0"><u-empty text="暂无待签薪资" mode="list"></u-empty></view>
-
 		<!-- 列表 -->
 		<view v-else class="list">
 			<view v-for="item in list" :key="item._id" class="item" @click="goSign(item)">
-				<text class="ym">{{ formatDate(item.attendance_ym) }}</text>
-				<view class="right">
-					<text class="sign-badge">待签名</text>
-					<text class="name">{{ item.employee_name }}/{{ item.department_name }}</text>
-				</view>
+				<text class="ym">{{ formatDate(item.attendance_ym_key) }}</text>
+				<text class="name">{{ item.employee_name }}</text>
+				<text class="sign-badge">待签名</text>
 			</view>
 		</view>
 	</scroll-view>
@@ -123,7 +119,6 @@
 		justify-content: space-between;
 		align-items: center;
 		box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
-		position: relative;
 	}
 
 	.ym {
@@ -132,23 +127,16 @@
 		color: #333;
 	}
 
-	.right {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 12rpx;
-	}
-
 	.name {
-		color: #999;
-		font-size: 26rpx;
+		color: #666;
+		font-size: 28rpx;
 	}
 
 	.sign-badge {
 		background: #f56c6c;
 		color: #fff;
-		padding: 4rpx 16rpx;
-		border-radius: 20rpx;
-		font-size: 22rpx;
+		padding: 6rpx 24rpx;
+		border-radius: 30rpx;
+		font-size: 24rpx;
 	}
 </style>

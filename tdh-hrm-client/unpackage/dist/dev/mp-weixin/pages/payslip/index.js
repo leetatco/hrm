@@ -49,7 +49,7 @@ const _sfc_main = {
           title: "网络异常",
           icon: "none"
         });
-        common_vendor.index.__f__("error", "at pages/payslip/index.vue:76", e);
+        common_vendor.index.__f__("error", "at pages/payslip/index.vue:72", e);
       } finally {
         this.loading = false;
         if (fromRefresh) {
@@ -86,7 +86,7 @@ if (!Math) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o($options.onRefresh, "48"),
+    a: common_vendor.o($options.onRefresh, "ae"),
     b: common_vendor.p({
       ["refresher-triggered"]: $data.refreshing
     }),
@@ -99,17 +99,16 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {
     f: common_vendor.f($data.list, (item, k0, i0) => {
       return {
-        a: common_vendor.t($options.formatDate(item.attendance_ym)),
+        a: common_vendor.t($options.formatDate(item.attendance_ym_key)),
         b: common_vendor.t(item.employee_name),
-        c: common_vendor.t(item.department_name),
-        d: item._id,
-        e: common_vendor.o(($event) => $options.goSign(item), item._id)
+        c: item._id,
+        d: common_vendor.o(($event) => $options.goSign(item), item._id)
       };
     })
   }, {
     d: $data.list.length === 0,
     g: $data.refreshing,
-    h: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "2e")
+    h: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "f6")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-c522121b"]]);

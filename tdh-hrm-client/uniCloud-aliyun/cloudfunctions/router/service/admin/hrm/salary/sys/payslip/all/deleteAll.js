@@ -30,20 +30,24 @@ module.exports = {
 		// 业务逻辑开始-----------------------------------------------------------
 		// 获取前端传过来的参数
 		let {
-			attendance_ym
+			cards = [],
+				keys = []
 		} = data;
 		// 参数验证开始
-		if (vk.pubfn.isNull(attendance_ym)) return {
-			code: -1,
-			msg: '考勤日期不能为空'
-		};
+		if (cards.length === 0 || keys.length === 0) {
+			return {
+				code: -1,
+				msg: '考勤日期不能为空'
+			}
+		}
 		// 参数验证结束
 		let dbName = "hrm-salary-payslip"; // 表名
 		// 执行数据库 delete 命令		
 		await vk.baseDao.del({
 			dbName,
-			whereJson: {				
-				attendance_ym
+			whereJson: {
+				card: _.in(cards),
+				attendance_ym_key: _.in(keys)
 			}
 		})
 		// 业务逻辑结束-----------------------------------------------------------

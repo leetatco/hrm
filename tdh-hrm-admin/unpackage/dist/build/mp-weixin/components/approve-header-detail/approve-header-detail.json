@@ -1,6 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "approve-work-flow": "/components/approve-work-flow/approve-work-flow"
-  }
-}

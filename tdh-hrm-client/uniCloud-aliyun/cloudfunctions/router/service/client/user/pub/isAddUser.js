@@ -72,7 +72,7 @@ module.exports = {
 			});
 			if (addUserRes.code !== 0) {
 				res.code = addUserRes.code;
-				res.msg = "创建用户失败：" + addUserRes.msg;
+				res.msg = `创建用户失败(手机号:${employeeInfo.mobile}, 工号:${employeeInfo.employee_id})：${addUserRes.msg}`;
 				return res;
 			}
 

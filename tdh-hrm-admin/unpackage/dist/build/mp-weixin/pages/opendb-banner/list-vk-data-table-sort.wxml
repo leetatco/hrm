@@ -1,1 +1,0 @@
-<block wx:if="{{$root.m0}}"><el-input-number vue-id="9396d45e-10" size="mini" precision="{{0}}" min="{{0}}" value="{{row.sort}}" data-event-opts="{{[['^change',[['sortChange',['$event','$0'],['row']]]],['^input',[['__set_model',['$0','sort','$event',[]],['row']]]]]}}" bind:change="__e" bind:input="__e" class="data-v-0a6678f8" bind:__l="__l"></el-input-number></block>

@@ -327,7 +327,7 @@
   border: 2rpx solid #d4e3ff;
   border-radius: 50rpx;
   padding: 18rpx 0;
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #07c160;
   font-weight: 500;
   transition: all 0.2s;

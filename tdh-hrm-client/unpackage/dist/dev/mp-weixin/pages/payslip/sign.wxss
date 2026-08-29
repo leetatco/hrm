@@ -10,64 +10,69 @@ page {
 		display: flex;
 		flex-direction: column;
 }
-	
+
 	/* 分组容器，添加分割线 */
 .group {
-	  border-bottom: 1rpx solid #f0f0f0;
-	  padding: 10rpx 0;
+		border-bottom: 1rpx solid #f0f0f0;
+		padding: 10rpx 0;
 }
 .group:last-child {
-	  border-bottom: none;
+		border-bottom: none;
 }
-	
+
 	/* 分组标题 */
 .group-title {
-	  font-size: 30rpx;
-	  font-weight: bold;
-	  color: #333;
-	  padding: 10rpx 0 6rpx 0;
+		font-size: 30rpx;
+		font-weight: bold;
+		color: #333;
+		padding: 10rpx 0 6rpx 0;
 }
-	
+
 	/* 应发工资行加粗 */
 .gross-row .label,
 	.gross-row .value {
-	  font-weight: bold;
-	  font-size: 30rpx; /* 稍大于普通行（28rpx） */
+		font-weight: bold;
+		font-size: 30rpx;
+		/* 稍大于普通行（28rpx） */
 }
 .real-salary-row {
-	  display: flex;
-	  justify-content: space-between;
-	  font-size: 30rpx;        /* 与 detail-header 一致 */
-	  font-weight: bold;       /* 加粗 */
-	  padding: 20rpx 0;
-	  border-bottom: 1rpx solid #eee; /* 与 detail-header 下边框一致 */
+		display: flex;
+		justify-content: space-between;
+		font-size: 30rpx;
+		/* 与 detail-header 一致 */
+		font-weight: bold;
+		/* 加粗 */
+		padding: 20rpx 0;
+		border-bottom: 1rpx solid #eee;
+		/* 与 detail-header 下边框一致 */
 }
 .real-salary-label,
 	.real-salary-value {
-	  color: #333;             /* 与 detail-header 文字颜色一致 */
+		color: #333;
+		/* 与 detail-header 文字颜色一致 */
 }
 .reminder {
-	  padding: 20rpx 24rpx;
-	  margin-top: 20rpx;
-	  background: #f9f9f9;
-	  border-radius: 12rpx;
-	  font-size: 24rpx;
-	  color: #999;
-	  line-height: 1.8;
-	  text-align: justify;
-	  border-left: 6rpx solid #f56c6c;
+		padding: 20rpx 24rpx;
+		margin-top: 20rpx;
+		background: #f9f9f9;
+		border-radius: 12rpx;
+		font-size: 24rpx;
+		color: #999;
+		line-height: 1.8;
+		text-align: justify;
+		border-left: 6rpx solid #f56c6c;
 }
-	
+
 	/* 原有 .row 样式保持不变，但可微调 */
 .detail-body .row {
-	  display: flex;
-	  justify-content: space-between;
-	  padding: 14rpx 0;
-	  font-size: 28rpx;
-	  border-bottom: 1rpx solid #f6f6f6;
+		display: flex;
+		justify-content: space-between;
+		padding: 14rpx 0;
+		font-size: 28rpx;
+		border-bottom: 1rpx solid #f6f6f6;
 }
 .detail-body .row:last-child {
-	  border-bottom: none;
+		border-bottom: none;
 }
 
 	/* ================= 明细容器（Flex 列，填满剩余空间） ================= */

@@ -102,7 +102,7 @@ export default {
 			 * extStorage 扩展存储
 			 * aliyun 阿里云oss 
 			 */
-			defaultProvider: "unicloud",
+			defaultProvider: "extStorage",
 			// 空间内置存储
 			unicloud: {
 				// 暂无配置项
@@ -115,7 +115,7 @@ export default {
 				// 用于鉴权的云函数地址（一般不需要改这个参数）
 				authAction: "user/pub/getUploadFileOptionsForExtStorage",
 				// 自定义域名，如：cdn.example.com（填你在扩展存储绑定的域名，若云端已设置 uni-config-center/vk-unicloud/index.js 内的 vk.service.cloudStorage.extStorage.domain 则此处可不填）
-				domain: "",
+				domain: "tdhstorage.cntdh.net",
 				// 上传时，是否按用户id进行分组储存
 				groupUserId: true,
 			},

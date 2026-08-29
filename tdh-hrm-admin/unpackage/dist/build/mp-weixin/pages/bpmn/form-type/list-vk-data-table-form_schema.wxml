@@ -1,1 +1,0 @@
-<view class="json-preview data-v-58ad630e"><el-button vue-id="324db4e5-5" type="text" size="mini" data-event-opts="{{[['^click',[['showJsonDetail',['$0'],['row.form_schema']]]]]}}" bind:click="__e" class="data-v-58ad630e" bind:__l="__l" vue-slots="{{['default']}}"><text class="json-preview-text data-v-58ad630e">查看JSON结构</text></el-button></view>

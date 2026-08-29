@@ -1,1 +1,0 @@
-<el-input vue-id="17b53255-3" size="mini" value="{{row.sort}}" data-event-opts="{{[['^change',[['sortChange',['$event','$0'],['row']]]],['^input',[['__set_model',['$0','sort','$event',[]],['row']]]]]}}" bind:change="__e" bind:input="__e" class="data-v-3e44fcb7" bind:__l="__l"></el-input>

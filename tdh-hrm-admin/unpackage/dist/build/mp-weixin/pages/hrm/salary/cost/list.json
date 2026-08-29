@@ -1,7 +1,0 @@
-{
-  "usingComponents": {
-    "list-vk-data-form-grant": "/pages/hrm/salary/cost/list-vk-data-form-grant",
-    "list-vk-data-form-agency_fee": "/pages/hrm/salary/cost/list-vk-data-form-agency_fee",
-    "list-vk-data-form-other_cost": "/pages/hrm/salary/cost/list-vk-data-form-other_cost"
-  }
-}

@@ -16,7 +16,7 @@ const _sfc_main = {
       refreshing: false,
       loading: false,
       lastSignatureUrl: "",
-      // 新增：历史签名图片URL
+      // 历史签名图片URL
       fieldLabels: {
         base_salary: "基本工资",
         performance_salary: "绩效工资",
@@ -91,7 +91,16 @@ const _sfc_main = {
       lineColor: "#1A1A1A",
       points: [],
       historyList: [],
+      currentStrokePoints: [],
+      pointQueue: [],
+      rafId: null,
+      isDrawing: false,
+      isReplaying: false,
       canAddHistory: true,
+      requestAnimationFrame: null,
+      // 兼容函数
+      cancelAnimationFrame: null,
+      // 兼容函数
       getImagePath: () => {
         return new Promise((resolve) => {
           common_vendor.index.canvasToTempFilePath({
@@ -102,8 +111,7 @@ const _sfc_main = {
           });
         });
       },
-      toDataURL: void 0,
-      requestAnimationFrame: void 0
+      toDataURL: void 0
     };
   },
   props: {
@@ -141,6 +149,24 @@ const _sfc_main = {
     this.attendance_ym = options.attendance_ym || "";
     this.loadDetail();
     this.ctx = common_vendor.index.createCanvasContext("handWriting");
+    this.requestAnimationFrame = (fn) => {
+      if (typeof requestAnimationFrame === "function") {
+        return requestAnimationFrame(fn);
+      } else if (typeof common_vendor.index.requestAnimationFrame === "function") {
+        return common_vendor.index.requestAnimationFrame(fn);
+      } else {
+        return setTimeout(fn, 16);
+      }
+    };
+    this.cancelAnimationFrame = (id) => {
+      if (typeof cancelAnimationFrame === "function") {
+        cancelAnimationFrame(id);
+      } else if (typeof common_vendor.index.cancelAnimationFrame === "function") {
+        common_vendor.index.cancelAnimationFrame(id);
+      } else {
+        clearTimeout(id);
+      }
+    };
   },
   methods: {
     closeSignBoard() {
@@ -180,7 +206,7 @@ const _sfc_main = {
         }
       } catch (e) {
         this.$refs.toast.showToast("网络异常");
-        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:271", e);
+        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:297", e);
       } finally {
         this.loading = false;
         if (fromRefresh) {
@@ -188,7 +214,6 @@ const _sfc_main = {
         }
       }
     },
-    // 下拉刷新处理
     onRefresh() {
       if (this.loading)
         return;
@@ -206,7 +231,7 @@ const _sfc_main = {
         this.getCanvasSize();
       });
     },
-    // 修改 getCanvasSize，加载历史签名
+    // 获取画布尺寸并初始化
     getCanvasSize() {
       common_vendor.index.createSelectorQuery().select(".handCenter").boundingClientRect((rect) => {
         if (rect && rect.width) {
@@ -214,7 +239,6 @@ const _sfc_main = {
           this.canvasHeight = rect.height;
           this.clear();
           if (this.lastSignatureUrl) {
-            this.historyList.push(this.lastSignatureUrl);
             this.drawByImage(this.lastSignatureUrl);
           }
         } else {
@@ -311,7 +335,7 @@ const _sfc_main = {
       } catch (e) {
         this.$refs.toast.hide();
         this.$refs.toast.showToast("操作失败");
-        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:422", e);
+        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:439", e);
       }
     },
     getPickerColor(color) {
@@ -320,21 +344,82 @@ const _sfc_main = {
         this.lineColor = color;
       }
     },
+    // ================= 触摸事件（优化后，支持 rAF 节流） =================
     uploadScaleStart(e) {
-      this.canAddHistory = true;
+      this.isDrawing = true;
+      this.currentStrokePoints = [];
+      this.points = [];
+      this.pointQueue = [];
       this.ctx.setStrokeStyle(this.lineColor);
       this.ctx.setLineCap("round");
+      const touch = e.touches[0];
+      this.pointQueue.push({
+        x: touch.x,
+        y: touch.y,
+        t: Date.now()
+      });
+      this.startRenderLoop();
+    },
+    startRenderLoop() {
+      const render = () => {
+        if (!this.isDrawing)
+          return;
+        this.processQueue();
+        this.rafId = this.requestAnimationFrame(render);
+      };
+      this.rafId = this.requestAnimationFrame(render);
     },
     uploadScaleMove(e) {
-      let temX = e.changedTouches[0].x;
-      let temY = e.changedTouches[0].y;
-      this.initPoint(temX, temY);
-      this.onDraw();
+      if (!this.isDrawing)
+        return;
+      const touch = e.changedTouches[0];
+      this.pointQueue.push({
+        x: touch.x,
+        y: touch.y,
+        t: Date.now()
+      });
     },
     uploadScaleEnd() {
-      this.canAddHistory = true;
+      this.isDrawing = false;
+      if (this.rafId) {
+        this.cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+      this.processQueue();
+      if (this.currentStrokePoints.length > 0) {
+        this.historyList.push(this.currentStrokePoints.slice());
+        this.historyList = this.historyList.slice(-this.maxHistoryLength);
+      }
+      this.currentStrokePoints = [];
       this.points = [];
     },
+    // 处理队列中的点，执行绘制
+    processQueue() {
+      if (!this.pointQueue.length)
+        return;
+      const queue = this.pointQueue;
+      this.pointQueue = [];
+      this.canAddHistory = false;
+      queue.forEach((pointData) => {
+        this.initPoint(pointData.x, pointData.y);
+        const point = this.points[this.points.length - 1];
+        if (point && !this.currentStrokePoints.includes(point)) {
+          this.currentStrokePoints.push(point);
+        }
+        if (this.points.length >= 2) {
+          const prePoint = this.points[this.points.length - 2];
+          const curPoint = this.points[this.points.length - 1];
+          if (this.openSmooth) {
+            this.drawSmoothLine(prePoint, curPoint);
+          } else {
+            this.drawNoSmoothLine(prePoint, curPoint);
+          }
+        }
+      });
+      this.ctx.draw && this.ctx.draw(true);
+      this.canAddHistory = true;
+    },
+    // ================= 原有点计算与绘制逻辑（已移除内部 draw） =================
     initPoint(x, y) {
       var point = {
         x,
@@ -350,7 +435,7 @@ const _sfc_main = {
         point.distance = Math.sqrt(Math.pow(point.x - prePoint.x, 2) + Math.pow(point.y - prePoint.y, 2));
         point.speed = point.distance / (point.t - prePoint.t || 0.1);
         point.lineWidth = this.getLineWidth(point.speed);
-        if (prePoint2 && prePoint2.lineWidth && prePoint.lineWidth) {
+        if (prePoint2 && prePoint2.lineWidth && point.lineWidth) {
           var rate = (point.lineWidth - prePoint.lineWidth) / prePoint.lineWidth;
           var maxRate = this.maxWidthDiffRate / 100;
           maxRate = maxRate > 1 ? 1 : maxRate < 0.01 ? 0.01 : maxRate;
@@ -368,44 +453,6 @@ const _sfc_main = {
       var addWidth = (this.maxWidth - this.minWidth) * speed / minSpeed;
       var lineWidth = Math.max(this.maxWidth - addWidth, this.minWidth);
       return Math.min(lineWidth, this.maxWidth);
-    },
-    onDraw() {
-      if (this.points.length < 2)
-        return;
-      this.addHistory();
-      var point = this.points.slice(-1)[0];
-      var prePoint = this.points.slice(-2, -1)[0];
-      let that = this;
-      var onDraw = function onDraw2() {
-        if (that.openSmooth) {
-          that.drawSmoothLine(prePoint, point);
-        } else {
-          that.drawNoSmoothLine(prePoint, point);
-        }
-      };
-      if (typeof this.requestAnimationFrame === "function") {
-        this.requestAnimationFrame(function() {
-          return onDraw();
-        });
-      } else {
-        onDraw();
-      }
-    },
-    addHistory() {
-      if (!this.maxHistoryLength || !this.canAddHistory)
-        return;
-      this.canAddHistory = false;
-      if (!this.getImagePath) {
-        this.historyList.length++;
-        return;
-      }
-      let that = this;
-      that.getImagePath().then(function(url) {
-        if (url) {
-          that.historyList.push(url);
-          that.historyList = that.historyList.slice(-that.maxHistoryLength);
-        }
-      });
     },
     drawSmoothLine(prePoint, point) {
       var dis_x = point.x - prePoint.x;
@@ -457,7 +504,6 @@ const _sfc_main = {
       this.ctx.moveTo(Number(x1.toFixed(1)), Number(y1.toFixed(1)));
       this.ctx.quadraticCurveTo(Number(x2.toFixed(1)), Number(y2.toFixed(1)), Number(x3.toFixed(1)), Number(y3.toFixed(1)));
       this.ctx.stroke();
-      this.ctx.draw && this.ctx.draw(true);
     },
     drawTrapezoid(point1, point2, point3, point4) {
       this.ctx.beginPath();
@@ -468,7 +514,6 @@ const _sfc_main = {
       this.ctx.setFillStyle && this.ctx.setFillStyle(this.lineColor);
       this.ctx.fillStyle = this.lineColor;
       this.ctx.fill();
-      this.ctx.draw && this.ctx.draw(true);
     },
     getRadianData(x1, y1, x2, y2) {
       var dis_x = x2 - x1;
@@ -573,11 +618,11 @@ const _sfc_main = {
           this.ctx.draw(true);
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/payslip/sign.vue:676", "加载历史签名失败", err);
-          this.historyList.length = 0;
+          common_vendor.index.__f__("error", "at pages/payslip/sign.vue:734", "加载历史签名失败", err);
         }
       });
     },
+    // 清空画布并重置所有状态
     clear() {
       if (!this.canvasWidth || !this.canvasHeight) {
         return;
@@ -587,19 +632,69 @@ const _sfc_main = {
       this.ctx.fillStyle = color;
       this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
       this.ctx.draw && this.ctx.draw(true);
-      this.historyList.length = 0;
+      this.historyList = [];
+      this.currentStrokePoints = [];
+      this.points = [];
+      this.pointQueue = [];
+      if (this.rafId) {
+        this.cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+      this.isDrawing = false;
     },
+    // 仅清空画布内容，不重置历史记录（用于撤销重放）
+    clearCanvasOnly() {
+      const color = this.bgColor || "#ffffff";
+      this.ctx.setFillStyle && this.ctx.setFillStyle(color);
+      this.ctx.fillStyle = color;
+      this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+      this.ctx.draw && this.ctx.draw(true);
+    },
+    // 撤销：移除最后一笔，重放剩余笔画
     undo() {
-      if (!this.getImagePath || !this.historyList.length)
-        return;
-      var pngURL = this.historyList.splice(-1)[0];
-      this.drawByImage(pngURL);
       if (this.historyList.length === 0) {
         this.clear();
+        return;
+      }
+      this.historyList.pop();
+      this.clearCanvasOnly();
+      if (this.lastSignatureUrl) {
+        this.drawByImage(this.lastSignatureUrl);
+      }
+      this.isReplaying = true;
+      this.historyList.forEach((strokePoints) => {
+        this.replayStroke(strokePoints);
+      });
+      this.isReplaying = false;
+      if (this.historyList.length === 0 && !this.lastSignatureUrl) {
+        this.clearCanvasOnly();
       }
     },
+    // 重放一个笔画（点数组）
+    replayStroke(pointsArray) {
+      if (!pointsArray || pointsArray.length === 0)
+        return;
+      this.points = [];
+      for (let i = 0; i < pointsArray.length; i++) {
+        const point = pointsArray[i];
+        this.points.push(point);
+        if (this.points.length > 3) {
+          this.points.shift();
+        }
+        if (this.points.length >= 2) {
+          const prePoint = this.points[this.points.length - 2];
+          const curPoint = this.points[this.points.length - 1];
+          if (this.openSmooth) {
+            this.drawSmoothLine(prePoint, curPoint);
+          } else {
+            this.drawNoSmoothLine(prePoint, curPoint);
+          }
+        }
+      }
+      this.ctx.draw(true);
+    },
     isEmpty() {
-      return this.historyList.length === 0;
+      return this.historyList.length === 0 && !this.lastSignatureUrl;
     },
     selectColorEvent(str, color) {
       this.selectColor = str;
@@ -640,9 +735,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     d: $data.salaryData
   }, $data.salaryData ? common_vendor.e({
-    e: common_vendor.t($data.salaryData.department_name),
-    f: common_vendor.t($options.formatDate($data.salaryData.attendance_ym)),
-    g: common_vendor.f($data.group1, (key, k0, i0) => {
+    e: common_vendor.t($options.formatDate($data.salaryData.attendance_ym_key)),
+    f: common_vendor.f($data.group1, (key, k0, i0) => {
       return common_vendor.e({
         a: $data.salaryData[key]
       }, $data.salaryData[key] ? {
@@ -653,7 +747,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         e: key
       });
     }),
-    h: common_vendor.f($data.group2, (key, k0, i0) => {
+    g: common_vendor.f($data.group2, (key, k0, i0) => {
       return common_vendor.e({
         a: $data.salaryData[key]
       }, $data.salaryData[key] ? {
@@ -663,37 +757,37 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         d: key
       });
     }),
-    i: $data.salaryData.real_salary
+    h: $data.salaryData.real_salary
   }, $data.salaryData.real_salary ? {
-    j: common_vendor.t($data.salaryData.real_salary)
+    i: common_vendor.t($data.salaryData.real_salary)
   } : {}) : {}, {
-    k: $data.salaryData
+    j: $data.salaryData
   }, $data.salaryData ? {} : {}, {
-    l: $data.refreshing,
-    m: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "22"),
-    n: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "0e")
+    k: $data.refreshing,
+    l: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "22"),
+    m: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "49")
   }) : {
-    o: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "df"),
-    p: $data.selectColor === "black" ? "/static/other/color_black_selected.png" : "/static/other/color_black.png",
-    q: $data.selectColor === "red" ? "/static/other/color_red_selected.png" : "/static/other/color_red.png",
-    r: common_vendor.o((...args) => $options.clear && $options.clear(...args), "e7"),
-    s: $data.lastSignatureUrl,
-    t: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "d6"),
-    v: $data.lastSignatureUrl,
-    w: common_vendor.o((...args) => $options.undo && $options.undo(...args), "c7"),
-    x: $data.lastSignatureUrl,
-    y: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "2d"),
-    z: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "79"),
-    A: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "4a"),
-    B: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "03"),
-    C: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "d6"),
-    D: common_vendor.o($options.getPickerColor, "b7"),
-    E: common_vendor.p({
+    n: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "50"),
+    o: $data.selectColor === "black" ? "/static/other/color_black_selected.png" : "/static/other/color_black.png",
+    p: $data.selectColor === "red" ? "/static/other/color_red_selected.png" : "/static/other/color_red.png",
+    q: common_vendor.o((...args) => $options.clear && $options.clear(...args), "93"),
+    r: $data.lastSignatureUrl,
+    s: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "1b"),
+    t: $data.lastSignatureUrl,
+    v: common_vendor.o((...args) => $options.undo && $options.undo(...args), "93"),
+    w: $data.lastSignatureUrl,
+    x: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "7f"),
+    y: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "fc"),
+    z: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "cf"),
+    A: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "95"),
+    B: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "1f"),
+    C: common_vendor.o($options.getPickerColor, "66"),
+    D: common_vendor.p({
       isShow: $data.showPickerColor,
       bottom: 0
     })
   }, {
-    F: common_vendor.sr("toast", "9ee76dc8-2")
+    E: common_vendor.sr("toast", "9ee76dc8-2")
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);

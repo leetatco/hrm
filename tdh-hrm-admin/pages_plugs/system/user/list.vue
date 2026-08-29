@@ -299,10 +299,10 @@
 							mode: "%%"
 						},
 						{
-							key: "_id",
-							title: "ID",
+							key: "wx_openid.mp-weixin",
+							title: "微信ID",
 							type: "text",
-							width: 140,
+							width: 200,
 							mode: "="
 						},
 						{

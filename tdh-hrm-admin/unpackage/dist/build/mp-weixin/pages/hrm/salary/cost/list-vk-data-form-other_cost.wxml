@@ -1,1 +1,0 @@
-<el-input-number bind:input="__e" vue-id="ae8865f4-9" precision="{{0}}" value="{{form.other_cost}}" data-event-opts="{{[['^input',[['__set_model',['$0','other_cost','$event',[]],['form']]]]]}}" class="data-v-5d179f82" bind:__l="__l"></el-input-number>

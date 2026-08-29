@@ -1,6 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "list-vk-data-table-sort": "/pages/hrm/company/list-vk-data-table-sort"
-  }
-}

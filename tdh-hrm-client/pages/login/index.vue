@@ -21,7 +21,7 @@
 			<u-form :model="form" ref="uForm" labelPosition="top">
 				<u-form-item label="账号" prop="username" borderBottom>
 					<u-input v-model="form.username" placeholder="请输入账号" clearable :border="false"
-						:customStyle="{padding: '10rpx 0'}">
+						:customStyle="{padding: '10rpx 0'}" disabled>
 						<u-icon slot="prefix" name="account" size="20" color="#6c8cff"
 							:customStyle="{ marginRight: '10rpx' }"></u-icon>
 					</u-input>
@@ -29,7 +29,7 @@
 
 				<u-form-item label="密码" prop="password" borderBottom>
 					<u-input v-model="form.password" type="password" placeholder="请输入密码" clearable :border="false"
-						:customStyle="{padding: '10rpx 0'}">
+						:customStyle="{padding: '10rpx 0'}" disabled>
 						<u-icon slot="prefix" name="lock" size="20" color="#6c8cff"
 							:customStyle="{ marginRight: '10rpx' }"></u-icon>
 					</u-input>
@@ -117,23 +117,14 @@
 				<view class="bind-popup-header">
 					<text class="bind-popup-title">绑定账号</text>
 					<text class="bind-popup-desc">请绑定您的手机号以完成登录</text>
+					<text class="bind-popup-desc">{{wxOpenid}}</text>
 				</view>
 				<view class="bind-popup-body">
-					<u-input v-model="bindAccountInput" placeholder="请输入手机号" type="text" border
-						:customStyle="{ borderRadius: '16rpx', height: '80rpx', padding: '0 20rpx' }" />
-
 					<button class="wechat-phone-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">
-						<u-icon name="phone-fill" size="28" color="#07c160"
+						<u-icon name="phone-fill" size="30" color="#07c160"
 							:customStyle="{ marginRight: '12rpx' }"></u-icon>
 						获取本机号码
 					</button>
-
-					<view class="bind-popup-actions">
-						<u-button type="default" shape="circle" @click="inputModalVisible = false"
-							:customStyle="{ width: '180rpx' }">取消</u-button>
-						<u-button type="primary" shape="circle" @click="confirmInputBind"
-							:customStyle="{ width: '180rpx', background: 'linear-gradient(135deg, #6c8cff, #a78bfa)', border: 'none' }">确定</u-button>
-					</view>
 				</view>
 			</view>
 		</u-popup>
@@ -187,7 +178,8 @@
 				agreementContent: '',
 				privacyContent: '',
 				agreementChecked: false,
-				encryptedKey: ''
+				encryptedKey: '',
+				wxOpenid: ''
 			}
 		},
 		onLoad() {
@@ -263,10 +255,7 @@
 					success: (data) => {
 						if (data.mobile) {
 							this.bindAccountInput = data.mobile;
-							uni.showToast({
-								title: '已获取手机号',
-								icon: 'success'
-							});
+							this.confirmInputBind();
 						} else {
 							uni.showToast({
 								title: '未能获取手机号，请手动输入',
@@ -523,6 +512,8 @@
 					if (codeRes.encryptedKey) {
 						this.encryptedKey = codeRes.encryptedKey;
 					}
+
+					this.wxOpenid = codeRes.openid || '';
 
 					let checkWxRes = await vk.callFunction({
 						url: 'client/user/pub/isUser',
@@ -1027,7 +1018,7 @@
 			border: 2rpx solid #d4e3ff;
 			border-radius: 50rpx;
 			padding: 18rpx 0;
-			font-size: 28rpx;
+			font-size: 30rpx;
 			color: #07c160;
 			font-weight: 500;
 			transition: all 0.2s;

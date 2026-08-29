@@ -7218,9 +7218,9 @@ function isConsoleWritable() {
 }
 const UNI_CONSOLE_RUNTIME_PROMISE = "__uni_console_runtime_promise__";
 function initRuntimeSocketService() {
-  const hosts = "192.168.82.31,127.0.0.1";
+  const hosts = "192.168.82.44,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_cWWc2U";
+  const id = "mp-weixin_1QWQZx";
   const runtimeGlobal = getRuntimeGlobal();
   const existingPromise = runtimeGlobal === null || runtimeGlobal === void 0 ? void 0 : runtimeGlobal[UNI_CONSOLE_RUNTIME_PROMISE];
   if (existingPromise) {
@@ -9742,7 +9742,7 @@ class v {
 function I(e2) {
   return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
 }
-const S = true, b = "mp-weixin", A = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), T = b, C = I('{"address":["127.0.0.1","192.168.82.31"],"servePort":7000,"debugPort":9000,"initialLaunchType":"local","skipFiles":["<node_internals>/**","E:/HBuilderX/plugins/unicloud/**/*.js"]}'), P = I('[{"provider":"aliyun","spaceName":"tdh-db","spaceId":"mp-172c1e9f-d637-4510-916b-3f73d0c2de3c","clientSecret":"B1vi2KWj85GiOkR32fR9cA==","endpoint":"https://api.next.bspapp.com","failoverEndpoint":""}]') || [];
+const S = true, b = "mp-weixin", A = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), T = b, C = I('{"address":["127.0.0.1","192.168.82.44"],"servePort":7001,"debugPort":9001,"initialLaunchType":"remote","skipFiles":["<node_internals>/**","E:/HBuilderX/plugins/unicloud/**/*.js"]}'), P = I('[{"provider":"aliyun","spaceName":"tdh-db","spaceId":"mp-172c1e9f-d637-4510-916b-3f73d0c2de3c","clientSecret":"B1vi2KWj85GiOkR32fR9cA==","endpoint":"https://api.next.bspapp.com","failoverEndpoint":""}]') || [];
 let E = "";
 try {
   E = "__UNI__ABE8DE0";

@@ -79,32 +79,45 @@ module.exports = {
 			update_date,
 			update_id
 		} = data;
+				
 		// 参数验证开始
-		if (vk.pubfn.isNull(_id) && vk.pubfn.isNull(employee_id)) return {
-			code: -1,
-			msg: 'id或工号不能为空'
-		};
-		let checkRes = await vk.baseDao.findByWhereJson({
-			dbName,
-			whereJson: _.or([{
-					employee_id
-				},
-				{
-					card,
-					status: 1
-				}
-			])
-		});
-		if (checkRes) {
-			if (_id && (_id !== checkRes._id)) {
-				return {
-					code: -1,
-					msg: "员工工号重复！",
-					rows: checkRes
-				}
-			}
-			_id = checkRes._id
+		if (vk.pubfn.isNull(_id) && vk.pubfn.isNull(employee_id)) {
+		  return { code: -1, msg: 'id或工号不能为空' };
 		}
+		
+		// 检查工号是否重复（新增时检查）
+		let checkRes = await vk.baseDao.findByWhereJson({
+		  dbName,
+		  whereJson: { employee_id }
+		});
+		
+		if (checkRes) {
+		  // 如果有 _id 且不是同一条记录，则工号重复
+		  if (_id && _id !== checkRes._id) {
+		    return { code: -1, msg: "员工工号重复！", rows: checkRes };
+		  }
+		  // 如果没有 _id（新增），说明工号已存在
+		  if (!_id) {
+		    return { code: -1, msg: "员工工号已存在！", rows: checkRes };
+		  }
+		  // 有 _id 且是同一记录，继续更新
+		}
+		
+		// 如果传了身份证号，也检查是否重复（可选）
+		if (card) {
+		  let cardCheck = await vk.baseDao.findByWhereJson({
+		    dbName,
+		    whereJson: { card, status: 1 }
+		  });
+		  if (cardCheck) {
+		    if (_id && _id !== cardCheck._id) {
+		      return { code: -1, msg: "身份证号已被使用！", rows: cardCheck };
+		    }
+		    if (!_id) {
+		      return { code: -1, msg: "身份证号已存在！", rows: cardCheck };
+		    }
+		  }
+		}	
 
 		// 参数验证结束		
 		// 执行 数据库 updateById 命令

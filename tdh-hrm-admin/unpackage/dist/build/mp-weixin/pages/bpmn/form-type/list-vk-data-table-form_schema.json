@@ -1,7 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "list-vk-data-table-form_schema": "/pages/bpmn/form-type/list-vk-data-table-form_schema",
-    "vue-json-viewer": "/node-modules/vue-json-viewer/vue-json-viewer"
-  }
-}

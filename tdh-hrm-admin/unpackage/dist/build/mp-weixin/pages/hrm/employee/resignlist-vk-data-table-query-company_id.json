@@ -1,7 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "resignlist-vk-data-table-query-company_id": "/pages/hrm/employee/resignlist-vk-data-table-query-company_id",
-    "resignlist-vk-data-table-query-department_id": "/pages/hrm/employee/resignlist-vk-data-table-query-department_id"
-  }
-}

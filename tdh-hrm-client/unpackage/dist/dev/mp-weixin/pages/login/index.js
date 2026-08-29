@@ -50,7 +50,8 @@ const _sfc_main = {
       agreementContent: "",
       privacyContent: "",
       agreementChecked: false,
-      encryptedKey: ""
+      encryptedKey: "",
+      wxOpenid: ""
     };
   },
   onLoad() {
@@ -91,7 +92,7 @@ const _sfc_main = {
           this.encryptedKey = res.encryptedKey;
         }
       } catch (e) {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:233", "获取 encryptedKey 失败", e);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:225", "获取 encryptedKey 失败", e);
       }
     },
     // 获取微信手机号
@@ -123,10 +124,7 @@ const _sfc_main = {
         success: (data) => {
           if (data.mobile) {
             this.bindAccountInput = data.mobile;
-            common_vendor.index.showToast({
-              title: "已获取手机号",
-              icon: "success"
-            });
+            this.confirmInputBind();
           } else {
             common_vendor.index.showToast({
               title: "未能获取手机号，请手动输入",
@@ -135,7 +133,7 @@ const _sfc_main = {
           }
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/login/index.vue:278", "获取手机号失败", err);
+          common_vendor.index.__f__("error", "at pages/login/index.vue:267", "获取手机号失败", err);
           common_vendor.index.showToast({
             title: err.msg || "获取失败，请手动输入",
             icon: "none"
@@ -232,7 +230,7 @@ const _sfc_main = {
         this.logoMarginTop = (capsuleBottom + 10) * pxToRpx;
         this.backHomeTop = menuRect.top + menuRect.height / 2 - 22;
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:390", "获取布局信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:379", "获取布局信息失败:", e);
         this.logoMarginTop = 40;
         this.backHomeTop = 40;
       }
@@ -246,7 +244,7 @@ const _sfc_main = {
           this.form.remember = true;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:404", "读取记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:393", "读取记住的账号失败", e);
       }
     },
     saveRememberedAccount() {
@@ -256,14 +254,14 @@ const _sfc_main = {
           password: this.form.password
         });
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:414", "保存记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:403", "保存记住的账号失败", e);
       }
     },
     clearRememberedAccount() {
       try {
         common_vendor.index.removeStorageSync("rememberedAccount");
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:421", "清除记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:410", "清除记住的账号失败", e);
       }
     },
     async is_resigned(username) {
@@ -292,7 +290,7 @@ const _sfc_main = {
           this.doLogin();
         }
       }).catch((errors) => {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:450", "表单验证失败", errors);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:439", "表单验证失败", errors);
       });
     },
     async doLogin() {
@@ -334,7 +332,7 @@ const _sfc_main = {
       try {
         await vk.userCenter.bindWeixin();
       } catch (e) {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:492", "绑定微信失败:", e);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:481", "绑定微信失败:", e);
       }
     },
     toForget() {
@@ -367,6 +365,7 @@ const _sfc_main = {
         if (codeRes.encryptedKey) {
           this.encryptedKey = codeRes.encryptedKey;
         }
+        this.wxOpenid = codeRes.openid || "";
         let checkWxRes = await vk.callFunction({
           url: "client/user/pub/isUser",
           title: "请求中...",
@@ -392,7 +391,7 @@ const _sfc_main = {
         this.bindAccountInput = "";
         this.inputModalVisible = true;
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:552", "微信登录失败:", error);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:543", "微信登录失败:", error);
         common_vendor.index.showToast({
           title: "微信登录失败，请重试",
           icon: "none"
@@ -535,6 +534,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       customStyle: {
         padding: "10rpx 0"
       },
+      disabled: true,
       modelValue: $data.form.username
     }),
     j: common_vendor.p({
@@ -550,7 +550,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         marginRight: "10rpx"
       }
     }),
-    l: common_vendor.o(($event) => $data.form.password = $event, "d2"),
+    l: common_vendor.o(($event) => $data.form.password = $event, "f7"),
     m: common_vendor.p({
       type: "password",
       placeholder: "请输入密码",
@@ -559,6 +559,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       customStyle: {
         padding: "10rpx 0"
       },
+      disabled: true,
       modelValue: $data.form.password
     }),
     n: common_vendor.p({
@@ -566,7 +567,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "password",
       borderBottom: true
     }),
-    o: common_vendor.o($options.handleLogin, "a0"),
+    o: common_vendor.o($options.handleLogin, "e0"),
     p: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -593,7 +594,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "52",
       color: "#ffffff"
     }),
-    w: common_vendor.o((...args) => $options.login_weixin && $options.login_weixin(...args), "e4")
+    w: common_vendor.o((...args) => $options.login_weixin && $options.login_weixin(...args), "f4")
   } : {}, {
     x: $data.agreementChecked
   }, $data.agreementChecked ? {
@@ -604,12 +605,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}, {
     z: $data.agreementChecked ? 1 : "",
-    A: common_vendor.o((...args) => $options.showAgreementPopup && $options.showAgreementPopup(...args), "c4"),
-    B: common_vendor.o((...args) => $options.showPrivacyPopup && $options.showPrivacyPopup(...args), "7d"),
-    C: common_vendor.o((...args) => $options.toggleAgreement && $options.toggleAgreement(...args), "3a"),
+    A: common_vendor.o((...args) => $options.showAgreementPopup && $options.showAgreementPopup(...args), "ec"),
+    B: common_vendor.o((...args) => $options.showPrivacyPopup && $options.showPrivacyPopup(...args), "09"),
+    C: common_vendor.o((...args) => $options.toggleAgreement && $options.toggleAgreement(...args), "3d"),
     D: common_vendor.t($data.agreementTitle),
     E: $data.agreementContent,
-    F: common_vendor.o(($event) => $data.agreementPopupVisible = $event, "94"),
+    F: common_vendor.o(($event) => $data.agreementPopupVisible = $event, "32"),
     G: common_vendor.p({
       mode: "bottom",
       closeable: true,
@@ -618,48 +619,19 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["border-radius"]: 20,
       modelValue: $data.agreementPopupVisible
     }),
-    H: common_vendor.o(($event) => $data.bindAccountInput = $event, "e9"),
+    H: common_vendor.t($data.wxOpenid),
     I: common_vendor.p({
-      placeholder: "请输入手机号",
-      type: "text",
-      border: true,
-      customStyle: {
-        borderRadius: "16rpx",
-        height: "80rpx",
-        padding: "0 20rpx"
-      },
-      modelValue: $data.bindAccountInput
-    }),
-    J: common_vendor.p({
       name: "phone-fill",
-      size: "28",
+      size: "30",
       color: "#07c160",
       customStyle: {
         marginRight: "12rpx"
       }
     }),
-    K: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "eb"),
-    L: common_vendor.o(($event) => $data.inputModalVisible = false, "ad"),
+    J: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "c4"),
+    K: common_vendor.o($options.onInputPopupClose, "2c"),
+    L: common_vendor.o(($event) => $data.inputModalVisible = $event, "15"),
     M: common_vendor.p({
-      type: "default",
-      shape: "circle",
-      customStyle: {
-        width: "180rpx"
-      }
-    }),
-    N: common_vendor.o($options.confirmInputBind, "7b"),
-    O: common_vendor.p({
-      type: "primary",
-      shape: "circle",
-      customStyle: {
-        width: "180rpx",
-        background: "linear-gradient(135deg, #6c8cff, #a78bfa)",
-        border: "none"
-      }
-    }),
-    P: common_vendor.o($options.onInputPopupClose, "c3"),
-    Q: common_vendor.o(($event) => $data.inputModalVisible = $event, "6c"),
-    R: common_vendor.p({
       mode: "bottom",
       closeable: true,
       ["mask-close-able"]: false,

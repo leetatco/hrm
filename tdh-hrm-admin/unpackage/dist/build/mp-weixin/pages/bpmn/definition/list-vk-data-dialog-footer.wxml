@@ -1,1 +1,0 @@
-<el-button bind:click="__e" vue-id="2e19e79a-17" data-event-opts="{{[['^click',[['close']]]]}}" class="data-v-393d36cf" bind:__l="__l" vue-slots="{{['default']}}">取 消</el-button><el-button vue-id="2e19e79a-18" type="primary" data-event-opts="{{[['^click',[['saveNode']]]]}}" bind:click="__e" class="data-v-393d36cf" bind:__l="__l" vue-slots="{{['default']}}">确 定</el-button>
