@@ -308,7 +308,7 @@
 				statusHistory: [],
 			};
 		},
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.init(options);
 		},
 		onShow() {
@@ -317,7 +317,7 @@
 		methods: {
 			/* ---------- 工具 ---------- */
 			getResignationTypeText(type) {
-				console.log("type:",type);
+				console.log("type:", type);
 				const map = {
 					voluntary: '主动离职',
 					involuntary: '被动离职',
@@ -617,8 +617,8 @@
 					}
 				});
 				// 删除附件
-				item.form_data?.file_attachments.forEach((e) => {
-					vk.myfn.deleteFile(e);
+				item.form_data?.file_attachments.map(async (e, index) => {
+					await vk.myfn.deleteFile(e);
 				});
 				if (res.code === 0) {
 					uni.showToast({

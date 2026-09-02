@@ -5314,7 +5314,7 @@ const o$1 = (value, key) => vOn(value, key);
 const f$1 = (source, renderItem) => vFor(source, renderItem);
 const r$1 = (name, props, key) => renderSlot(name, props, key);
 const s$1 = (value) => stringifyStyle(value);
-const e$1 = (target, ...sources) => extend(target, ...sources);
+const e = (target, ...sources) => extend(target, ...sources);
 const n$1 = (value) => normalizeClass(value);
 const t$1 = (val) => toDisplayString(val);
 const p$1 = (props) => renderProps(props);
@@ -7220,7 +7220,7 @@ const UNI_CONSOLE_RUNTIME_PROMISE = "__uni_console_runtime_promise__";
 function initRuntimeSocketService() {
   const hosts = "192.168.82.44,127.0.0.1";
   const port = "8090";
-  const id = "mp-weixin_1QWQZx";
+  const id = "mp-weixin_m-gy7Q";
   const runtimeGlobal = getRuntimeGlobal();
   const existingPromise = runtimeGlobal === null || runtimeGlobal === void 0 ? void 0 : runtimeGlobal[UNI_CONSOLE_RUNTIME_PROMISE];
   if (existingPromise) {
@@ -9447,7 +9447,7 @@ const globalStyle = {
   navigationBarBackgroundColor: "#F8F8F8",
   backgroundColor: "#F8F8F8"
 };
-const e = {
+const pagesJson = {
   pages,
   tabBar,
   subPackages,
@@ -9742,7 +9742,7 @@ class v {
 function I(e2) {
   return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
 }
-const S = true, b = "mp-weixin", A = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), T = b, C = I('{"address":["127.0.0.1","192.168.82.44"],"servePort":7001,"debugPort":9001,"initialLaunchType":"remote","skipFiles":["<node_internals>/**","E:/HBuilderX/plugins/unicloud/**/*.js"]}'), P = I('[{"provider":"aliyun","spaceName":"tdh-db","spaceId":"mp-172c1e9f-d637-4510-916b-3f73d0c2de3c","clientSecret":"B1vi2KWj85GiOkR32fR9cA==","endpoint":"https://api.next.bspapp.com","failoverEndpoint":""}]') || [];
+const S = true, b = "mp-weixin", A = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), T = b, C = I('{"address":["127.0.0.1","192.168.82.44"],"servePort":7000,"debugPort":9000,"initialLaunchType":"local","skipFiles":["<node_internals>/**","E:/HBuilderX/plugins/unicloud/**/*.js"]}'), P = I('[{"provider":"aliyun","spaceName":"tdh-db","spaceId":"mp-172c1e9f-d637-4510-916b-3f73d0c2de3c","clientSecret":"B1vi2KWj85GiOkR32fR9cA==","endpoint":"https://api.next.bspapp.com","failoverEndpoint":""}]') || [];
 let E = "";
 try {
   E = "__UNI__ABE8DE0";
@@ -11791,8 +11791,8 @@ function Us(e2 = "", t2 = {}) {
   const n2 = t2.list, s2 = xs(e2);
   return n2.some((e3) => e3.pagePath === s2);
 }
-const Ns = !!e.uniIdRouter;
-const { loginPage: Ds, routerNeedLogin: Ms, resToLogin: qs, needLoginPage: Fs, notNeedLoginPage: Ks, loginPageInTabBar: js } = function({ pages: t2 = [], subPackages: n2 = [], uniIdRouter: s2 = {}, tabBar: r2 = {} } = e) {
+const Ns = !!pagesJson.uniIdRouter;
+const { loginPage: Ds, routerNeedLogin: Ms, resToLogin: qs, needLoginPage: Fs, notNeedLoginPage: Ks, loginPageInTabBar: js } = function({ pages: t2 = [], subPackages: n2 = [], uniIdRouter: s2 = {}, tabBar: r2 = {} } = pagesJson) {
   const { loginPage: i2, needLogin: o2 = [], resToLogin: a2 = true } = s2, { needLoginPage: c2, notNeedLoginPage: u2 } = Es(t2), { needLoginPage: h2, notNeedLoginPage: l2 } = function(e2 = []) {
     const t3 = [], n3 = [];
     return e2.forEach((e3) => {
@@ -36746,13 +36746,14 @@ var OutputFormat;
 exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
 exports.createStore = createStore;
-exports.e = e$1;
+exports.e = e;
 exports.f = f$1;
 exports.index = index;
 exports.mapMutations = mapMutations;
 exports.n = n$1;
 exports.o = o$1;
 exports.p = p$1;
+exports.pagesJson = pagesJson;
 exports.pinyin = pinyin;
 exports.r = r$1;
 exports.resolveComponent = resolveComponent;

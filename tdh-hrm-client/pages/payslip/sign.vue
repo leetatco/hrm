@@ -349,13 +349,13 @@
 				});
 			},
 
-			// ================= 提交签名（横屏导出） =================
+			// ================= 提交签名（横屏导出） =================			
 			async submitSign() {
 				if (this.isEmpty()) {
 					this.$refs.toast.showToast('请先签名');
 					return;
 				}
-
+			
 				try {
 					this.$refs.toast.showLoading('正在生成并提交...');
 					const tempPath = await this.getTempFilePath();
@@ -370,7 +370,7 @@
 						width,
 						height
 					} = imgInfo;
-
+			
 					const nodeInfo = await new Promise((resolve, reject) => {
 						const query = uni.createSelectorQuery().in(this);
 						query.select('#rotateCanvas').node().exec((res) => {
@@ -381,23 +381,23 @@
 							}
 						});
 					});
-
+			
 					const canvas = nodeInfo.node;
 					const ctx = canvas.getContext('2d');
 					canvas.width = height;
 					canvas.height = width;
-
+			
 					const img = canvas.createImage();
 					img.src = tempPath;
 					await new Promise((resolve, reject) => {
 						img.onload = resolve;
 						img.onerror = reject;
 					});
-
+			
 					ctx.translate(height / 2, width / 2);
 					ctx.rotate(-90 * Math.PI / 180);
 					ctx.drawImage(img, -width / 2, -height / 2);
-
+			
 					const rotatedFilePath = await new Promise((resolve, reject) => {
 						uni.canvasToTempFilePath({
 							canvas: canvas,
@@ -407,23 +407,60 @@
 							fail: reject
 						});
 					});
-
-					const uploadRes = await uniCloud.uploadFile({
-						filePath: rotatedFilePath,
-						cloudPathAsRealPath: true,
-						cloudPath: `signature/${this.attendance_ym}_${Date.now()}.png`,
+			
+					// ================= 使用 uni-cloud-ext-storage 上传到七牛云 =================
+					const cloudPath = `public/signature/${this.attendance_ym}_${Date.now()}.png`;
+					
+					// 1. 获取上传参数
+					const uploadOptionsRes = await vk.callFunction({
+						url: 'common/pub/getUploadFileOptions/index', // 根据你的云函数路径调整
+						data: {
+							cloudPath: cloudPath
+						}
 					});
-					const fileID = uploadRes.fileID;
-
+					
+					if (uploadOptionsRes.code !== 0) {
+						throw new Error(uploadOptionsRes.msg || '获取上传参数失败');
+					}
+					
+					const uploadOptions = uploadOptionsRes.rows;
+					
+					// console.log(uploadOptions);
+					
+					// 2. 使用 uni.uploadFile 上传到七牛云
+					const uploadResult = await new Promise((resolve, reject) => {
+						uni.uploadFile({
+							...uploadOptions.uploadFileOptions,
+							filePath: rotatedFilePath,							
+							success: (res) => {
+								if (res.statusCode === 200) {
+									resolve(res);
+								} else {
+									reject(new Error(`上传失败: ${res.statusCode}`));
+								}
+							},
+							fail: reject
+						});
+					});
+					
+					// console.log("uploadResult:",uploadResult)
+					
+					// 3. 构建文件访问URL
+					// 七牛云上传成功后，文件可以通过域名+路径访问
+					const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
+					const fileID = cloudPath; // 或者使用 uploadOptions.fileID（如果有）
+					
+					// 4. 保存签名信息到数据库
 					const saveRes = await vk.callFunction({
 						url: 'admin/hrm/salary/sys/payslip/update',
 						data: {
 							_id: this._id,
-							signature_url: fileID,
+							signature_url: fileUrl, // 存储完整的访问URL
+							file_id: fileID,        // 存储文件路径标识
 							status: 1
 						},
 					});
-
+			
 					this.$refs.toast.hide();
 					if (saveRes.code === 0) {
 						this.$refs.toast.showToast('签名成功');

@@ -504,8 +504,8 @@ const _sfc_main = {
             id: item._id
           }
         });
-        (_a = item.form_data) == null ? void 0 : _a.file_attachments.forEach((e) => {
-          vk.myfn.deleteFile(e);
+        (_a = item.form_data) == null ? void 0 : _a.file_attachments.map(async (e, index) => {
+          await vk.myfn.deleteFile(e);
         });
         if (res.code === 0) {
           common_vendor.index.showToast({

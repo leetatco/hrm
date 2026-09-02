@@ -20,97 +20,97 @@
  *      vk.awaitEventReady("onLaunch", (data) => {
  *        console.log('onLaunch-awaitEventReady: ', data);
  *      });
- * 
+ *
  *    - Promise 方式
  *      vk.awaitEventReady("onLaunch").then((data)=>{
  *        console.log('onLaunch-awaitEventReady: ', data);
  *      });
- * 
+ *
  *    - async/await 方式
- *      let data = await vk.awaitEventReady("onLaunch"); 
+ *      let data = await vk.awaitEventReady("onLaunch");
  *      console.log('onLaunch-awaitEventReady: ', data);
  */
-const eventManager = (function() {
-	// 创建一个对象，用于存储不同 eventName 对应的状态和回调函数
-	const eventStatus = {};
+const eventManager = (function () {
+  // 创建一个对象，用于存储不同 eventName 对应的状态和回调函数
+  const eventStatus = {};
 
-	return {
-		/**
-		 * 执行并通知 awaitEventReady 的回调函数执行
-		 * @param {string} eventName - 事件名称
-		 * @param {any} data - 传递给回调函数的数据
-		 */
-		notifyEventReady(eventName, data) {
-			// 如果指定的 eventName 不存在，则初始化相应的状态对象
-			if (!eventStatus[eventName]) {
-				eventStatus[eventName] = {
-					executed: false,
-					data: null,
-					callbacks: [],
-				};
-			}
-			// 设置该事件的状态为已执行，并保存数据
-			eventStatus[eventName].executed = true;
-			eventStatus[eventName].data = data;
+  return {
+    /**
+     * 执行并通知 awaitEventReady 的回调函数执行
+     * @param {string} eventName - 事件名称
+     * @param {any} data - 传递给回调函数的数据
+     */
+    notifyEventReady(eventName, data) {
+      // 如果指定的 eventName 不存在，则初始化相应的状态对象
+      if (!eventStatus[eventName]) {
+        eventStatus[eventName] = {
+          executed: false,
+          data: null,
+          callbacks: [],
+        };
+      }
+      // 设置该事件的状态为已执行，并保存数据
+      eventStatus[eventName].executed = true;
+      eventStatus[eventName].data = data;
 
-			// 执行所有该事件等待的回调函数
-			eventStatus[eventName].callbacks.forEach((callback) => {
-				callback(data);
-			});
-			// 清空该事件已执行过的回调函数
-			eventStatus[eventName].callbacks = [];
-		},
-		/**
-		 * 注册回调函数，并在 notifyEventReady 后执行回调函数
-		 * @param {string} eventName - 事件名称
-		 * @param {Function} callback - 回调函数，接收传递的数据参数
-		 */
-		awaitEventReady(eventName, callback) {
-			return new Promise((resolve, reject) => {
-				// 如果指定的 eventName 存在且已执行过
-				if (eventStatus[eventName] && eventStatus[eventName].executed) {
-					// 执行回调函数
-					if (typeof callback === "function") {
-						callback(eventStatus[eventName].data);
-					}
-					resolve(eventStatus[eventName].data);
-				} else {
-					// 如果指定的 eventName 不存在，则初始化相应的状态对象
-					if (!eventStatus[eventName]) {
-						eventStatus[eventName] = {
-							executed: false,
-							data: null,
-							callbacks: [],
-						};
-					}
-					// 将回调函数加入相应 eventName 的待执行函数队列数组
-					if (typeof callback === "function") {
-						eventStatus[eventName].callbacks.push(callback);
-					}
-					// 将resolve函数加入相应 eventName 的待执行函数队列数组
-					eventStatus[eventName].callbacks.push(resolve);
-				}
-			});
-		},
-		/**
-		 * 检查事件是否已准备就绪
-		 * @param {string} eventName - 事件名称
-		 */
-		checkEventReady(eventName) {
-			return eventStatus[eventName] && eventStatus[eventName].executed ? true : false;
-		},
-		/**
-		 * 获取事件准备就绪时的参数，如果事件未准备就绪，则返回null
-		 * @param {string} eventName - 事件名称
-		 */
-		getEventReadyData(eventName) {
-			if (eventStatus[eventName] && eventStatus[eventName].executed) {
-				return eventStatus[eventName].data;
-			} else {
-				return null;
-			}
-		}
-	};
+      // 执行所有该事件等待的回调函数
+      eventStatus[eventName].callbacks.forEach((callback) => {
+        callback(data);
+      });
+      // 清空该事件已执行过的回调函数
+      eventStatus[eventName].callbacks = [];
+    },
+    /**
+     * 注册回调函数，并在 notifyEventReady 后执行回调函数
+     * @param {string} eventName - 事件名称
+     * @param {Function} callback - 回调函数，接收传递的数据参数
+     */
+    awaitEventReady(eventName, callback) {
+      return new Promise((resolve, reject) => {
+        // 如果指定的 eventName 存在且已执行过
+        if (eventStatus[eventName] && eventStatus[eventName].executed) {
+          // 执行回调函数
+          if (typeof callback === 'function') {
+            callback(eventStatus[eventName].data);
+          }
+          resolve(eventStatus[eventName].data);
+        } else {
+          // 如果指定的 eventName 不存在，则初始化相应的状态对象
+          if (!eventStatus[eventName]) {
+            eventStatus[eventName] = {
+              executed: false,
+              data: null,
+              callbacks: [],
+            };
+          }
+          // 将回调函数加入相应 eventName 的待执行函数队列数组
+          if (typeof callback === 'function') {
+            eventStatus[eventName].callbacks.push(callback);
+          }
+          // 将resolve函数加入相应 eventName 的待执行函数队列数组
+          eventStatus[eventName].callbacks.push(resolve);
+        }
+      });
+    },
+    /**
+     * 检查事件是否已准备就绪
+     * @param {string} eventName - 事件名称
+     */
+    checkEventReady(eventName) {
+      return eventStatus[eventName] && eventStatus[eventName].executed ? true : false;
+    },
+    /**
+     * 获取事件准备就绪时的参数，如果事件未准备就绪，则返回null
+     * @param {string} eventName - 事件名称
+     */
+    getEventReadyData(eventName) {
+      if (eventStatus[eventName] && eventStatus[eventName].executed) {
+        return eventStatus[eventName].data;
+      } else {
+        return null;
+      }
+    },
+  };
 })();
 
 export default eventManager;

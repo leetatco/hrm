@@ -18,7 +18,7 @@ class CallFunctionUtil {
       testFunctionName: "router-test",
       // 云函数url化后对应的url地址
       functionNameToUrl: {
-        "router": "https://xxxxxxx.bspapp.com/http/router",
+        router: "https://xxxxxxx.bspapp.com/http/router",
         "router-test": "https://xxxxxxx.bspapp.com/http/router"
       },
       // vk.callFunction的isRequest的默认值
@@ -29,6 +29,10 @@ class CallFunctionUtil {
       login: {
         url: "/pages_template/uni-id/login/index/index"
       },
+      // 账户注销页面
+      closeAccount: {
+        url: "/pages_template/uni-id/closeAccount/closeAccount"
+      },
       // 请求配置
       request: {
         // 公共请求参数(每次请求都会带上的参数)
@@ -38,10 +42,7 @@ class CallFunctionUtil {
       logger: {
         mode: 0,
         // 0 正常（默认展开） 1 简洁（默认折叠）
-        colorArr: [
-          "#0095ff",
-          "#67C23A"
-        ]
+        colorArr: ["#0095ff", "#67C23A"]
       },
       // 缓存键名 - token（请勿修改）
       uniIdTokenKeyName: "uni_id_token",
@@ -70,8 +71,16 @@ class CallFunctionUtil {
       vk.setStorageSync(config.uniIdTokenExpiredKeyName, res.tokenExpired);
       this.emitRefreshToken(res);
       if (this.config.debug)
-        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:82", "--------【token已更新】--------");
+        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:84", "--------【token已更新】--------");
       return true;
+    };
+    this.handleAutoLoginToken = (options) => {
+      if (options && options.query && options.query.token) {
+        this.saveToken({
+          token: options.query.token,
+          tokenExpired: options.query.tokenExpired || Date.now() + 100 * 365 * 24 * 60 * 60 * 1e3
+        });
+      }
     };
     this.deleteToken = () => {
       let config = this.config;
@@ -80,13 +89,11 @@ class CallFunctionUtil {
       this.deleteUserInfo();
       this.emitRefreshToken();
       if (this.config.debug)
-        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:92", "--------【token已删除】--------");
+        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:106", "--------【token已删除】--------");
     };
     this.updateUserInfo = (res = {}) => {
       let config = this.config;
-      let {
-        userInfo = {}
-      } = res;
+      let { userInfo = {} } = res;
       if (typeof vk.setVuex === "function") {
         vk.setVuex("$user.userInfo", userInfo);
       } else {
@@ -94,9 +101,7 @@ class CallFunctionUtil {
       }
     };
     this.deleteUserInfo = (res = {}) => {
-      let {
-        log = true
-      } = res;
+      let { log = true } = res;
       let config = this.config;
       if (typeof vk.setVuex === "function") {
         vk.setVuex("$user.userInfo", {});
@@ -106,7 +111,7 @@ class CallFunctionUtil {
         vk.removeStorageSync(config.uniIdUserInfoKeyName);
       }
       if (this.config.debug && log)
-        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:124", "--------【用户信息已删除】--------");
+        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:134", "--------【用户信息已删除】--------");
     };
     this.checkToken = (res = {}) => {
       let config = this.config;
@@ -169,14 +174,11 @@ class CallFunctionUtil {
           return false;
         }
         lastToLoginTime = nowTime;
-        let {
-          params,
-          res
-        } = obj;
+        let { params, res } = obj;
         let config = this.config;
         this.callFunction;
         if (config.debug)
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:237", "跳登录页面");
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:244", "跳登录页面");
         let { tokenExpiredAutoDelete = true } = config;
         if (tokenExpiredAutoDelete)
           this.deleteToken();
@@ -226,11 +228,7 @@ class CallFunctionUtil {
     this.callFunction = (obj = {}) => {
       let that = this;
       let { config } = that;
-      let {
-        url,
-        data = {},
-        globalParamName
-      } = obj;
+      let { url, data = {}, globalParamName } = obj;
       if (!url) {
         vk.toast("vk.callFunction的url参数不能为空");
         return;
@@ -350,6 +348,8 @@ class CallFunctionUtil {
                   initConifg.spaceAppId = envItem.spaceAppId;
                   initConifg.accessKey = envItem.accessKey;
                   initConifg.secretKey = envItem.secretKey;
+                } else if (envItem.provider === "dcloud") {
+                  initConifg.clientSecret = envItem.clientSecret;
                 }
                 if (envItem.endpoint)
                   initConifg.endpoint = envItem.endpoint;
@@ -380,6 +380,8 @@ class CallFunctionUtil {
       let config = that.config;
       if (!obj.filePath && obj.file && obj.file.path)
         obj.filePath = obj.file.path;
+      if (!obj.filePath && obj.file && obj.file.url)
+        obj.filePath = obj.file.url;
       if (obj.errorToast)
         obj.needAlert = false;
       obj.fileType = that.getFileType(obj);
@@ -487,9 +489,9 @@ class CallFunctionUtil {
           let colorStr = colorArr[counterNum % colorArr.length];
           counterNum++;
           const providerObj = {
-            "unicloud": "内置存储",
-            "extStorage": "扩展存储",
-            "aliyun": "阿里云oss"
+            unicloud: "内置存储",
+            extStorage: "扩展存储",
+            aliyun: "阿里云oss"
           };
           let providerName = providerObj[provider] || provider;
           let logMode = config2.logger.mode || 0;
@@ -499,21 +501,113 @@ class CallFunctionUtil {
               requestStatus = "异常";
               colorStr = "#fa3534";
             }
-            console.groupCollapsed(`%c--------【${requestStatus}】【${providerName}-文件上传】【${Logger.runTime}ms】--------`, `color: ${colorStr};font-size: 12px;font-weight: bold;`);
+            console.groupCollapsed(
+              `%c--------【${requestStatus}】【${providerName}-文件上传】【${Logger.runTime}ms】--------`,
+              `color: ${colorStr};font-size: 12px;font-weight: bold;`
+            );
           }
           if (logMode === 0)
-            common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:651", `%c--------【开始】【${providerName}-文件上传】--------`, "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:652", "【本地文件】: ", Logger.filePath);
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:653", "【返回数据】: ", Logger.result);
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:654", "【预览地址】: ", Logger.result && Logger.result.url);
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:655", "【上传耗时】: ", Logger.runTime, "毫秒");
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:656", "【上传时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
+            common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:661", `%c--------【开始】【${providerName}-文件上传】--------`, "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:662", "【本地文件】: ", Logger.filePath);
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:663", "【返回数据】: ", Logger.result);
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:664", "【预览地址】: ", Logger.result && Logger.result.url);
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:665", "【上传耗时】: ", Logger.runTime, "毫秒");
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:666", "【上传时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
           if (Logger.error)
-            common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:657", "【error】:", Logger.error);
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:658", `%c--------【结束】【${providerName}-文件上传】--------`, "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
+            common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:667", "【error】:", Logger.error);
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:668", `%c--------【结束】【${providerName}-文件上传】--------`, "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
           if (logMode === 1)
             console.groupEnd();
           if (typeof obj.complete == "function")
+            obj.complete();
+        });
+      });
+      promiseRes.catch((err2) => {
+      });
+      return promiseRes;
+    };
+    this.chooseAndUploadFile = (obj = {}) => {
+      let that = this;
+      let { type, title } = obj;
+      let promiseRes = new Promise((resolve, reject) => {
+        const run = async () => {
+          if (["image", "video", "all"].indexOf(type) === -1) {
+            throw { errMsg: "chooseAndUploadFile:fail 参数 type 仅支持 image、video、all" };
+          }
+          let chooseRes = await that.chooseFile(obj);
+          if (typeof obj.onChooseFile === "function") {
+            const hookRes = await Promise.resolve(obj.onChooseFile(chooseRes));
+            if (hookRes !== void 0)
+              chooseRes = hookRes;
+          }
+          let { tempFilePaths = [], tempFiles = [] } = chooseRes;
+          if (title)
+            vk.showLoading(title, "request");
+          try {
+            for (let index = 0; index < tempFiles.length; index++) {
+              let tempFile = tempFiles[index];
+              let uploadRes;
+              try {
+                uploadRes = await that.uploadFile({
+                  filePath: tempFile.path || tempFilePaths[index],
+                  file: tempFile,
+                  cloudPath: tempFile.cloudPath,
+                  // 仅支持逐文件指定（由onChooseFile钩子设置），多文件下顶层cloudPath会互相覆盖故不透传
+                  provider: obj.provider,
+                  cloudDirectory: obj.cloudDirectory,
+                  needSave: obj.needSave,
+                  category_id: obj.category_id,
+                  uniCloud: obj.uniCloud,
+                  env: obj.env,
+                  cloudPathAsRealPath: obj.cloudPathAsRealPath,
+                  cloudPathRemoveChinese: obj.cloudPathRemoveChinese,
+                  encrypt: obj.encrypt,
+                  errorToast: obj.errorToast,
+                  needAlert: obj.needAlert,
+                  onUploadProgress: (e = {}) => {
+                    if (typeof obj.onUploadProgress === "function") {
+                      obj.onUploadProgress({
+                        index,
+                        loaded: e.loaded,
+                        total: e.total,
+                        progress: e.progress,
+                        tempFilePath: tempFilePaths[index],
+                        tempFile
+                      });
+                    }
+                  }
+                });
+              } catch (err2) {
+                if (err2 && typeof err2 === "object") {
+                  err2.index = index;
+                  err2.tempFilePath = tempFilePaths[index];
+                  err2.tempFile = tempFile;
+                  err2.tempFiles = tempFiles;
+                }
+                throw err2;
+              }
+              tempFile.url = uploadRes.url;
+              tempFile.fileID = uploadRes.fileID;
+              tempFile.fileURL = uploadRes.fileURL;
+              tempFile.cloudPath = uploadRes.cloudPath;
+              tempFile.provider = uploadRes.provider;
+            }
+          } finally {
+            if (title)
+              vk.hideLoading("request");
+          }
+          return { errMsg: "chooseAndUploadFile:ok", tempFilePaths, tempFiles };
+        };
+        run().then((res) => {
+          if (typeof obj.success === "function")
+            obj.success(res);
+          resolve(res);
+        }).catch((err2) => {
+          if (typeof obj.fail === "function")
+            obj.fail(err2);
+          reject(err2);
+        }).finally(() => {
+          if (typeof obj.complete === "function")
             obj.complete();
         });
       });
@@ -526,20 +620,7 @@ class CallFunctionUtil {
   runCallFunction(obj = {}) {
     let that = this;
     let config = that.config;
-    let {
-      url,
-      data,
-      title,
-      loading,
-      isRequest,
-      name,
-      complete,
-      uniCloud: myCloud,
-      env = "default",
-      secretType,
-      encrypt,
-      timeout
-    } = obj;
+    let { url, data, title, loading, isRequest, name, complete, uniCloud: myCloud, env = "default", secretType, encrypt, timeout } = obj;
     let Logger = {};
     if (title)
       vk.showLoading(title, "request");
@@ -607,16 +688,7 @@ class CallFunctionUtil {
   runRequest(obj = {}) {
     let that = this;
     let config = that.config;
-    let {
-      url,
-      data,
-      title,
-      loading,
-      name,
-      complete,
-      encrypt,
-      timeout
-    } = obj;
+    let { url, data, title, loading, name, complete, encrypt, timeout } = obj;
     if (typeof obj.needAlert === "undefined")
       obj.needAlert = true;
     if (!name)
@@ -647,28 +719,30 @@ class CallFunctionUtil {
         decryptFn = encryptRes.decrypt;
       }
       const sysInfo = common_vendor.index.getSystemInfoSync();
-      let header = JSON.parse(JSON.stringify({
-        "content-type": "application/json;charset=utf8",
-        "vk-encrypt": encrypt ? "true" : void 0,
-        "uni-id-token": uniIdToken,
-        "vk-appid": sysInfo.appId,
-        "vk-platform": sysInfo.uniPlatform,
-        "vk-locale": sysInfo.appLanguage,
-        "vk-device-id": sysInfo.deviceId,
-        "vk-os": sysInfo.osName,
-        "vk-app-name": sysInfo.appName ? encodeURIComponent(sysInfo.appName) : void 0,
-        "vk-app-version": sysInfo.appVersion,
-        "vk-app-version-code": sysInfo.appVersionCode,
-        "vk-browser-name": sysInfo.browserName ? encodeURIComponent(sysInfo.browserName) : void 0,
-        "vk-browser-version": sysInfo.browserVersion,
-        "vk-app-wgt-version": sysInfo.appWgtVersion,
-        "vk-device-brand": sysInfo.deviceBrand,
-        "vk-device-model": sysInfo.deviceModel,
-        "vk-device-type": sysInfo.deviceType,
-        "vk-uni-compile-version": sysInfo.uniCompileVersion,
-        "vk-uni-runtime-version": sysInfo.uniRuntimeVersion,
-        "vk-uni-compiler-version": sysInfo.uniCompilerVersion
-      }));
+      let header = JSON.parse(
+        JSON.stringify({
+          "content-type": "application/json;charset=utf8",
+          "vk-encrypt": encrypt ? "true" : void 0,
+          "uni-id-token": uniIdToken,
+          "vk-appid": sysInfo.appId,
+          "vk-platform": sysInfo.uniPlatform,
+          "vk-locale": sysInfo.appLanguage,
+          "vk-device-id": sysInfo.deviceId,
+          "vk-os": sysInfo.osName,
+          "vk-app-name": sysInfo.appName ? encodeURIComponent(sysInfo.appName) : void 0,
+          "vk-app-version": sysInfo.appVersion,
+          "vk-app-version-code": sysInfo.appVersionCode,
+          "vk-browser-name": sysInfo.browserName ? encodeURIComponent(sysInfo.browserName) : void 0,
+          "vk-browser-version": sysInfo.browserVersion,
+          "vk-app-wgt-version": sysInfo.appWgtVersion,
+          "vk-device-brand": sysInfo.deviceBrand,
+          "vk-device-model": sysInfo.deviceModel,
+          "vk-device-type": sysInfo.deviceType,
+          "vk-uni-compile-version": sysInfo.uniCompileVersion,
+          "vk-uni-runtime-version": sysInfo.uniRuntimeVersion,
+          "vk-uni-compiler-version": sysInfo.uniCompilerVersion
+        })
+      );
       common_vendor.index.request({
         method: "POST",
         url: requestUrl,
@@ -713,18 +787,8 @@ class CallFunctionUtil {
   callFunctionSuccess(obj) {
     let that = this;
     let config = that.config;
-    let {
-      res = {},
-      params,
-      Logger,
-      resolve,
-      reject
-    } = obj;
-    let {
-      title,
-      loading,
-      success
-    } = params;
+    let { res = {}, params, Logger, resolve, reject } = obj;
+    let { title, loading, success } = params;
     if (title)
       vk.hideLoading("request");
     if (loading) {
@@ -767,21 +831,8 @@ class CallFunctionUtil {
     let that = this;
     let config = that.config;
     let { globalErrorCode = {} } = config;
-    let {
-      res = {},
-      params,
-      Logger,
-      reject,
-      sysFail
-    } = obj;
-    let {
-      title,
-      loading,
-      errorToast,
-      noAlert,
-      needAlert,
-      fail
-    } = params;
+    let { res = {}, params, Logger, reject, sysFail } = obj;
+    let { title, loading, errorToast, noAlert, needAlert, fail } = params;
     if (params.needRetry) {
       if (sysFail || res.code && [90001].indexOf(res.code) > -1) {
         if (!obj.hookResult || typeof obj.hookResult === "function" && !obj.hookResult(err)) {
@@ -842,6 +893,17 @@ class CallFunctionUtil {
       errMsg = globalErrorCode["cloudfunction-reaches-burst-limit"] || "系统繁忙，请稍后再试。";
     } else if (res.code === "InternalServerError") {
       sysErr = true;
+    } else if ((res.code === "uni-id-user-account-closed" || res.errCode === "uni-id-user-account-closed") && config.closeAccount && config.closeAccount.url) {
+      sysErr = true;
+      needAlert = false;
+      vk.pubfn.debounce(
+        () => {
+          vk.reLaunch(config.closeAccount.url);
+        },
+        2e3,
+        true,
+        "user-account-closed"
+      );
     } else if (res.code === "SYS_ERR" && errMsg.indexOf("似乎已断开与互联网的连接") > -1) {
       errMsg = globalErrorCode["cloudfunction-network-unauthorized"];
       sysErr = true;
@@ -870,6 +932,7 @@ class CallFunctionUtil {
         if (sysErr) {
           let toastMsg = globalErrorCode["cloudfunction-system-error"] || "网络开小差了！";
           vk.toast(toastMsg, "none");
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1111", errMsg);
         } else {
           vk.alert(errMsg);
         }
@@ -884,19 +947,8 @@ class CallFunctionUtil {
   callFunctionComplete(obj) {
     let that = this;
     let config = that.config;
-    let {
-      res = {},
-      params,
-      Logger
-    } = obj;
-    let {
-      name,
-      url,
-      isRequest,
-      complete,
-      debug: debugLog,
-      encrypt
-    } = params;
+    let { res = {}, params, Logger } = obj;
+    let { name, url, isRequest, complete, debug: debugLog, encrypt } = params;
     if (params.needRetry && Logger.sysFail) {
       return false;
     }
@@ -930,21 +982,24 @@ class CallFunctionUtil {
           }
         }
         if (typeof console.groupCollapsed === "function")
-          console.groupCollapsed(`%c--------【${requestStatus}】${Logger.label}【${functionType}请求】【${name}】【${url}】【${Logger.runTime}ms】--------`, `color: ${colorStr};font-size: 12px;font-weight: bold;`);
+          console.groupCollapsed(
+            `%c--------【${requestStatus}】${Logger.label}【${functionType}请求】【${name}】【${url}】【${Logger.runTime}ms】--------`,
+            `color: ${colorStr};font-size: 12px;font-weight: bold;`
+          );
       }
       if (logMode === 0)
-        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1072", `%c--------【开始】${Logger.label}【${functionType}请求】【${name}】【${url}】--------`, `color: ${colorStr};font-size: 12px;font-weight: bold;`);
-      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1073", "【请求参数】: ", Logger.params);
-      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1074", "【返回数据】: ", Logger.result);
-      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1075", "【总体耗时】: ", Logger.runTime, "毫秒【含页面渲染】");
-      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1076", "【请求时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
+        common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1170", `%c--------【开始】${Logger.label}【${functionType}请求】【${name}】【${url}】--------`, `color: ${colorStr};font-size: 12px;font-weight: bold;`);
+      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1171", "【请求参数】: ", Logger.params);
+      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1172", "【返回数据】: ", Logger.result);
+      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1173", "【总体耗时】: ", Logger.runTime, "毫秒【含页面渲染】");
+      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1174", "【请求时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
       if (Logger.error) {
         let errorLog = console.warn || console.error;
         if (Logger.error.err && Logger.error.err.stack) {
-          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1080", "【Error】: ", Logger.error);
-          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1081", "【Stack】: ", Logger.error.err.stack);
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1178", "【Error】: ", Logger.error);
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1179", "【Stack】: ", Logger.error.err.stack);
         } else if (Logger.error.stack) {
-          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1083", "【Error】: ", `${Logger.error.code} ${Logger.error.message}`);
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1181", "【Error】: ", `${Logger.error.code} ${Logger.error.message}`);
         } else {
           errorLog("【Error】: ", Logger.error);
           if (typeof Logger.error === "object" && typeof Logger.error.code === "undefined" && typeof Logger.error.success !== "boolean" || typeof Logger.error !== "object") {
@@ -952,7 +1007,7 @@ class CallFunctionUtil {
           }
         }
       }
-      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1091", `%c--------【结束】${Logger.label}【${functionType}请求】【${name}】【${url}】--------`, `color: ${colorStr};font-size: 12px;font-weight: bold;`);
+      common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1189", `%c--------【结束】${Logger.label}【${functionType}请求】【${name}】【${url}】--------`, `color: ${colorStr};font-size: 12px;font-weight: bold;`);
       if (logMode === 1 && typeof console.groupEnd === "function")
         console.groupEnd();
       Logger = null;
@@ -962,11 +1017,7 @@ class CallFunctionUtil {
   }
   // 获取文件后缀名
   getFileSuffix(obj = {}) {
-    let {
-      file,
-      filePath,
-      suffix = "png"
-    } = obj;
+    let { file, filePath, suffix = "png" } = obj;
     if (filePath) {
       let suffixName = filePath.substring(filePath.lastIndexOf(".") + 1);
       if (suffixName && suffixName.length < 5)
@@ -1001,6 +1052,81 @@ class CallFunctionUtil {
   getFileName(cloudPath = "") {
     let parts = cloudPath.split("/");
     return parts[parts.length - 1];
+  }
+  // 通过UI界面选择文件（内部方法，供 chooseAndUploadFile 使用）
+  chooseFile(obj = {}) {
+    let that = this;
+    let { type, count, extension, sizeType, sourceType, compressed, maxDuration, camera } = obj;
+    return new Promise((resolve, reject) => {
+      if (type === "image") {
+        common_vendor.index.chooseImage({
+          count: count || 9,
+          sizeType,
+          sourceType,
+          extension,
+          success: (res) => resolve(that.normalizeChooseFileRes(res, "image")),
+          fail: reject
+        });
+      } else if (type === "video") {
+        common_vendor.index.chooseVideo({
+          camera,
+          maxDuration,
+          sourceType,
+          extension,
+          compressed: typeof compressed === "undefined" ? true : compressed,
+          success: (res) => resolve(that.normalizeChooseFileRes(res, "video")),
+          fail: reject
+        });
+      } else if (type === "all") {
+        common_vendor.wx$1.chooseMessageFile({
+          count: count || 100,
+          type: "all",
+          extension,
+          success: (res) => resolve(that.normalizeChooseFileRes(res, "all")),
+          fail: reject
+        });
+      }
+    });
+  }
+  // 归一化选择文件的结果为 { errMsg, tempFilePaths, tempFiles }（内部方法，供 chooseAndUploadFile 使用）
+  normalizeChooseFileRes(res = {}, type) {
+    let tempFilePaths = [];
+    let tempFiles = [];
+    if (type === "video") {
+      let filePath = res.tempFilePath;
+      let tempFile = res.tempFile || {};
+      tempFilePaths = [filePath];
+      if (!tempFile.path)
+        tempFile.path = filePath;
+      if (!tempFile.name)
+        tempFile.name = this.getFileName(filePath);
+      if (!tempFile.size && res.size)
+        tempFile.size = res.size;
+      tempFile.fileType = "video";
+      if (res.duration)
+        tempFile.duration = res.duration;
+      if (res.width)
+        tempFile.width = res.width;
+      if (res.height)
+        tempFile.height = res.height;
+      tempFiles = [tempFile];
+    } else {
+      tempFilePaths = res.tempFilePaths || [];
+      tempFiles = res.tempFiles || [];
+      if (tempFilePaths.length === 0 && tempFiles.length > 0) {
+        tempFilePaths = tempFiles.map((item) => item.path || item.tempFilePath);
+      }
+      tempFiles.forEach((item, index) => {
+        if (!item.path)
+          item.path = item.tempFilePath || tempFilePaths[index];
+        if (!item.name)
+          item.name = this.getFileName(item.path);
+        if (!item.fileType) {
+          item.fileType = type === "image" ? "image" : this.getFileType({ filePath: item.path, file: item });
+        }
+      });
+    }
+    return { errMsg: "chooseAndUploadFile:ok", tempFilePaths, tempFiles };
   }
   // 获取云对象权限类型
   // 文档：https://vkdoc.fsq.pub/client/uniCloud/cloudfunctions/cloudObject.html#内置权限
@@ -1072,7 +1198,7 @@ class CallFunctionUtil {
         obj.needRetry = retryCount > obj.runCount ? true : false;
         err2.message ? `异常信息：${err2.message}` : "";
         if (debug)
-          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1227", `【请求失败】正在第【${obj.runCount}】次重试：${obj.url}`);
+          common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-callFunctionUtil.js:1404", `【请求失败】正在第【${obj.runCount}】次重试：${obj.url}`);
         if (obj.retryInterval) {
           setTimeout(() => {
             this._callRetryFn(obj, resolve, reject, retryCount);

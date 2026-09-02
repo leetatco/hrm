@@ -176,7 +176,7 @@
 				saveLoadingLocal: false,
 				submitLoadingLocal: false,
 				simulateLoadingLocal: false,
-				fileDir: '/oa'
+				fileDir: 'oa'
 			};
 		},
 		computed: {

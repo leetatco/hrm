@@ -31,9 +31,7 @@ class CloudStorage {
         fileType,
         cloudPathAsRealPath,
         onUploadProgress: (progressEvent) => {
-          let percentCompleted = Math.round(
-            progressEvent.loaded * 100 / progressEvent.total
-          );
+          let percentCompleted = Math.round(progressEvent.loaded * 100 / progressEvent.total);
           if (typeof obj.onUploadProgress == "function") {
             obj.onUploadProgress({
               total: progressEvent.total,
@@ -79,14 +77,7 @@ class CloudStorage {
 }
 const unicloud = new CloudStorage();
 function createFileName(obj = {}) {
-  let {
-    file,
-    filePath,
-    suffix,
-    index = 0,
-    cloudPathRemoveChinese = true,
-    cloudDirectory
-  } = obj;
+  let { file, filePath, suffix, index = 0, cloudPathRemoveChinese = true, cloudDirectory } = obj;
   let vk = common_vendor.index.vk;
   let oldName = index + "." + suffix;
   if (file && file.name) {

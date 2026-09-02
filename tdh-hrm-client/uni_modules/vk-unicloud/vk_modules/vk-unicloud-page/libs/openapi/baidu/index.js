@@ -3,9 +3,9 @@
  */
 const baidu = {};
 let vk = {};
-let baiduOpenApiAccessTokenCacheName = "vk_openapi_baidu_open_token";
-baidu.init = function(util={}) {
-	vk =  util.vk;
+let baiduOpenApiAccessTokenCacheName = 'vk_openapi_baidu_open_token';
+baidu.init = function (util = {}) {
+  vk = util.vk;
 };
 
 // 百度开放平台api
@@ -26,23 +26,23 @@ vk.openapi.baidu.open.ocr.business_license({
 		file: res.tempFiles[0]
 	},
 	success: (res) => {
-		that.data = res.data;
+		this.data = res.data;
 	},
 });
  */
-baidu.open.ocr.business_license = function(obj={}){
-	obj.action = "ocr/v1/business_license";
-	let file = obj.data.file;
-	if(file){
-		vk.pubfn.fileToBase64({ file }).then(base64 => {
-			obj.data.image = base64;
-			delete obj.data.file;
-			baidu.request(obj);
-		});
-	}else{
-		baidu.request(obj);
-	}
-}
+baidu.open.ocr.business_license = function (obj = {}) {
+  obj.action = 'ocr/v1/business_license';
+  let file = obj.data.file;
+  if (file) {
+    vk.pubfn.fileToBase64({ file }).then((base64) => {
+      obj.data.image = base64;
+      delete obj.data.file;
+      baidu.request(obj);
+    });
+  } else {
+    baidu.request(obj);
+  }
+};
 
 /**
  * 身份证识别
@@ -57,24 +57,24 @@ vk.openapi.baidu.open.ocr.idcard({
 		id_card_side:"front", // front：身份证含照片的一面 back：身份证带国徽的一面
 	},
 	success: (res) => {
-		that.data = res.data;
+		this.data = res.data;
 	},
 });
  */
-baidu.open.ocr.idcard = function(obj={}){
-	obj.action = "ocr/v1/idcard";
-	let file = obj.data.file;
-	if(!obj.data.id_card_side) obj.data.id_card_side = "front";
-	if(file){
-		vk.pubfn.fileToBase64({ file }).then(base64 => {
-			obj.data.image = base64;
-			delete obj.data.file;
-			baidu.request(obj);
-		});
-	}else{
-		baidu.request(obj);
-	}
-}
+baidu.open.ocr.idcard = function (obj = {}) {
+  obj.action = 'ocr/v1/idcard';
+  let file = obj.data.file;
+  if (!obj.data.id_card_side) obj.data.id_card_side = 'front';
+  if (file) {
+    vk.pubfn.fileToBase64({ file }).then((base64) => {
+      obj.data.image = base64;
+      delete obj.data.file;
+      baidu.request(obj);
+    });
+  } else {
+    baidu.request(obj);
+  }
+};
 
 /**
  * 百度开放平台通用请求接口
@@ -93,78 +93,69 @@ vk.openapi.baidu.request({
  		image:base64
  	},
  	success: (data) => {
- 		that.data = data;
+ 		this.data = data;
  	},
 });
  */
-baidu.request = function(obj={}){
-	let {
-		title
-	} = obj;
-	if(title) vk.showLoading(title);
-	let baiduApiAccessToken = vk.getStorageSync(baiduOpenApiAccessTokenCacheName);
-	if(baiduApiAccessToken && baiduApiAccessToken.expTime > new Date().getTime()){
-		// 获取缓存中的token
-		obj.accessToken = baiduApiAccessToken.accessToken;
-		request(obj);
-	}else{
-		// 发起请求获取token
-		vk.callFunction({
-			url: 'plugs/baidu/client/pub/getAccessToken',
-			success:function(tokenRes) {
-				vk.setStorageSync(baiduOpenApiAccessTokenCacheName,{
-					accessToken : tokenRes.access_token,
-					expTime :  2590000000 + new Date().getTime(),
-				});
-				obj.accessToken = tokenRes.access_token;
-				request(obj);
-			},
-			fail:function(res){
-				if(title) vk.hideLoading();
-				if(typeof obj.fail === "function") obj.fail(res);
-				if(typeof obj.complete === "function") obj.complete(res);
-			}
-		});
-	}
-}
+baidu.request = function (obj = {}) {
+  let { title } = obj;
+  if (title) vk.showLoading(title);
+  let baiduApiAccessToken = vk.getStorageSync(baiduOpenApiAccessTokenCacheName);
+  if (baiduApiAccessToken && baiduApiAccessToken.expTime > new Date().getTime()) {
+    // 获取缓存中的token
+    obj.accessToken = baiduApiAccessToken.accessToken;
+    request(obj);
+  } else {
+    // 发起请求获取token
+    vk.callFunction({
+      url: 'plugs/baidu/client/pub.getAccessToken',
+      success: (tokenRes) => {
+        vk.setStorageSync(baiduOpenApiAccessTokenCacheName, {
+          accessToken: tokenRes.access_token,
+          expTime: 2590000000 + new Date().getTime(),
+        });
+        obj.accessToken = tokenRes.access_token;
+        request(obj);
+      },
+      fail: (res) => {
+        if (title) vk.hideLoading();
+        if (typeof obj.fail === 'function') obj.fail(res);
+        if (typeof obj.complete === 'function') obj.complete(res);
+      },
+    });
+  }
+};
 
-function request(obj={}){
-	let {
-		action,
-		actionVersion = "2.0",
-		accessToken,
-		header = { "content-type": "application/x-www-form-urlencoded" },
-		data,
-		title
-	} = obj;
-	vk.request({
-		url: `https://aip.baidubce.com/rest/${actionVersion}/${action}?access_token=${accessToken}`,
-		method:"POST",
-		header:{
-			"content-type": "application/x-www-form-urlencoded",
-		},
-		errorCodeName:"error_code",
-		errorMsgName:"error_msg",
-		data,
-		needAlert:true,
-		success: function(data){
-			if(title) vk.hideLoading();
-			if(data.code){
-				if(typeof obj.fail === "function") obj.fail(data);
-			}else{
-				if(typeof obj.success === "function") obj.success(data);
-			}
-		},
-		fail: function(data){
-			if(title) vk.hideLoading();
-			// 如果是因为token失效报的错误,则清空下本地token缓存
-			if(data && data.code === 110) vk.removeStorageSync(baiduOpenApiAccessTokenCacheName);
-			if(typeof obj.fail === "function") obj.fail(data);
-		},
-		complete: function(data){
-			if(typeof obj.complete === "function") obj.complete(data);
-		}
-	});
+function request(obj = {}) {
+  let { action, actionVersion = '2.0', accessToken, header = { 'content-type': 'application/x-www-form-urlencoded' }, data, title } = obj;
+  vk.request({
+    url: `https://aip.baidubce.com/rest/${actionVersion}/${action}?access_token=${accessToken}`,
+    method: 'POST',
+    header: {
+      'content-type': 'application/x-www-form-urlencoded',
+    },
+    errorCodeName: 'error_code',
+    errorMsgName: 'error_msg',
+    data,
+    needAlert: true,
+    success: (data) => {
+      if (title) vk.hideLoading();
+      if (data.code) {
+        if (typeof obj.fail === 'function') obj.fail(data);
+      } else {
+        if (typeof obj.success === 'function') obj.success(data);
+      }
+    },
+    fail: (data) => {
+      if (title) vk.hideLoading();
+      // 如果是因为token失效报的错误,则清空下本地token缓存
+      if (data && data.code === 110) vk.removeStorageSync(baiduOpenApiAccessTokenCacheName);
+      if (typeof obj.fail === 'function') obj.fail(data);
+    },
+    complete: (data) => {
+      if (typeof obj.complete === 'function') obj.complete(data);
+    },
+  });
 }
 
 export default baidu;

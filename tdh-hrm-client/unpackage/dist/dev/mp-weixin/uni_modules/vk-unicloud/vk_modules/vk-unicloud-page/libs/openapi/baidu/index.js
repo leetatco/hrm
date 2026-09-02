@@ -36,9 +36,7 @@ baidu.open.ocr.idcard = function(obj = {}) {
   }
 };
 baidu.request = function(obj = {}) {
-  let {
-    title
-  } = obj;
+  let { title } = obj;
   if (title)
     vk.showLoading(title);
   let baiduApiAccessToken = vk.getStorageSync(baiduOpenApiAccessTokenCacheName);
@@ -47,8 +45,8 @@ baidu.request = function(obj = {}) {
     request(obj);
   } else {
     vk.callFunction({
-      url: "plugs/baidu/client/pub/getAccessToken",
-      success: function(tokenRes) {
+      url: "plugs/baidu/client/pub.getAccessToken",
+      success: (tokenRes) => {
         vk.setStorageSync(baiduOpenApiAccessTokenCacheName, {
           accessToken: tokenRes.access_token,
           expTime: 259e7 + (/* @__PURE__ */ new Date()).getTime()
@@ -56,7 +54,7 @@ baidu.request = function(obj = {}) {
         obj.accessToken = tokenRes.access_token;
         request(obj);
       },
-      fail: function(res) {
+      fail: (res) => {
         if (title)
           vk.hideLoading();
         if (typeof obj.fail === "function")
@@ -68,14 +66,7 @@ baidu.request = function(obj = {}) {
   }
 };
 function request(obj = {}) {
-  let {
-    action,
-    actionVersion = "2.0",
-    accessToken,
-    header = { "content-type": "application/x-www-form-urlencoded" },
-    data,
-    title
-  } = obj;
+  let { action, actionVersion = "2.0", accessToken, header = { "content-type": "application/x-www-form-urlencoded" }, data, title } = obj;
   vk.request({
     url: `https://aip.baidubce.com/rest/${actionVersion}/${action}?access_token=${accessToken}`,
     method: "POST",
@@ -86,7 +77,7 @@ function request(obj = {}) {
     errorMsgName: "error_msg",
     data,
     needAlert: true,
-    success: function(data2) {
+    success: (data2) => {
       if (title)
         vk.hideLoading();
       if (data2.code) {
@@ -97,7 +88,7 @@ function request(obj = {}) {
           obj.success(data2);
       }
     },
-    fail: function(data2) {
+    fail: (data2) => {
       if (title)
         vk.hideLoading();
       if (data2 && data2.code === 110)
@@ -105,7 +96,7 @@ function request(obj = {}) {
       if (typeof obj.fail === "function")
         obj.fail(data2);
     },
-    complete: function(data2) {
+    complete: (data2) => {
       if (typeof obj.complete === "function")
         obj.complete(data2);
     }

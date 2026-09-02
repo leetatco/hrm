@@ -70,7 +70,8 @@
 							<view class="info-grid">
 								<view class="info-item">
 									<text class="info-label">外出类型</text>
-									<text class="info-value">{{ getOutingTypeLabel(item.form_data?.outing_type) }}</text>
+									<text
+										class="info-value">{{ getOutingTypeLabel(item.form_data?.outing_type) }}</text>
 								</view>
 								<view class="info-item">
 									<text class="info-label">外出日期</text>
@@ -732,8 +733,8 @@
 				});
 
 				// 删除附件
-				item.form_data?.file_attachments.forEach((e) => {
-					vk.myfn.deleteFile(e);
+				item.form_data?.file_attachments.map(async (e, index) => {
+					await vk.myfn.deleteFile(e);
 				});
 
 				if (res.code === 0) {
@@ -800,8 +801,8 @@
 				this.submitFormLoading = true;
 				try {
 					const userInfo = this.vk.getVuex('$user.userInfo');
-					
-					let totalDuration = formData.total_duration;					
+
+					let totalDuration = formData.total_duration;
 
 					const calculatedValues = {
 						total_duration: totalDuration,
@@ -852,8 +853,8 @@
 			async handleSimulate(formData) {
 				this.simulateFormLoading = true;
 				try {
-					const userInfo = this.vk.getVuex('$user.userInfo');					
-					let totalDuration = formData.total_duration;	
+					const userInfo = this.vk.getVuex('$user.userInfo');
+					let totalDuration = formData.total_duration;
 					const calculatedValues = {
 						total_duration: totalDuration,
 					};

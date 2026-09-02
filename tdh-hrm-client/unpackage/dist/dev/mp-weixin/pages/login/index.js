@@ -92,7 +92,7 @@ const _sfc_main = {
           this.encryptedKey = res.encryptedKey;
         }
       } catch (e) {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:225", "获取 encryptedKey 失败", e);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:224", "获取 encryptedKey 失败", e);
       }
     },
     // 获取微信手机号
@@ -133,7 +133,7 @@ const _sfc_main = {
           }
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/login/index.vue:267", "获取手机号失败", err);
+          common_vendor.index.__f__("error", "at pages/login/index.vue:266", "获取手机号失败", err);
           common_vendor.index.showToast({
             title: err.msg || "获取失败，请手动输入",
             icon: "none"
@@ -230,7 +230,7 @@ const _sfc_main = {
         this.logoMarginTop = (capsuleBottom + 10) * pxToRpx;
         this.backHomeTop = menuRect.top + menuRect.height / 2 - 22;
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:379", "获取布局信息失败:", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:378", "获取布局信息失败:", e);
         this.logoMarginTop = 40;
         this.backHomeTop = 40;
       }
@@ -244,7 +244,7 @@ const _sfc_main = {
           this.form.remember = true;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:393", "读取记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:392", "读取记住的账号失败", e);
       }
     },
     saveRememberedAccount() {
@@ -254,14 +254,14 @@ const _sfc_main = {
           password: this.form.password
         });
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:403", "保存记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:402", "保存记住的账号失败", e);
       }
     },
     clearRememberedAccount() {
       try {
         common_vendor.index.removeStorageSync("rememberedAccount");
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:410", "清除记住的账号失败", e);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:409", "清除记住的账号失败", e);
       }
     },
     async is_resigned(username) {
@@ -290,7 +290,7 @@ const _sfc_main = {
           this.doLogin();
         }
       }).catch((errors) => {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:439", "表单验证失败", errors);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:438", "表单验证失败", errors);
       });
     },
     async doLogin() {
@@ -332,7 +332,7 @@ const _sfc_main = {
       try {
         await vk.userCenter.bindWeixin();
       } catch (e) {
-        common_vendor.index.__f__("log", "at pages/login/index.vue:481", "绑定微信失败:", e);
+        common_vendor.index.__f__("log", "at pages/login/index.vue:480", "绑定微信失败:", e);
       }
     },
     toForget() {
@@ -391,7 +391,7 @@ const _sfc_main = {
         this.bindAccountInput = "";
         this.inputModalVisible = true;
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/login/index.vue:543", "微信登录失败:", error);
+        common_vendor.index.__f__("error", "at pages/login/index.vue:542", "微信登录失败:", error);
         common_vendor.index.showToast({
           title: "微信登录失败，请重试",
           icon: "none"
@@ -423,7 +423,8 @@ const _sfc_main = {
         title: "验证中...",
         data: {
           mobile: account,
-          username: account
+          username: account,
+          wx_openid: this.wxOpenid
         }
       });
       if (userRes.code !== 0) {
@@ -619,8 +620,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["border-radius"]: 20,
       modelValue: $data.agreementPopupVisible
     }),
-    H: common_vendor.t($data.wxOpenid),
-    I: common_vendor.p({
+    H: common_vendor.p({
       name: "phone-fill",
       size: "30",
       color: "#07c160",
@@ -628,10 +628,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         marginRight: "12rpx"
       }
     }),
-    J: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "c4"),
-    K: common_vendor.o($options.onInputPopupClose, "2c"),
-    L: common_vendor.o(($event) => $data.inputModalVisible = $event, "15"),
-    M: common_vendor.p({
+    I: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "fe"),
+    J: common_vendor.o($options.onInputPopupClose, "2c"),
+    K: common_vendor.o(($event) => $data.inputModalVisible = $event, "15"),
+    L: common_vendor.p({
       mode: "bottom",
       closeable: true,
       ["mask-close-able"]: false,

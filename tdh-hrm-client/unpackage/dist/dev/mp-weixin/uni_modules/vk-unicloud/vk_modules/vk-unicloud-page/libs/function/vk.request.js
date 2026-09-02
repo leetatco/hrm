@@ -11,10 +11,7 @@ requestUtil.config = {
   debug: true,
   // 日志风格
   logger: {
-    colorArr: [
-      "#0095ff",
-      "#67C23A"
-    ]
+    colorArr: ["#0095ff", "#67C23A"]
   }
 };
 let counterNum = 0;
@@ -213,23 +210,8 @@ requestUtil.request = function(obj = {}) {
 function requestSuccess(obj = {}) {
   let vk = common_vendor.index.vk;
   let config = requestUtil.config;
-  let {
-    res = {},
-    params,
-    Logger,
-    resolve,
-    reject
-  } = obj;
-  let {
-    title,
-    needOriginalRes,
-    dataType,
-    errorCodeName,
-    errorMsgName,
-    success,
-    loading,
-    responseType
-  } = params;
+  let { res = {}, params, Logger, resolve, reject } = obj;
+  let { title, needOriginalRes, dataType, errorCodeName, errorMsgName, success, loading, responseType } = params;
   let data = res.data || {};
   if (responseType !== "arraybuffer") {
     if (vk.pubfn.isNotNullAll(errorCodeName, data[errorCodeName])) {
@@ -255,7 +237,7 @@ function requestSuccess(obj = {}) {
       }
       reject(data);
       return;
-    } else if (res.statusCode >= 400 || data.code) {
+    } else if (res.statusCode >= 400 || data.code && data.code != 200) {
       requestFail({
         res: data,
         params,
@@ -285,18 +267,8 @@ function requestSuccess(obj = {}) {
 function requestFail(obj = {}) {
   let vk = common_vendor.index.vk;
   let config = requestUtil.config;
-  let {
-    res = {},
-    params,
-    Logger,
-    reject
-  } = obj;
-  let {
-    title,
-    needAlert,
-    fail,
-    loading
-  } = params;
+  let { res = {}, params, Logger, reject } = obj;
+  let { title, needAlert, fail, loading } = params;
   if (typeof needAlert === "undefined") {
     needAlert = typeof fail === "function" ? false : true;
   }
@@ -335,6 +307,7 @@ function requestFail(obj = {}) {
     if (needAlert && vk.pubfn.isNotNull(errMsg)) {
       if (sysErr) {
         vk.toast("网络开小差了！", "none");
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:350", errMsg);
       } else {
         vk.alert(errMsg);
       }
@@ -348,16 +321,8 @@ function requestFail(obj = {}) {
 function requestComplete(obj = {}) {
   let vk = common_vendor.index.vk;
   let config = requestUtil.config;
-  let {
-    res = {},
-    params,
-    Logger
-  } = obj;
-  let {
-    title,
-    needOriginalRes,
-    complete
-  } = params;
+  let { res = {}, params, Logger } = obj;
+  let { title, needOriginalRes, complete } = params;
   if (config.debug) {
     Logger.endTime = (/* @__PURE__ */ new Date()).getTime();
     Logger.runTime = Logger.endTime - Logger.startTime;
@@ -365,23 +330,23 @@ function requestComplete(obj = {}) {
     let colorStr = colorArr[counterNum % colorArr.length];
     counterNum++;
     let functionType = Logger.encrypt ? "服务器加密请求" : "服务器请求";
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:410", "%c--------【开始】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:411", "【请求地址】: ", Logger.url);
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:412", "【请求参数】: ", Logger.params);
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:413", "【返回数据】: ", Logger.result);
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:414", "【请求状态】: ", res.statusCode, "【http状态码】");
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:415", "【总体耗时】: ", Logger.runTime, "毫秒【含页面渲染】");
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:416", "【请求时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:373", "%c--------【开始】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:374", "【请求地址】: ", Logger.url);
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:375", "【请求参数】: ", Logger.params);
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:376", "【返回数据】: ", Logger.result);
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:377", "【请求状态】: ", res.statusCode, "【http状态码】");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:378", "【总体耗时】: ", Logger.runTime, "毫秒【含页面渲染】");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:379", "【请求时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
     if (Logger.error) {
       let errorLog = console.warn || console.error;
       if (Logger.error.err && Logger.error.err.stack) {
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:420", "【Error】: ", Logger.error);
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:421", "【Stack】: ", Logger.error.err.stack);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:383", "【Error】: ", Logger.error);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:384", "【Stack】: ", Logger.error.err.stack);
       } else {
         errorLog("【Error】: ", Logger.error);
       }
     }
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:426", "%c--------【结束】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:389", "%c--------【结束】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
   }
   let data = res.data;
   if (needOriginalRes)

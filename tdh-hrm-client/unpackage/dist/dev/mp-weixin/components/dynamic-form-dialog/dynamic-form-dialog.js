@@ -150,7 +150,7 @@ const _sfc_main = {
       submitLoadingLocal: false,
       simulateLoadingLocal: false,
       // 附件目录
-      fileDir: "/oa"
+      fileDir: "oa"
     };
   },
   computed: {
@@ -230,7 +230,7 @@ const _sfc_main = {
             }
           }
         } catch (e) {
-          common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:608", `加载字段 ${field.name} 默认标签失败`, e);
+          common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:617", `加载字段 ${field.name} 默认标签失败`, e);
         }
       }
     },
@@ -271,7 +271,6 @@ const _sfc_main = {
         const valueKey = field.valueName || "value";
         const labelKey = field.labelName || "label";
         this.subRemote.options = field.options.map((opt) => ({
-          // 替换 ?? 为三元判断
           value: opt[valueKey] !== void 0 && opt[valueKey] !== null ? opt[valueKey] : opt.value,
           label: opt[labelKey] !== void 0 && opt[labelKey] !== null ? opt[labelKey] : opt.label,
           raw: opt
@@ -347,7 +346,6 @@ const _sfc_main = {
           const valueKey = currentField.props && currentField.props.value || "value";
           const labelKey = currentField.props && currentField.props.label || "label";
           this.subRemote.options = rows.map((item) => ({
-            // 链式 ?? 替换为多层三元判断
             value: item[valueKey] !== void 0 && item[valueKey] !== null ? item[valueKey] : item.employee_id !== void 0 && item.employee_id !== null ? item.employee_id : item.department_id !== void 0 && item.department_id !== null ? item.department_id : item.position_id !== void 0 && item.position_id !== null ? item.position_id : item._id !== void 0 && item._id !== null ? item._id : item.value,
             label: item[labelKey] !== void 0 && item[labelKey] !== null ? item[labelKey] : item.name !== void 0 && item.name !== null ? item.name : item.employee_name !== void 0 && item.employee_name !== null ? item.employee_name : item.department_name !== void 0 && item.department_name !== null ? item.department_name : item.position_name !== void 0 && item.position_name !== null ? item.position_name : item.title !== void 0 && item.title !== null ? item.title : item.label,
             raw: item
@@ -355,7 +353,7 @@ const _sfc_main = {
           this.subRemote.total = res.total || 0;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:751", "获取远程选项失败", e);
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:758", "获取远程选项失败", e);
       } finally {
         this.subRemote.loading = false;
       }
@@ -382,7 +380,7 @@ const _sfc_main = {
           this.subRemote.cascaderData.companies = companies;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:778", "获取级联数据失败", e);
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:785", "获取级联数据失败", e);
       } finally {
         this.subRemote.loading = false;
       }
@@ -605,7 +603,7 @@ const _sfc_main = {
           );
           if (conflict) {
             common_vendor.index.showToast({
-              title: `“${conflict}”存在重复`,
+              title: `"${conflict}"存在重复`,
               icon: "none"
             });
             return false;
@@ -630,7 +628,7 @@ const _sfc_main = {
                 continue;
               if (start >= end) {
                 common_vendor.index.showToast({
-                  title: `第${i + 1}项“${col.title}”开始时间必须早于结束时间`,
+                  title: `第${i + 1}项"${col.title}"开始时间必须早于结束时间`,
                   icon: "none"
                 });
                 return false;
@@ -642,7 +640,7 @@ const _sfc_main = {
                 const maxEnd = this.timeToMinutes(col.allowedRangeEnd);
                 if (startMins < minStart || endMins > maxEnd) {
                   common_vendor.index.showToast({
-                    title: `第${i + 1}项“${col.title}”时间必须在 ${col.allowedRangeStart}-${col.allowedRangeEnd} 之间`,
+                    title: `第${i + 1}项"${col.title}"时间必须在 ${col.allowedRangeStart}-${col.allowedRangeEnd} 之间`,
                     icon: "none"
                   });
                   return false;
@@ -675,7 +673,7 @@ const _sfc_main = {
               if (col.type === "time" && col.isRange) {
                 if (!Array.isArray(value) || value.length !== 2 || !value[0] || !value[1]) {
                   common_vendor.index.showToast({
-                    title: `第${i + 1}项“${col.title}”为必填，请完善`,
+                    title: `第${i + 1}项"${col.title}"为必填，请完善`,
                     icon: "none"
                   });
                   return false;
@@ -683,7 +681,7 @@ const _sfc_main = {
               } else {
                 if (value === void 0 || value === null || value === "") {
                   common_vendor.index.showToast({
-                    title: `第${i + 1}项“${col.title}”为必填`,
+                    title: `第${i + 1}项"${col.title}"为必填`,
                     icon: "none"
                   });
                   return false;
@@ -703,14 +701,14 @@ const _sfc_main = {
           continue;
         if (field.min !== void 0 && val < field.min) {
           common_vendor.index.showToast({
-            title: `“${field.label}”不能小于${field.min}`,
+            title: `"${field.label}"不能小于${field.min}`,
             icon: "none"
           });
           return false;
         }
         if (field.max !== void 0 && val > field.max) {
           common_vendor.index.showToast({
-            title: `“${field.label}”不能大于${field.max}`,
+            title: `"${field.label}"不能大于${field.max}`,
             icon: "none"
           });
           return false;
@@ -730,7 +728,7 @@ const _sfc_main = {
                 continue;
               if (col.min !== void 0 && val < col.min) {
                 common_vendor.index.showToast({
-                  title: `第${i + 1}项“${col.title}”不能小于${col.min}`,
+                  title: `第${i + 1}项"${col.title}"不能小于${col.min}`,
                   icon: "none"
                 });
                 return false;
@@ -739,7 +737,7 @@ const _sfc_main = {
                 const maxVal = parseFloat(item[col.maxFromField]);
                 if (!isNaN(maxVal) && val > maxVal) {
                   common_vendor.index.showToast({
-                    title: `第${i + 1}项“${col.title}”不能超过${maxVal}`,
+                    title: `第${i + 1}项"${col.title}"不能超过${maxVal}`,
                     icon: "none"
                   });
                   return false;
@@ -1188,28 +1186,127 @@ const _sfc_main = {
         return "video";
       return "all";
     },
-    onFileSelect(e) {
+    async onFileSelect(e, fieldName) {
+      common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1566", "文件选择事件:", e);
+      if (!e.tempFilePaths || e.tempFilePaths.length === 0) {
+        return;
+      }
+      try {
+        common_vendor.index.showLoading({
+          title: "上传中...",
+          mask: true
+        });
+        for (let i = 0; i < e.tempFilePaths.length; i++) {
+          const tempFilePath = e.tempFilePaths[i];
+          const fileInfo = e.tempFiles[i] || {};
+          const fileName = fileInfo.name || this.getFileNameFromPath(tempFilePath);
+          const fileSize = fileInfo.size || 0;
+          const timestamp = Date.now();
+          const random = Math.floor(Math.random() * 1e4);
+          const ext = fileName.split(".").pop() || "file";
+          const cloudPath = `public/${this.fileDir}/${timestamp}_${random}.${ext}`;
+          const uploadOptionsRes = await vk.callFunction({
+            url: "common/pub/getUploadFileOptions/index",
+            data: {
+              cloudPath
+            }
+          });
+          if (uploadOptionsRes.code !== 0) {
+            throw new Error(uploadOptionsRes.msg || "获取上传参数失败");
+          }
+          const uploadOptions = uploadOptionsRes.rows;
+          const uploadResult = await new Promise((resolve, reject) => {
+            common_vendor.index.uploadFile({
+              ...uploadOptions.uploadFileOptions,
+              filePath: tempFilePath,
+              name: "file",
+              success: (res) => {
+                if (res.statusCode === 200) {
+                  resolve(res);
+                } else {
+                  reject(new Error(`上传失败: ${res.statusCode}`));
+                }
+              },
+              fail: reject
+            });
+          });
+          const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
+          if (!this.formData[fieldName]) {
+            this.$set(this.formData, fieldName, []);
+          }
+          const fileItem = {
+            name: fileName,
+            size: fileSize,
+            url: fileUrl,
+            fileID: cloudPath,
+            path: fileUrl,
+            cloudPath,
+            ext
+          };
+          this.formData[fieldName].push(fileItem);
+        }
+        common_vendor.index.hideLoading();
+        common_vendor.index.showToast({
+          title: "上传成功",
+          icon: "success"
+        });
+      } catch (error) {
+        common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1653", "文件上传失败:", error);
+        common_vendor.index.showToast({
+          title: "上传失败: " + (error.message || "未知错误"),
+          icon: "none"
+        });
+      }
     },
-    onFileUploadSuccess(e, filedName) {
-      e.tempFilePaths.forEach((url, index) => {
-        this.formData[filedName][index].fileID = url;
-        this.formData[filedName][index].path = url;
-        this.formData[filedName][index].url = url;
-      });
-      common_vendor.index.showToast({
-        title: "上传成功",
-        icon: "success"
-      });
+    getFileNameFromPath(filePath) {
+      if (!filePath)
+        return "未命名文件";
+      const parts = filePath.split("/");
+      return parts[parts.length - 1];
     },
-    onFileUploadFail() {
+    onFileUploadSuccess(e, fieldName) {
+      common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1669", "文件上传成功回调:", e);
+    },
+    onFileUploadFail(err) {
+      common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1673", "文件上传失败:", err);
       common_vendor.index.showToast({
         title: "上传失败",
         icon: "none"
       });
     },
-    async onFileDelete(e, filedName) {
-      await vk.myfn.deleteFile(this.formData[filedName][e.index]);
-      this.formData[filedName].splice([e.index], 1);
+    onFilePickerInput(val, fieldName) {
+      if (Array.isArray(val) && val.length > 0) {
+        const hasTempPath = val.some(
+          (file) => file.url && file.url.startsWith("http://tmp/")
+        );
+        if (hasTempPath) {
+          common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1687", "忽略临时路径更新");
+          return;
+        }
+      }
+      this.$set(this.formData, fieldName, val);
+    },
+    async onFileDelete(e, fieldName) {
+      try {
+        const fileInfo = this.formData[fieldName][e.index];
+        if (fileInfo.cloudPath || fileInfo.fileID) {
+          const cloudPath = fileInfo.cloudPath || fileInfo.fileID;
+          await vk.myfn.deleteFile(fileInfo);
+          common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1704", "删除云文件:", cloudPath);
+        }
+        this.formData[fieldName].splice(e.index, 1);
+        common_vendor.index.showToast({
+          title: "删除成功",
+          icon: "success"
+        });
+      } catch (error) {
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1714", "删除文件失败:", error);
+        common_vendor.index.showToast({
+          title: "删除失败",
+          icon: "none"
+        });
+      }
     },
     handleFilePreview(file, fieldName) {
       this.$emit("preview-file", {
@@ -1275,7 +1372,7 @@ const _sfc_main = {
       );
       if (conflict) {
         common_vendor.index.showToast({
-          title: `“${conflict}”不能重复添加`,
+          title: `"${conflict}"不能重复添加`,
           icon: "none"
         });
         return;
@@ -1597,21 +1694,21 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
             T: common_vendor.sr("fileUploadRef", "2b16f33b-15-" + i0 + "-" + i1 + "," + ("2b16f33b-14-" + i0 + "-" + i1), {
               "f": 1
             }),
-            U: common_vendor.o($options.onFileSelect, field.name),
-            V: common_vendor.o((e) => $options.onFileUploadSuccess(e, field.name), field.name),
-            W: common_vendor.o($options.onFileUploadFail, field.name),
-            X: common_vendor.o((e) => $options.onFileDelete(e, field.name), field.name),
-            Y: "2b16f33b-15-" + i0 + "-" + i1 + "," + ("2b16f33b-14-" + i0 + "-" + i1),
-            Z: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
+            U: common_vendor.o((val) => $options.onFilePickerInput(val, field.name), field.name),
+            V: common_vendor.o((e) => $options.onFileSelect(e, field.name), field.name),
+            W: common_vendor.o((e) => $options.onFileUploadSuccess(e, field.name), field.name),
+            X: common_vendor.o($options.onFileUploadFail, field.name),
+            Y: common_vendor.o((e) => $options.onFileDelete(e, field.name), field.name),
+            Z: "2b16f33b-15-" + i0 + "-" + i1 + "," + ("2b16f33b-14-" + i0 + "-" + i1),
             aa: common_vendor.p({
               disabled: field.disabled,
+              value: $data.formData[field.name],
               limit: field.maxCount || 10,
               ["del-icon"]: true,
-              ["auto-upload"]: true,
+              ["auto-upload"]: false,
               ["disable-preview"]: true,
               dir: $data.fileDir,
-              ["file-mediatype"]: $options.getFileMediaType(field.accept),
-              modelValue: $data.formData[field.name]
+              ["file-mediatype"]: $options.getFileMediaType(field.accept)
             }),
             ab: common_vendor.f($data.formData[field.name], (file, index, i2) => {
               return common_vendor.e({
@@ -1875,10 +1972,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       },
       ["error-type"]: ["toast"]
     }),
-    d: common_vendor.o($options.handleCancel, "8f"),
+    d: common_vendor.o($options.handleCancel, "e5"),
     e: !$props.butVisible
   }, !$props.butVisible ? {
-    f: common_vendor.o(($event) => $options.handleSave(), "21"),
+    f: common_vendor.o(($event) => $options.handleSave(), "e0"),
     g: common_vendor.p({
       type: "primary",
       loading: $data.saveLoadingLocal
@@ -1886,7 +1983,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     h: $props.butVisible
   }, $props.butVisible ? {
-    i: common_vendor.o($options.handleSimulate, "f4"),
+    i: common_vendor.o($options.handleSimulate, "0a"),
     j: common_vendor.p({
       type: "info",
       loading: $data.simulateLoadingLocal
@@ -1894,7 +1991,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     k: $props.butVisible
   }, $props.butVisible ? {
-    l: common_vendor.o(($event) => $options.handleSave("draft"), "e3"),
+    l: common_vendor.o(($event) => $options.handleSave("draft"), "bd"),
     m: common_vendor.p({
       type: "primary",
       loading: $data.saveLoadingLocal
@@ -1902,35 +1999,35 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     n: $props.butVisible
   }, $props.butVisible ? {
-    o: common_vendor.o($options.handleSubmit, "94"),
+    o: common_vendor.o($options.handleSubmit, "8a"),
     p: common_vendor.p({
       type: "success",
       loading: $data.submitLoadingLocal
     })
   } : {}, {
-    q: common_vendor.o($options.onDateConfirm, "2e"),
-    r: common_vendor.o(($event) => $data.datePickerShow = $event, "d2"),
+    q: common_vendor.o($options.onDateConfirm, "67"),
+    r: common_vendor.o(($event) => $data.datePickerShow = $event, "df"),
     s: common_vendor.p({
       mode: "time",
       params: $data.datePickerParams,
       modelValue: $data.datePickerShow
     }),
-    t: common_vendor.o($options.onTimeConfirm, "fe"),
-    v: common_vendor.o(($event) => $data.timePickerShow = $event, "bd"),
+    t: common_vendor.o($options.onTimeConfirm, "44"),
+    v: common_vendor.o(($event) => $data.timePickerShow = $event, "be"),
     w: common_vendor.p({
       mode: "time",
       params: $data.timePickerParams,
       modelValue: $data.timePickerShow
     }),
     x: common_vendor.t($data.subRemote.currentField && $data.subRemote.currentField.label || "请选择"),
-    y: common_vendor.o(($event) => $data.subRemoteSelectVisible = false, "f9"),
+    y: common_vendor.o(($event) => $data.subRemoteSelectVisible = false, "e8"),
     z: common_vendor.p({
       type: "text"
     }),
     A: $data.subRemote.mode === "single"
   }, $data.subRemote.mode === "single" ? common_vendor.e({
-    B: common_vendor.o($options.onSubRemoteSearch, "b0"),
-    C: common_vendor.o(($event) => $data.subRemote.keyword = $event, "7c"),
+    B: common_vendor.o($options.onSubRemoteSearch, "ff"),
+    C: common_vendor.o(($event) => $data.subRemote.keyword = $event, "c4"),
     D: common_vendor.p({
       placeholder: "输入关键词搜索",
       ["show-action"]: false,
@@ -2007,62 +2104,62 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}) : {}, {
     I: $data.subRemote.mode === "cascader",
-    P: common_vendor.o(($event) => $data.subRemoteSelectVisible = $event, "38"),
+    P: common_vendor.o(($event) => $data.subRemoteSelectVisible = $event, "79"),
     Q: common_vendor.p({
       mode: "bottom",
       height: "70%",
       ["border-radius"]: "20",
       modelValue: $data.subRemoteSelectVisible
     }),
-    R: common_vendor.o($options.onSubDateConfirm, "4d"),
-    S: common_vendor.o(($event) => $data.subDatePickerShow[$data.currentSubDateInfo.fieldName + "_" + $data.currentSubDateInfo.itemIndex + "_" + ($data.currentSubDateInfo.subField ? $data.currentSubDateInfo.subField.key : "")] = $event, "28"),
+    R: common_vendor.o($options.onSubDateConfirm, "7d"),
+    S: common_vendor.o(($event) => $data.subDatePickerShow[$data.currentSubDateInfo.fieldName + "_" + $data.currentSubDateInfo.itemIndex + "_" + ($data.currentSubDateInfo.subField ? $data.currentSubDateInfo.subField.key : "")] = $event, "af"),
     T: common_vendor.p({
       mode: "time",
       params: $data.subDatePickerParams,
       modelValue: $data.subDatePickerShow[$data.currentSubDateInfo.fieldName + "_" + $data.currentSubDateInfo.itemIndex + "_" + ($data.currentSubDateInfo.subField ? $data.currentSubDateInfo.subField.key : "")]
     }),
-    U: common_vendor.o($options.onSubDateTimeConfirm, "af"),
-    V: common_vendor.o(($event) => $data.subDateTimePickerShow[$data.currentSubDateTimeInfo.fieldName + "_" + $data.currentSubDateTimeInfo.itemIndex + "_" + ($data.currentSubDateTimeInfo.subField ? $data.currentSubDateTimeInfo.subField.key : "")] = $event, "cd"),
+    U: common_vendor.o($options.onSubDateTimeConfirm, "25"),
+    V: common_vendor.o(($event) => $data.subDateTimePickerShow[$data.currentSubDateTimeInfo.fieldName + "_" + $data.currentSubDateTimeInfo.itemIndex + "_" + ($data.currentSubDateTimeInfo.subField ? $data.currentSubDateTimeInfo.subField.key : "")] = $event, "1a"),
     W: common_vendor.p({
       mode: "time",
       params: $data.subDateTimePickerParams,
       modelValue: $data.subDateTimePickerShow[$data.currentSubDateTimeInfo.fieldName + "_" + $data.currentSubDateTimeInfo.itemIndex + "_" + ($data.currentSubDateTimeInfo.subField ? $data.currentSubDateTimeInfo.subField.key : "")]
     }),
-    X: common_vendor.o($options.onSubTimeConfirm, "4c"),
-    Y: common_vendor.o(($event) => $data.subTimePickerShow[$data.currentSubTimeInfo.fieldName + "_" + $data.currentSubTimeInfo.itemIndex + "_" + ($data.currentSubTimeInfo.subField ? $data.currentSubTimeInfo.subField.key : "") + "_" + $data.currentSubTimeInfo.range] = $event, "3f"),
+    X: common_vendor.o($options.onSubTimeConfirm, "11"),
+    Y: common_vendor.o(($event) => $data.subTimePickerShow[$data.currentSubTimeInfo.fieldName + "_" + $data.currentSubTimeInfo.itemIndex + "_" + ($data.currentSubTimeInfo.subField ? $data.currentSubTimeInfo.subField.key : "") + "_" + $data.currentSubTimeInfo.range] = $event, "2d"),
     Z: common_vendor.p({
       mode: "time",
       params: $data.subTimePickerParams,
       modelValue: $data.subTimePickerShow[$data.currentSubTimeInfo.fieldName + "_" + $data.currentSubTimeInfo.itemIndex + "_" + ($data.currentSubTimeInfo.subField ? $data.currentSubTimeInfo.subField.key : "") + "_" + $data.currentSubTimeInfo.range]
     }),
-    aa: common_vendor.o(($event) => $options.onBatchDatePickerShow("start"), "95"),
-    ab: common_vendor.o(($event) => $data.batchStartDate = $event, "da"),
+    aa: common_vendor.o(($event) => $options.onBatchDatePickerShow("start"), "20"),
+    ab: common_vendor.o(($event) => $data.batchStartDate = $event, "00"),
     ac: common_vendor.p({
       type: "select",
       placeholder: "请选择",
       modelValue: $data.batchStartDate
     }),
-    ad: common_vendor.o(($event) => $options.onBatchDatePickerShow("end"), "89"),
-    ae: common_vendor.o(($event) => $data.batchEndDate = $event, "18"),
+    ad: common_vendor.o(($event) => $options.onBatchDatePickerShow("end"), "ce"),
+    ae: common_vendor.o(($event) => $data.batchEndDate = $event, "ed"),
     af: common_vendor.p({
       type: "select",
       placeholder: "请选择",
       modelValue: $data.batchEndDate
     }),
-    ag: common_vendor.o(($event) => $data.showBatchDatePicker = false, "50"),
-    ah: common_vendor.o($options.generateBatchDates, "6b"),
+    ag: common_vendor.o(($event) => $data.showBatchDatePicker = false, "f6"),
+    ah: common_vendor.o($options.generateBatchDates, "ed"),
     ai: common_vendor.p({
       type: "primary"
     }),
-    aj: common_vendor.o(($event) => $data.showBatchDatePicker = $event, "c1"),
+    aj: common_vendor.o(($event) => $data.showBatchDatePicker = $event, "56"),
     ak: common_vendor.p({
       mode: "bottom",
       ["border-radius"]: "20",
       closeable: true,
       modelValue: $data.showBatchDatePicker
     }),
-    al: common_vendor.o($options.onBatchDateConfirm, "e1"),
-    am: common_vendor.o(($event) => $data.batchPickerShow = $event, "c7"),
+    al: common_vendor.o($options.onBatchDateConfirm, "ef"),
+    am: common_vendor.o(($event) => $data.batchPickerShow = $event, "46"),
     an: common_vendor.p({
       mode: "time",
       params: $data.batchDatePickerParams,

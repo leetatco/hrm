@@ -308,7 +308,7 @@
 				statusHistory: [],
 			};
 		},
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.init(options);
 		},
 		onShow() {
@@ -598,8 +598,8 @@
 					}
 				});
 				// 删除附件
-				item.form_data?.file_attachments.forEach((e) => {
-					vk.myfn.deleteFile(e);
+				item.form_data?.file_attachments.map(async (e, index) => {
+					await vk.myfn.deleteFile(e);
 				});
 				if (res.code === 0) {
 					uni.showToast({

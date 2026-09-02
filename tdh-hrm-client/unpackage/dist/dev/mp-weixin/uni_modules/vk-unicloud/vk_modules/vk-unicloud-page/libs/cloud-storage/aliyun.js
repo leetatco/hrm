@@ -84,6 +84,7 @@ function getConfig() {
       if (cloudStorageConfig.groupUserId && typeof vk.getVuex === "function") {
         let userInfo = vk.getVuex("$user.userInfo");
         if (vk.pubfn.isNotNull(userInfo) && userInfo._id) {
+          cloudStorageConfig = vk.pubfn.copyObject(cloudStorageConfig);
           cloudStorageConfig.dirname += `/${userInfo._id}`;
         }
       }

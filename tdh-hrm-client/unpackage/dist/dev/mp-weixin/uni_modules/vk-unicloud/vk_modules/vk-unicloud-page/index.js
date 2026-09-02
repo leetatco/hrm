@@ -32,10 +32,12 @@ const vk = {
   checkToken: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.checkToken,
   deleteToken: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.deleteToken,
   uploadFile: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.uploadFile,
+  chooseAndUploadFile: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.chooseAndUploadFile,
   getConfig: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.getConfig,
   emitRefreshToken: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.emitRefreshToken,
   onRefreshToken: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.onRefreshToken,
   offRefreshToken: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.offRefreshToken,
+  handleAutoLoginToken: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_vkUnicloud_vkUnicloudCallFunctionUtil.callFunctionUtil.handleAutoLoginToken,
   pubfn: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn,
   alert: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_modal.modal.alert,
   toast: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_modal.modal.toast,
@@ -60,10 +62,16 @@ const vk = {
   navigateToHome: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.navigateToHome,
   // 跳转到登录页
   navigateToLogin: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.navigateToLogin,
+  // 跳转到403页面
+  navigateTo403: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.navigateTo403,
+  // 跳转到404页面
+  navigateTo404: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.navigateTo404,
   // 跳转到小程序
   navigateToMiniProgram: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.navigateToMiniProgram,
   // 跳转到抽奖小程序
   navigateToLuckyDraw: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.navigateToLuckyDraw,
+  // 检查当前页面是否有菜单权限（处理直接 URL 访问场景，仅给admin端使用）
+  checkCurrentPagePermission: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.checkCurrentPagePermission,
   // 触发全局的自定义事件，附加参数都会传给监听器回调函数。
   $emit: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.$emit,
   // 监听全局的自定义事件，事件由 uni.$emit 触发，回调函数会接收事件触发函数的传入参数。
@@ -84,6 +92,10 @@ const vk = {
   getLocaleObject: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.getLocaleObject,
   // 设置应用当前语言
   setLocale: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.setLocale,
+  // 设置系统剪贴板的内容
+  setClipboardData: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.setClipboardData,
+  // 获取系统剪贴板内容
+  getClipboardData: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.getClipboardData,
   // 本地持久缓存
   ...uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_localStorage.storage,
   // 本地会话缓存
@@ -101,7 +113,7 @@ const vk = {
   // 事件管理
   ...uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_eventManager.eventManager,
   // 客户端加密函数
-  crypto: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_crypto.n,
+  crypto: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_crypto.o,
   // webSocket
   connectWebSocket: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_connectWebSocket.connectWebSocket,
   // 设置自定义客户端信息
@@ -135,10 +147,13 @@ vk.install = (Vue, config) => {
   if (typeof vkGlobalThis == "object")
     vkGlobalThis.vk = vk;
   let util = { vk };
-  vk.use({
-    callFunctionUtil: vk.callFunctionUtil,
-    openapi: vk.openapi
-  }, util);
+  vk.use(
+    {
+      callFunctionUtil: vk.callFunctionUtil,
+      openapi: vk.openapi
+    },
+    util
+  );
   uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_permission.initPermission(Vue);
   Vue.mixin(uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_store_mixin_mixin.storeMixin);
   if (config) {

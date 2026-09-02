@@ -162,13 +162,17 @@
 							type: "tag",
 							width: colWidth - 100,
 							data: [{
+									value: 0,
+									label: "未签名",
+									tagType: "danger"
+								}, {
 									value: 1,
 									label: "已签名",
 									tagType: "success"
 								},
 								{
-									value: 0,
-									label: "未签名",
+									value: 2,
+									label: "其他",
 									tagType: "warning"
 								}
 							]
@@ -288,6 +292,10 @@
 								{
 									value: 1,
 									label: "已签名"
+								},
+								{
+									value: 2,
+									label: "其他"
 								}
 							],
 							mode: "="
@@ -362,6 +370,10 @@
 								{
 									value: 1,
 									label: "已签名"
+								},
+								{
+									value: 2,
+									label: "其他"
 								}
 							]
 						}],
@@ -568,7 +580,12 @@
 						}
 					];
 					worksheet.columns = columnDefs;
-
+					//状态
+					const STATUS_MAP = {
+						0: '未签名',
+						1: '已签名',
+						2: '其他'
+					};
 					// 6. 填充数据行（先写文本，签名列临时放 URL，后面覆盖）
 					listData.forEach((item, idx) => {
 						// console.log(item);
@@ -584,7 +601,7 @@
 							position_name: item.position_name,
 							hire_date: item.hire_date,
 							resign_date: item.resign_date,
-							status: item.status == 1 ? '已签名' : '未签名'
+							status: STATUS_MAP[item.status]
 						});
 					});
 

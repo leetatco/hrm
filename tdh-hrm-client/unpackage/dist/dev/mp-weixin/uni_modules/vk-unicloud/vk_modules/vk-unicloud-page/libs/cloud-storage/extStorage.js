@@ -105,14 +105,7 @@ function getConfig() {
   return common_vendor.index.vk.getConfig("service.cloudStorage.extStorage");
 }
 function createFileName(obj = {}) {
-  let {
-    file,
-    filePath,
-    suffix,
-    index = 0,
-    cloudPathRemoveChinese = true,
-    cloudDirectory
-  } = obj;
+  let { file, filePath, suffix, index = 0, cloudPathRemoveChinese = true, cloudDirectory } = obj;
   let vk = common_vendor.index.vk;
   let cloudStorageConfig = getConfig();
   let dirname = cloudStorageConfig.dirname;

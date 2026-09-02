@@ -46,14 +46,23 @@
 						<text class="upload-card__required" v-if="!is_range">* 出差打卡必填</text>
 					</view>
 					<view class="upload-card__area">
-						<uni-file-picker v-model="avatarFileList" :auto-upload="true" :sourceType="sourceType"
-							:limit="1" file-mediatype="image" @success="onAvatarSuccess" @delete="onAvatarRemove"
-							@fail="onFileUploadFail" :dir="avatarDir">
-							<view class="custom-upload-btn">
-								<u-icon name="camera" size="28" color="#2979ff" />
-								<text class="btn-text">点击拍照</text>
+						<!-- 未上传：显示拍照按钮 -->
+						<view v-if="!formData.img" class="upload-placeholder" @click="chooseAndUploadImage">
+							<u-icon name="camera" size="48" color="#2979ff" />
+							<text class="upload-placeholder__text">点击拍照</text>
+							<text class="upload-placeholder__sub">出差打卡必须上传照片</text>
+						</view>
+						<!-- 已上传：显示图片 + 删除按钮 -->
+						<view v-else class="upload-preview">
+							<image :src="formData.img" mode="aspectFill" class="upload-preview__img"
+								@click="previewImage" />
+							<view class="upload-preview__delete" @click.stop="removeImage">
+								<u-icon name="close" size="20" color="#fff" />
 							</view>
-						</uni-file-picker>
+							<view class="upload-preview__reupload" @click.stop="chooseAndUploadImage">
+								<text>重新拍照</text>
+							</view>
+						</view>
 					</view>
 				</view>
 
@@ -105,7 +114,6 @@
 	export default {
 		data() {
 			return {
-				sourceType: ['camera'],
 				formData: {
 					employee_id: "",
 					bssid: "",
@@ -117,14 +125,13 @@
 				is_submit: false,
 				time: "00:00",
 				bssidKeys: new Set(),
-				bssidMap: new Map(), // 修正变量名
-				bssid_current: "", // 当前Wi-Fi MAC地址	
-				ssid_current: "", // 当前Wi-Fi名称				
-				is_range: true, // 是否在范围内
+				bssidMap: new Map(),
+				bssid_current: "",
+				ssid_current: "",
+				is_range: true,
 				is_range_content: "你已在打卡范围内，将按公司卡记录！",
 				today: "",
-				avatarDir: '/clockin',
-				avatarFileList: []
+				avatarDir: '/clockin'
 			};
 		},
 		onShow() {
@@ -139,41 +146,77 @@
 			this.startTimeUpdater();
 		},
 		methods: {
-			//========== 头像上传相关（uni-file-picker）==========
-			onAvatarSuccess(e) {
-				const {
-					tempFiles
-				} = e;
-				if (tempFiles && tempFiles.length > 0) {
-					const file = tempFiles[0];
-					const url = file.url || file.path;
-					this.formData.img = url;
-					this.avatarFileList = [{
-						url: url,
-						name: file.name || 'avatar.jpg'
-					}];
-				}
-			},
-			onAvatarRemove(e) {
-				const fileUrl = e.tempFile?.url;
-				if (fileUrl) {
-					vk.callFunction({
-						url: 'common/pub/deleteFile/index',
-						data: {
-							fileList: [fileUrl]
+			//========== 拍照并上传 ==========
+			chooseAndUploadImage() {
+				const timestamp = Date.now();
+				const random = Math.floor(Math.random() * 10000);
+
+				vk.chooseAndUploadFile({
+					type: 'image',
+					count: 1,
+					sourceType: ['camera'],
+					sizeType: ['compressed'],
+					title: '上传中...',
+					onChooseFile: (res) => {
+						// 只保留第一个文件
+						let tempFiles = res.tempFiles.slice(0, 1);
+						const file = tempFiles[0];
+						const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase();
+						// 指定云端路径
+						tempFiles[0].cloudPath = `public${this.avatarDir}/${timestamp}_${random}.${ext}`;
+						return {
+							tempFilePaths: res.tempFilePaths.slice(0, 1),
+							tempFiles
+						};
+					},
+					success: (res) => {
+						const file = res.tempFiles[0];
+						this.formData.img = file.url;
+						uni.showToast({
+							title: '上传成功',
+							icon: 'success'
+						});
+					},
+					fail: (err) => {
+						if (err.errMsg && err.errMsg.includes('cancel')) {
+							return; // 用户取消，静默处理
 						}
-					});
-				}
-				this.formData.img = '';
-				this.avatarFileList = [];
+						console.error('上传失败:', err);
+						uni.showToast({
+							title: '上传失败',
+							icon: 'none'
+						});
+					}
+				});
 			},
 
-			onFileUploadFail(err) {
+			//========== 预览图片 ==========
+			previewImage() {
+				if (!this.formData.img) return;
+				uni.previewImage({
+					urls: [this.formData.img],
+					current: this.formData.img
+				});
+			},
+
+			//========== 删除图片 ==========
+			async removeImage() {
+				if (!this.formData.img) return;
+				try {
+					await vk.myfn.deleteFile({
+						url: this.formData.img
+					});
+					console.log('删除云文件:', this.formData.img);
+				} catch (e) {
+					console.warn('删除云文件失败:', e);
+				}
+				this.formData.img = '';
 				uni.showToast({
-					title: '上传失败',
+					title: '已删除',
 					icon: 'none'
 				});
 			},
+
 			// 初始化日期与星期
 			initDateTime() {
 				const weeks = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
@@ -181,6 +224,7 @@
 				const dateStr = vk.pubfn.timeFormat(now, 'yyyy-MM-dd');
 				this.today = `${dateStr} ${weeks[now.getDay()]}`;
 			},
+
 			// 启动时间更新器
 			startTimeUpdater() {
 				setInterval(() => {
@@ -190,6 +234,7 @@
 					this.time = `${hour}:${minute}`;
 				}, 1000);
 			},
+
 			// 加载打卡点配置
 			async loadData(callback) {
 				const res = await vk.callFunction({
@@ -215,35 +260,14 @@
 				}
 				if (typeof callback === "function") callback();
 			},
+
 			// 下拉刷新
 			onPullDownRefresh() {
 				this.loadData(() => {
 					uni.stopPullDownRefresh();
 				});
 			},
-			// 图片上传成功
-			imgUpload(e) {
-				const {
-					tempFiles
-				} = e;
-				if (tempFiles?.length) {
-					this.imgFiles = tempFiles[0];
-					this.formData.img = this.imgFiles.url || this.imgFiles.path;
-					vk.alert('上传成功，' + this.formData.img);
-				}
-			},
-			// 图片删除
-			async imgDelete(e) {
-				await vk.callFunction({
-					url: 'common/sys/deleteFile/index',
-					title: '删除中...',
-					data: {
-						fileList: [e.tempFile.fileID]
-					}
-				});
-				this.imgFiles = [];
-				this.formData.img = "";
-			},
+
 			// 获取当前连接的Wi-Fi
 			getConnectedWifi() {
 				uni.startWifi({
@@ -265,6 +289,7 @@
 					}
 				});
 			},
+
 			// 判断打卡范围
 			getCurrentAddress() {
 				if (this.bssidKeys.has(this.bssid_current)) {
@@ -281,12 +306,14 @@
 					this.formData.bssid = "无法获取";
 				}
 			},
+
 			// 跳回记录页
 			toMain() {
 				uni.navigateTo({
 					url: "/pages/clockin/index"
 				});
 			},
+
 			// 提交打卡
 			submit() {
 				this.formData.employee_id = vk.getVuex('$user.userInfo.username');
@@ -299,8 +326,6 @@
 				// 补充打卡时间
 				this.formData.clockintime = vk.pubfn.timeFormat(new Date(), 'yyyy-MM-dd hh:mm:ss');
 
-				this.formData.img = this.avatarFileList.length ? this.avatarFileList[0].url : '';
-
 				vk.callFunction({
 					url: 'admin/hrm/clockin/sys/add',
 					title: '提交中...',
@@ -308,7 +333,9 @@
 				}).then(res => {
 					this.is_submit = false;
 					if (res.code === 0) {
-						this.toMain();
+						vk.alert('打卡成功', '提示', '确定', () => {
+							this.toMain();
+						})
 					} else {
 						vk.alert(res.msg);
 					}
@@ -457,23 +484,76 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 16rpx;
+		padding: 20rpx 0;
+	}
 
-		::v-deep .uni-file-picker {
-			width: 100%;
+	/* 未上传状态 */
+	.upload-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 280rpx;
+		background: #f8f9fa;
+		border: 2rpx dashed #dcdfe6;
+		border-radius: 16rpx;
+		gap: 12rpx;
 
-			.uni-file-picker__files {
-				justify-content: center;
-			}
+		&__text {
+			font-size: 30rpx;
+			color: #2979ff;
+			font-weight: 500;
+		}
+
+		&__sub {
+			font-size: 24rpx;
+			color: #99a9bf;
+		}
+
+		&:active {
+			background: #eef2f6;
 		}
 	}
 
-	.upload-card__tip {
-		font-size: 24rpx;
-		color: $danger-red;
-		background: rgba(244, 67, 54, 0.08);
-		padding: 8rpx 20rpx;
-		border-radius: 30rpx;
+	/* 已上传预览 */
+	.upload-preview {
+		position: relative;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16rpx;
+
+		&__img {
+			width: 400rpx;
+			height: 400rpx;
+			border-radius: 16rpx;
+			background: #f5f7fa;
+		}
+
+		&__delete {
+			position: absolute;
+			top: -12rpx;
+			right: calc(50% - 200rpx - 12rpx);
+			width: 48rpx;
+			height: 48rpx;
+			background: $danger-red;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4rpx 12rpx rgba(244, 67, 54, 0.3);
+			z-index: 2;
+		}
+
+		&__reupload {
+			font-size: 26rpx;
+			color: $theme-color;
+			padding: 8rpx 24rpx;
+			background: rgba(45, 140, 255, 0.08);
+			border-radius: 30rpx;
+		}
 	}
 
 	/* 备注卡片 */

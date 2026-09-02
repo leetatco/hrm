@@ -228,6 +228,7 @@ const _sfc_main = {
       const actionMap = {
         "approval": "/pages/workflow/application-form/list",
         "document": "/pages/opendb-notice/index",
+        "attendance": "/pages/clockin/index",
         "notice": "/pages/notice/index",
         "setting": "/pages/setting/index"
       };
@@ -238,7 +239,7 @@ const _sfc_main = {
       }
     },
     tofeedback(e) {
-      common_vendor.index.__f__("log", "at pages/user/index.vue:397", "打开客服反馈");
+      common_vendor.index.__f__("log", "at pages/user/index.vue:398", "打开客服反馈");
     },
     logout() {
       common_vendor.index.showModal({
@@ -314,17 +315,20 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $options.hasLogin ? {
     l: common_vendor.t($data.userInfo.attendance || 0),
     m: common_vendor.t((/* @__PURE__ */ new Date()).getMonth() + 1),
-    n: common_vendor.t($data.userInfo.tasks || 0),
-    o: common_vendor.o(($event) => $options.handleFunction({
+    n: common_vendor.o(($event) => $options.handleFunction({
+      action: "attendance"
+    }), "c0"),
+    o: common_vendor.t($data.userInfo.tasks || 0),
+    p: common_vendor.o(($event) => $options.handleFunction({
       action: "approval"
-    }), "38"),
-    p: common_vendor.t($data.userInfo.notices || 0),
-    q: common_vendor.o(($event) => $options.handleFunction({
+    }), "5d"),
+    q: common_vendor.t($data.userInfo.notices || 0),
+    r: common_vendor.o(($event) => $options.handleFunction({
       action: "notice"
-    }), "2f")
+    }), "0d")
   } : {}, {
-    r: !$options.hasLogin ? 1 : "",
-    s: common_vendor.f($data.functionList, (item, index, i0) => {
+    s: !$options.hasLogin ? 1 : "",
+    t: common_vendor.f($data.functionList, (item, index, i0) => {
       return {
         a: "79e6a490-3-" + i0,
         b: common_vendor.p({
@@ -338,85 +342,85 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         f: common_vendor.o(($event) => $options.handleFunction(item), index)
       };
     }),
-    t: common_vendor.p({
+    v: common_vendor.p({
       name: "account",
       size: "40",
       color: "#ffffff"
     }),
-    v: $data.profileUncompleted
+    w: $data.profileUncompleted
   }, $data.profileUncompleted ? {} : {}, {
-    w: common_vendor.p({
+    x: common_vendor.p({
       name: "arrow-right",
       color: "#c0c4cc",
       size: "20"
     }),
-    x: common_vendor.o(($event) => $options.goto("setting"), "90"),
-    y: common_vendor.p({
+    y: common_vendor.o(($event) => $options.goto("setting"), "c0"),
+    z: common_vendor.p({
       name: "bell",
       size: "40",
       color: "#ffffff"
     }),
-    z: $data.unreadNotifications > 0
+    A: $data.unreadNotifications > 0
   }, $data.unreadNotifications > 0 ? {
-    A: common_vendor.p({
+    B: common_vendor.p({
       value: $data.unreadNotifications,
       type: "error",
       size: "mini"
     })
   } : {}, {
-    B: common_vendor.p({
+    C: common_vendor.p({
       name: "arrow-right",
       color: "#c0c4cc",
       size: "20"
     }),
-    C: common_vendor.o(($event) => $options.goto("notification"), "15"),
-    D: common_vendor.p({
+    D: common_vendor.o(($event) => $options.goto("notification"), "18"),
+    E: common_vendor.p({
       name: "chat",
       size: "40",
       color: "#ffffff"
     }),
-    E: common_vendor.p({
+    F: common_vendor.p({
       name: "arrow-right",
       color: "#c0c4cc",
       size: "20"
     }),
-    F: common_vendor.o((...args) => $options.tofeedback && $options.tofeedback(...args), "06"),
-    G: _ctx.$hasRole("admin")
+    G: common_vendor.o((...args) => $options.tofeedback && $options.tofeedback(...args), "12"),
+    H: _ctx.$hasRole("admin")
   }, _ctx.$hasRole("admin") ? {
-    H: common_vendor.p({
+    I: common_vendor.p({
       name: "lock-open",
       size: "40",
       color: "#ffffff"
     }),
-    I: common_vendor.p({
+    J: common_vendor.p({
       name: "arrow-right",
       color: "#c0c4cc",
       size: "20"
     }),
-    J: common_vendor.o(($event) => $options.goto("unbindWeixin"), "eb")
+    K: common_vendor.o(($event) => $options.goto("unbindWeixin"), "24")
   } : {}, {
-    K: common_vendor.p({
+    L: common_vendor.p({
       name: "info-circle",
       size: "40",
       color: "#ffffff"
     }),
-    L: common_vendor.p({
+    M: common_vendor.p({
       name: "arrow-right",
       color: "#c0c4cc",
       size: "20"
     }),
-    M: common_vendor.o(($event) => $options.goto("about"), "31"),
-    N: common_vendor.t($data.currentNotice.title),
-    O: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
-    P: $data.currentNotice.publisher_name
+    N: common_vendor.o(($event) => $options.goto("about"), "c0"),
+    O: common_vendor.t($data.currentNotice.title),
+    P: common_vendor.t(_ctx.vk.pubfn.timeFormat(new Date($data.currentNotice.publish_date), "yyyy-MM-dd")),
+    Q: $data.currentNotice.publisher_name
   }, $data.currentNotice.publisher_name ? {
-    Q: common_vendor.t($data.currentNotice.publisher_name)
+    R: common_vendor.t($data.currentNotice.publisher_name)
   } : {}, {
-    R: common_vendor.p({
+    S: common_vendor.p({
       html: $data.currentNotice.content
     }),
-    S: common_vendor.o(($event) => $data.showDetailPopup = $event, "0e"),
-    T: common_vendor.p({
+    T: common_vendor.o(($event) => $data.showDetailPopup = $event, "72"),
+    U: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
       ["mask-close-able"]: true,
@@ -424,7 +428,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["border-radius"]: $data.popupStyle.border_radius,
       modelValue: $data.showDetailPopup
     }),
-    U: common_vendor.p({
+    V: common_vendor.p({
       list: $data.tabbar,
       ["before-switch"]: $options.beforeTabSwitch,
       ["icon-size"]: "48",

@@ -16,6 +16,9 @@ pubfn.queryParams = uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_functi
 pubfn.jsonToQueryString = uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_queryStringUtil.queryStringUtil.jsonToQueryString;
 pubfn.queryStringToJson = uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_queryStringUtil.queryStringUtil.queryStringToJson;
 pubfn.setClipboardData = uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_setClipboardData.setClipboardData;
+pubfn.getClipboardData = (obj) => {
+  common_vendor.index.getClipboardData(obj);
+};
 pubfn.sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 pubfn.timeFormat = pubfn.timeUtil.timeFormat;
 pubfn.getDateInfo = pubfn.timeUtil.getDateInfo;
@@ -80,9 +83,7 @@ pubfn.test = function(str, type = "", allowEmpty = false) {
     case "domain":
       return new RegExp(/^(?!:\/\/)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/).test(str);
     case "ip":
-      return new RegExp(/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/).test(
-        str
-      );
+      return new RegExp(/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/).test(str);
     case "date":
       return new RegExp(/^[1-9]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/).test(str);
     case "time":
@@ -117,7 +118,7 @@ pubfn.test = function(str, type = "", allowEmpty = false) {
       return new RegExp(/\.(mp4|mpg|mpeg|dat|asf|avi|rm|rmvb|mov|wmv|flv|mkv|m3u8|3gp)$/).test(newStr);
     case "audio":
       newStr = str.split("?")[0].toLowerCase();
-      return new RegExp(/\.(mp3)$/).test(newStr);
+      return new RegExp(/\.(mp3|wav|ogg|flac|aac|wma|m4a|ape|amr|mid|midi|opus)$/).test(newStr);
     default:
       return true;
   }
@@ -661,44 +662,46 @@ pubfn.createOrderNo = function(prefix = "", num = 25) {
   let randomNum = num - (prefix + fullTime).length;
   return prefix + fullTime + pubfn.random(randomNum);
 };
-const isSnakeCase = new RegExp("_(\\w)", "g");
-const isCamelCase = new RegExp("[A-Z]", "g");
 function parseObjectKeys(obj, type) {
-  let parserReg;
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item) => parseObjectKeys(item, type));
+  }
   let parser;
+  let parserReg;
   switch (type) {
     case "snake2camel":
       parser = pubfn.snake2camel;
-      parserReg = isSnakeCase;
+      parserReg = new RegExp("_(\\w)");
       break;
     case "camel2snake":
       parser = pubfn.camel2snake;
-      parserReg = isCamelCase;
+      parserReg = new RegExp("[A-Z]");
       break;
+    default:
+      return obj;
   }
+  const result = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      if (parserReg.test(key)) {
-        const keyCopy = parser(key);
-        obj[keyCopy] = obj[key];
-        delete obj[key];
-        if (Object.prototype.toString.call(obj[keyCopy]) === "[object Object]") {
-          obj[keyCopy] = parseObjectKeys(obj[keyCopy], type);
-        } else if (Array.isArray(obj[keyCopy])) {
-          obj[keyCopy] = obj[keyCopy].map((item) => {
-            return parseObjectKeys(item, type);
-          });
-        }
+      const newKey = parserReg.test(key) ? parser(key) : key;
+      const value = obj[key];
+      if (value !== null && typeof value === "object") {
+        result[newKey] = parseObjectKeys(value, type);
+      } else {
+        result[newKey] = value;
       }
     }
   }
-  return obj;
+  return result;
 }
 pubfn.snake2camel = function(value) {
-  return value.replace(isSnakeCase, (_, c) => c ? c.toUpperCase() : "");
+  return value.replace(new RegExp("_(\\w)", "g"), (_, c) => c ? c.toUpperCase() : "");
 };
 pubfn.camel2snake = function(value) {
-  return value.replace(isCamelCase, (str) => "_" + str.toLowerCase());
+  return value.replace(new RegExp("[A-Z]", "g"), (str) => "_" + str.toLowerCase());
 };
 pubfn.snake2camelJson = function(obj) {
   return parseObjectKeys(obj, "snake2camel");
@@ -711,12 +714,7 @@ pubfn.string2Number = function(obj, option = {}) {
   switch (type) {
     case "string":
       if (obj && !isNaN(obj)) {
-        let {
-          mobile = true,
-          idCard = true,
-          startFrom0 = true,
-          maxLength = 14
-        } = option;
+        let { mobile = true, idCard = true, startFrom0 = true, maxLength = 14 } = option;
         if (obj.length > maxLength) {
           return obj;
         } else if (mobile && pubfn.test(obj, "mobile")) {
@@ -895,7 +893,25 @@ pubfn.numStr = function(n, needSymbol = false) {
   }
   return str;
 };
-pubfn.priceFilter = function(money, defaultValue = "") {
+pubfn.thousandSeparator = function(num) {
+  if (pubfn.isNull(num)) {
+    return num;
+  }
+  num = String(num);
+  let parts = num.split(".");
+  let intPart = parts[0];
+  let decPart = parts[1] ? "." + parts[1] : "";
+  let reg = new RegExp("(\\d)(?=(\\d{3})+$)", "g");
+  intPart = intPart.replace(reg, "$1,");
+  return intPart + decPart;
+};
+pubfn.priceFilter = function(money, options = {}) {
+  if (typeof options === "string") {
+    options = {
+      defaultValue: options
+    };
+  }
+  let { defaultValue = "", format } = options;
   if (pubfn.isNull(money)) {
     return defaultValue;
   }
@@ -905,7 +921,11 @@ pubfn.priceFilter = function(money, defaultValue = "") {
   if (typeof money == "string") {
     money = parseFloat(money);
   }
-  return (money / 100).toFixed(2);
+  money = (money / 100).toFixed(2);
+  if (format === "thousandSeparator") {
+    money = pubfn.thousandSeparator(money);
+  }
+  return money;
 };
 pubfn.priceLeftFilter = function(n) {
   let s = "";
@@ -1024,17 +1044,12 @@ pubfn.objectKeySort = function(obj) {
   }
   return newObject;
 };
+pubfn.escapeRegExp = function(text) {
+  return String(text).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
 pubfn.getListData2 = function(obj = {}) {
   let vk2 = common_vendor.index.vk;
-  let {
-    that,
-    listName,
-    listKey = "rows",
-    formKey = "queryForm1",
-    url,
-    dataPreprocess,
-    idKeyName = "_id"
-  } = obj;
+  let { that, listName, listKey = "rows", formKey = "queryForm1", url, dataPreprocess, idKeyName = "_id" } = obj;
   if (listName)
     listKey = listName;
   let queryForm1 = that[formKey] || that.queryForm1 || that.queryForm;
@@ -1088,7 +1103,7 @@ pubfn.getListData2 = function(obj = {}) {
       if (typeof obj.success == "function")
         obj.success(data2);
     },
-    fail: function(err) {
+    fail: (err) => {
       that.state.loadmore = "loadmore";
       if (queryForm1.pagination.pageIndex > 1) {
         queryForm1.pagination.pageIndex--;
@@ -1099,7 +1114,7 @@ pubfn.getListData2 = function(obj = {}) {
         vk2.toast(err.msg, "none");
       }
     },
-    complete: function(res) {
+    complete: (res) => {
       that.loading = false;
       if (queryForm1.pagination.pageIndex === 1) {
         that.state.firstLoading = false;
@@ -1110,15 +1125,7 @@ pubfn.getListData2 = function(obj = {}) {
   });
 };
 pubfn.getListData = function(obj = {}) {
-  let {
-    that,
-    listName,
-    listKey = "rows",
-    formKey = "form1",
-    url,
-    dataPreprocess,
-    loading
-  } = obj;
+  let { that, listName, listKey = "rows", formKey = "form1", url, dataPreprocess, loading } = obj;
   let vk2 = common_vendor.index.vk;
   if (listName)
     listKey = listName;
@@ -1153,7 +1160,7 @@ pubfn.getListData = function(obj = {}) {
     data: form1,
     title,
     loading,
-    success: function(data3) {
+    success: (data3) => {
       let list = data3[listKey] || [];
       if (typeof dataPreprocess == "function") {
         list = dataPreprocess(list);
@@ -1187,7 +1194,7 @@ pubfn.getListData = function(obj = {}) {
       if (typeof obj.success == "function")
         obj.success(data3);
     },
-    fail: function(err) {
+    fail: (err) => {
       if (form1.pageIndex > 1) {
         form1.pageIndex--;
       }
@@ -1197,20 +1204,14 @@ pubfn.getListData = function(obj = {}) {
         vk2.toast(err.msg, "none");
       }
     },
-    complete: function(res) {
+    complete: (res) => {
       if (typeof obj.complete == "function")
         obj.complete(res);
     }
   });
 };
 pubfn.getComponentsDynamicData = function(obj = {}) {
-  let {
-    that,
-    keyName = "componentsDynamic",
-    title,
-    url = "plugs/components_dynamic/client/pub/getComponentsDynamicData",
-    ids
-  } = obj;
+  let { that, keyName = "componentsDynamic", title, url = "plugs/components-dynamic/client/pub.getList", ids } = obj;
   let vk2 = common_vendor.index.vk;
   let form1 = {
     ids
@@ -1238,7 +1239,7 @@ pubfn.getComponentsDynamicData = function(obj = {}) {
         obj.success(data2);
     },
     fail: function(err) {
-      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/index.js:1943", err);
+      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/index.js:1985", err);
       if (typeof obj.fail == "function")
         obj.fail(data);
     },
@@ -1280,11 +1281,12 @@ pubfn.getPlatform = function() {
 pubfn.getCurrentPage = function() {
   let res = {};
   let pages = getCurrentPages();
-  let page = pages[pages.length - 1];
-  if (page.route.indexOf("/") == 0)
-    page.route = page.route.substring(1);
-  let pagePath = `/${page.route}`;
-  let fullPath = `/${page.route}`;
+  let page = pages[pages.length - 1] || {};
+  let route = page.route || "";
+  if (route.indexOf("/") == 0)
+    route = route.substring(1);
+  let pagePath = `/${route}`;
+  let fullPath = `/${route}`;
   let options = page.options;
   if (page.$page) {
     if (typeof page.$page.fullPath !== "undefined") {
@@ -1297,17 +1299,18 @@ pubfn.getCurrentPage = function() {
   res.fullPath = fullPath;
   res.pagePath = pagePath;
   res.options = options;
-  res.route = page.route;
+  res.route = route;
   res.$vm = page.$vm;
   return res;
 };
 pubfn.getCurrentPageRoute = function(removeSlash) {
   let pages = getCurrentPages();
-  let page = pages[pages.length - 1];
+  let page = pages[pages.length - 1] || {};
+  let route = page.route || "";
   if (removeSlash) {
-    return page.route;
+    return route;
   } else {
-    return "/" + page.route;
+    return "/" + route;
   }
 };
 pubfn.fileToBase64 = function(obj = {}) {
@@ -1338,10 +1341,7 @@ pubfn.fileToBase64 = function(obj = {}) {
   });
 };
 pubfn.base64ToFile = function(obj = {}) {
-  let {
-    base64 = "",
-    filePath
-  } = obj;
+  let { base64 = "", filePath } = obj;
   let extName = base64.split(",")[0].match(/data\:\S+\/(\S+);/);
   if (extName) {
     extName = extName[1];
@@ -1437,7 +1437,7 @@ pubfn.checkLogin = function(obj = {}) {
       }
     });
   } catch (err) {
-    common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/index.js:2350", "catch", err);
+    common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/index.js:2407", "catch", err);
     common_vendor.index.reLaunch({
       url: loginUrl
     });
@@ -1480,15 +1480,15 @@ pubfn.getLocale = function() {
     localeValue = "zh-Hans";
   }
   let localeObj = {
-    "zh_CN": "zh-Hans",
+    zh_CN: "zh-Hans",
     // 中国大陆（简体）
-    "zh_HK": "zh-Hant",
+    zh_HK: "zh-Hant",
     // 香港（繁体）
-    "zh_MO": "zh-Hant",
+    zh_MO: "zh-Hant",
     // 澳门（繁体）
-    "zh_SG": "zh-Hans",
+    zh_SG: "zh-Hans",
     // 新加坡（简体）
-    "zh_TW": "zh-Hant"
+    zh_TW: "zh-Hant"
     // 台湾（繁体）
   };
   if (localeObj[localeValue])
@@ -1514,9 +1514,11 @@ pubfn.getMiniProgramEnvVersion = function() {
     const info = common_vendor.index.getAccountInfoSync();
     return info.miniProgram.envVersion;
   } catch (err) {
-    common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/index.js:2458", "getMiniProgramEnvVersionErr: ", err);
   }
-  return void 0;
+  return "develop";
+};
+pubfn.parseXlsxFile = async function(obj = {}) {
+  throw new Error("Only WEB platform supports");
 };
 exports.pubfn = pubfn;
 //# sourceMappingURL=../../../../../../../.sourcemap/mp-weixin/uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/index.js.map

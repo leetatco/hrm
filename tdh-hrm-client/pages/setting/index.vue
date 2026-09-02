@@ -6,7 +6,7 @@
 			<!-- 用户头像设置 -->
 			<view class="list-section">
 				<view class="list-title">个人信息</view>
-				<view class="avatar-item" @click="confirmCrop">
+				<view class="avatar-item" @click="chooseAndUploadFile">
 					<text class="item-label">更改头像</text>
 					<view class="item-right">
 						<u-avatar
@@ -142,10 +142,9 @@
 				vk.navigateTo('../pwd/update-password');
 			},
 
-			// 选择并上传文件
+			// 选择图片
 			async chooseAndUploadFile() {
 				try {
-					// 使用uView的图片选择组件
 					const res = await new Promise((resolve, reject) => {
 						uni.chooseImage({
 							count: 1,
@@ -171,38 +170,72 @@
 
 			// 确认裁剪并上传
 			async confirmCrop() {
+				if (!this.tempAvatarPath) {
+					uni.showToast({
+						title: '请先选择图片',
+						icon: 'none'
+					});
+					return;
+				}
+
 				this.showCropModal = false;
 				this.isUploading = true;
 
 				try {
-					// 这里实际应该调用图片裁剪API，但uni-app的裁剪组件需要单独处理
-					// 为了简化，我们直接上传原图，由服务器裁剪
-					const uploadResult = await new Promise((resolve, reject) => {
-						uniCloud.chooseAndUploadFile({
-							type: 'image',
-							fileList: [{
-								path: this.tempAvatarPath,
-								cloudPath: `avatar_${Date.now()}_${this.uid}.jpg`
-							}]
-						}).then(res => {
-							resolve(res);
-						}).catch(err => {
-							reject(err);
-						});
-					});
+					// 构建云存储路径
+					const timestamp = Date.now();
+					const random = Math.floor(Math.random() * 10000);
+					const cloudPath = `public/avatar/${this.uid}_${timestamp}_${random}.jpg`;
 
-					if (uploadResult.tempFiles && uploadResult.tempFiles[0]) {
-						const avatarUrl = uploadResult.tempFiles[0].url;
-						await this.submitForm(avatarUrl);
+					// 1. 获取上传参数
+					const uploadOptionsRes = await vk.callFunction({
+						url: 'common/pub/getUploadFileOptions/index',
+						data: {
+							cloudPath: cloudPath
+						}
+					});					
+
+					if (uploadOptionsRes.code !== 0) {
+						throw new Error(uploadOptionsRes.msg || '获取上传参数失败');
 					}
+
+					const uploadOptions = uploadOptionsRes.rows;				
+						
+
+					// 2. 使用 uni.uploadFile 上传到七牛云
+					const uploadResult = await new Promise((resolve, reject) => {
+						const uploadTask = uni.uploadFile({
+							...uploadOptions.uploadFileOptions,
+							filePath: this.tempAvatarPath,
+							name: 'file',
+							success: (res) => {
+								if (res.statusCode === 200) {									
+									resolve(res);
+								} else {											
+									reject(new Error(`上传失败: ${res.statusCode}`));
+								}
+							},
+							fail: reject
+						});
+						// 保存上传任务，以便在页面卸载时取消
+						this.uploadTask = uploadTask;
+					});
+					// 3. 构建文件访问URL
+					const avatarUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;					
+
+					// 4. 更新用户头像
+					await this.submitForm(avatarUrl, cloudPath);
+
 				} catch (error) {
 					console.error('上传头像失败:', error);
 					uni.showToast({
-						title: '上传失败，请重试',
+						title: '上传失败，请重试' + error.toString(),
 						icon: 'none'
 					});
 				} finally {
 					this.isUploading = false;
+					this.uploadTask = null;
+					this.tempAvatarPath = '';
 				}
 			},
 
@@ -213,8 +246,11 @@
 			},
 
 			// 提交表单更新头像
-			async submitForm(avatarUrl) {
+			async submitForm(avatarUrl, cloudPath) {
 				try {
+					// 获取旧头像地址，用于删除
+					const oldAvatar = vk.getVuex('$user.userInfo').avatar;
+
 					const userInfo = vk.getVuex('$user.userInfo');
 					const updateData = {
 						...userInfo,
@@ -231,11 +267,27 @@
 							icon: 'success'
 						});
 
-						// 更新本地vuex数据
-						setTimeout(() => {
-							// 强制刷新用户信息
-							// vk.userCenter.getCurrentUserInfo();
-						}, 500);
+						// 删除旧头像（如果有且不是默认头像）
+						if (oldAvatar && oldAvatar !== this.defaultAvatar && oldAvatar.includes(
+							'tdhstorage.cntdh.net')) {
+							try {
+								// 从URL中提取cloudPath
+								const urlParts = oldAvatar.split('/');
+								const oldCloudPath = urlParts.slice(3).join('/');
+
+								if (oldCloudPath) {
+									await vk.callFunction({
+										url: 'common/pub/deleteFile/index',
+										data: {
+											fileList: [oldCloudPath]
+										}
+									});
+								}
+							} catch (deleteError) {
+								console.error('删除旧头像失败:', deleteError);
+								// 删除失败不影响主流程
+							}
+						}
 					}
 				} catch (error) {
 					console.error('更新头像失败:', error);

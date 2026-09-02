@@ -229,9 +229,27 @@
 		"status": {
 			"title": "状态",
 			"bsonType": "int",
-			"description": "1=已签，0=未签",
+			"description": "1=已签，0=未签，2=其他",
 			"enum": [0, 1],
 			"defaultValue": 0
+		},
+		"bank_name": {
+			"title": "开户行",
+			"bsonType": "string",			
+			"description": "开户行",
+			"trim": "both"
+		},
+		"bank_location": {
+			"title": "开户地",
+			"bsonType": "string",			
+			"description": "开户地",
+			"trim": "both"
+		},
+		"bank_card": {
+			"bsonType": "string",
+			"title": "银行账号",
+			"description": "银行账号",
+			"trim": "both"
 		},
 		"signature_url": {
 		  "title": "签名图片",

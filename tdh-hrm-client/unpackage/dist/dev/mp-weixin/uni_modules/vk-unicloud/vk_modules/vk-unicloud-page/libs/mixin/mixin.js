@@ -12,13 +12,22 @@ const mixin = {
     if (this.vk) {
       const url = this.vk.pubfn.getCurrentPageRoute();
       this.vk.navigate.checkAllowShare({ url });
-      if (isOnLaunch && !this.vk.checkToken() && getCurrentPages().length == 1) {
+      if (isOnLaunch) {
         isOnLaunch = false;
-        const currentPage = this.vk.pubfn.getCurrentPage() || {};
-        let pagePath = currentPage.pagePath || `/${currentPage.route}` || url;
-        let fullPath = currentPage.fullPath;
-        let options = currentPage.options;
-        this.vk.pubfn.checkLogin({ url: pagePath, fullPath, options, isOnLaunch: true });
+        if (this.vk.checkToken()) {
+          if (!this.vk.checkCurrentPagePermission()) {
+            this.vk.navigateTo403();
+            return;
+          }
+        } else {
+          if (getCurrentPages().length == 1) {
+            const currentPage = this.vk.pubfn.getCurrentPage() || {};
+            let pagePath = currentPage.pagePath || `/${currentPage.route}` || url;
+            let fullPath = currentPage.fullPath;
+            let options = currentPage.options;
+            this.vk.pubfn.checkLogin({ url: pagePath, fullPath, options, isOnLaunch: true });
+          }
+        }
       }
     }
   },

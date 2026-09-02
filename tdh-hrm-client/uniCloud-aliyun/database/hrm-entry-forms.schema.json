@@ -1,8 +1,6 @@
 {
 	"bsonType": "object",
-	"required": [
-		"employee_name", "card"
-	],
+	"required": ["employee_name", "card"],
 	"permission": {
 		"read": false,
 		"create": false,
@@ -44,14 +42,12 @@
 			"title": "性别",
 			"description": "用户性别：1 男性 2 女性",
 			"enum": [{
-					"text": "男",
-					"value": 1
-				},
-				{
-					"text": "女",
-					"value": 2
-				}
-			]
+				"text": "男",
+				"value": 1
+			}, {
+				"text": "女",
+				"value": 2
+			}]
 		},
 		"nation_id": {
 			"title": "民族",
@@ -60,7 +56,6 @@
 			"description": "民族",
 			"trim": "both"
 		},
-
 		"mobile": {
 			"bsonType": "string",
 			"title": "手机号码",
@@ -79,14 +74,12 @@
 			"title": "住宿",
 			"description": "住宿：1 是 2 否",
 			"enum": [{
-					"text": "是",
-					"value": 1
-				},
-				{
-					"text": "否",
-					"value": 2
-				}
-			]
+				"text": "是",
+				"value": 1
+			}, {
+				"text": "否",
+				"value": 2
+			}]
 		},
 		"card": {
 			"bsonType": "string",
@@ -138,28 +131,24 @@
 			"description": "婚姻状况：1 已婚 2 未婚",
 			"title": "婚姻状况",
 			"enum": [{
-					"text": "已婚",
-					"value": 1
-				},
-				{
-					"text": "未婚",
-					"value": 2
-				}
-			]
+				"text": "已婚",
+				"value": 1
+			}, {
+				"text": "未婚",
+				"value": 2
+			}]
 		},
 		"no_crime": {
 			"bsonType": "int",
 			"description": "无犯罪证明：1 有 2 无",
 			"title": "无犯罪证明",
 			"enum": [{
-					"text": "有",
-					"value": 1
-				},
-				{
-					"text": "无",
-					"value": 2
-				}
-			]
+				"text": "有",
+				"value": 1
+			}, {
+				"text": "无",
+				"value": 2
+			}]
 		},
 		"comment": {
 			"title": "备注",

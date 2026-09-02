@@ -257,7 +257,7 @@ const _sfc_main = {
         });
       });
     },
-    // ================= 提交签名（横屏导出） =================
+    // ================= 提交签名（横屏导出） =================			
     async submitSign() {
       if (this.isEmpty()) {
         this.$refs.toast.showToast("请先签名");
@@ -309,17 +309,42 @@ const _sfc_main = {
             fail: reject
           });
         });
-        const uploadRes = await common_vendor.wr.uploadFile({
-          filePath: rotatedFilePath,
-          cloudPathAsRealPath: true,
-          cloudPath: `signature/${this.attendance_ym}_${Date.now()}.png`
+        const cloudPath = `public/signature/${this.attendance_ym}_${Date.now()}.png`;
+        const uploadOptionsRes = await vk.callFunction({
+          url: "common/pub/getUploadFileOptions/index",
+          // 根据你的云函数路径调整
+          data: {
+            cloudPath
+          }
         });
-        const fileID = uploadRes.fileID;
+        if (uploadOptionsRes.code !== 0) {
+          throw new Error(uploadOptionsRes.msg || "获取上传参数失败");
+        }
+        const uploadOptions = uploadOptionsRes.rows;
+        const uploadResult = await new Promise((resolve, reject) => {
+          common_vendor.index.uploadFile({
+            ...uploadOptions.uploadFileOptions,
+            filePath: rotatedFilePath,
+            success: (res) => {
+              if (res.statusCode === 200) {
+                resolve(res);
+              } else {
+                reject(new Error(`上传失败: ${res.statusCode}`));
+              }
+            },
+            fail: reject
+          });
+        });
+        const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
+        const fileID = cloudPath;
         const saveRes = await vk.callFunction({
           url: "admin/hrm/salary/sys/payslip/update",
           data: {
             _id: this._id,
-            signature_url: fileID,
+            signature_url: fileUrl,
+            // 存储完整的访问URL
+            file_id: fileID,
+            // 存储文件路径标识
             status: 1
           }
         });
@@ -335,7 +360,7 @@ const _sfc_main = {
       } catch (e) {
         this.$refs.toast.hide();
         this.$refs.toast.showToast("操作失败");
-        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:439", e);
+        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:476", e);
       }
     },
     getPickerColor(color) {
@@ -618,7 +643,7 @@ const _sfc_main = {
           this.ctx.draw(true);
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/payslip/sign.vue:734", "加载历史签名失败", err);
+          common_vendor.index.__f__("error", "at pages/payslip/sign.vue:771", "加载历史签名失败", err);
         }
       });
     },

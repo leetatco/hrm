@@ -25,9 +25,13 @@ util.navigateTo = function(obj) {
     return false;
   }
   lastNavigate = { url: obj.url, time };
+  if (!obj.__vkNavigateTo404 && !util.checkPageExists({ url: obj.url })) {
+    vk.navigateTo404();
+    return false;
+  }
   util.checkNeedLogin({
     url: obj.url,
-    success: function(res) {
+    success: (res) => {
       if (res.needLogin) {
         obj.url = vk.pubfn.getPageFullPath(obj.url);
         vk.navigate.setOriginalPage(obj);
@@ -65,13 +69,7 @@ util._navigateTo = function(obj) {
     if (typeof key == "boolean" && key === false)
       return false;
   }
-  let {
-    url,
-    animationType = "pop-in",
-    animationDuration = 300,
-    events,
-    mode = "navigateTo"
-  } = obj;
+  let { url, animationType = "pop-in", animationDuration = 300, events, mode = "navigateTo" } = obj;
   let navigateFn;
   if (mode === "navigateTo") {
     navigateFn = common_vendor.index.navigateTo;
@@ -97,9 +95,13 @@ util._navigateTo = function(obj) {
     fail: function(err) {
       if (err.errMsg.indexOf("not found") > -1) {
         let vk = common_vendor.index.vk;
-        let errUrl = vk.pubfn.getPageFullPath(url);
-        vk.toast(`页面 ${errUrl} 不存在`, "none");
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:123", err);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:128", err);
+        if (!obj.__vkNavigateTo404) {
+          vk.navigateTo404();
+        } else {
+          let errUrl = vk.pubfn.getPageFullPath(url);
+          vk.toast(`页面 ${errUrl} 不存在`, "none");
+        }
         return false;
       }
       common_vendor.index.switchTab({
@@ -110,7 +112,7 @@ util._navigateTo = function(obj) {
             url,
             success: obj.success,
             fail: function(err2) {
-              common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:134", err2);
+              common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:145", err2);
               if (typeof obj.fail == "function")
                 obj.fail(err2);
             }
@@ -149,11 +151,7 @@ util.navigateBack = function(obj) {
   } else if (typeof obj == "undefined") {
     obj = {};
   }
-  let {
-    delta = 1,
-    animationType = "pop-out",
-    animationDuration = 300
-  } = obj;
+  let { delta = 1, animationType = "pop-out", animationDuration = 300 } = obj;
   common_vendor.index.navigateBack({
     delta,
     animationType,
@@ -163,7 +161,7 @@ util.navigateBack = function(obj) {
         obj.success();
     },
     fail: function(res) {
-      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:203", res);
+      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:210", res);
       if (typeof obj.fail == "function")
         obj.fail();
     },
@@ -198,9 +196,7 @@ util.setOriginalPage = function(originalPage) {
 };
 util.navigateToHome = function(obj = {}) {
   let vk = common_vendor.index.vk;
-  let {
-    mode = "reLaunch"
-  } = obj;
+  let { mode = "reLaunch" } = obj;
   vk[mode](app_config.config.index.url);
 };
 util.navigateToLogin = function(obj = {}) {
@@ -241,12 +237,27 @@ util.navigateToLogin = function(obj = {}) {
     url
   });
 };
+util.navigateTo403 = function(obj = {}) {
+  let vk = common_vendor.index.vk;
+  let { mode = "redirectTo" } = obj;
+  if (app_config.config.noPermission && app_config.config.noPermission.url) {
+    vk[mode](app_config.config.noPermission.url);
+  }
+};
+util.navigateTo404 = function(obj = {}) {
+  let vk = common_vendor.index.vk;
+  let { mode = "redirectTo" } = obj;
+  if (app_config.config.error && app_config.config.error.url) {
+    vk[mode]({
+      ...obj,
+      url: app_config.config.error.url,
+      __vkNavigateTo404: true
+    });
+  }
+};
 util.checkWildcardTest = function(obj) {
   let vk = common_vendor.index.vk;
-  let {
-    url,
-    pagesRule
-  } = obj;
+  let { url, pagesRule } = obj;
   url = vk.pubfn.getPageFullPath(url);
   let key = false;
   if (vk.pubfn.isNotNull(pagesRule)) {
@@ -291,11 +302,98 @@ util.checkNeedLogin = function(obj) {
       }
     }
   }
-  success({
-    url,
-    needLogin,
-    pageNeedLogin
-  });
+  if (typeof success === "function") {
+    success({
+      url,
+      needLogin,
+      pageNeedLogin
+    });
+  }
+  return pageNeedLogin;
+};
+util.checkPageExists = function(obj = {}) {
+  let vk = common_vendor.index.vk;
+  let { url } = obj;
+  if (vk.pubfn.isNull(url))
+    return true;
+  let pagePath = util.normalizePagePath(vk.pubfn.getPageFullPath(url));
+  if (vk.pubfn.isNull(pagePath))
+    return true;
+  let pageList = util.getRegisteredPageList();
+  if (!pageList.length)
+    return true;
+  return pageList.indexOf(pagePath) > -1;
+};
+util.getRegisteredPageList = function() {
+  let list = [];
+  const addPage = (page, root) => {
+    if (typeof page === "string") {
+      list.push(util.normalizePagePath([root, page].filter((item) => item).join("/")));
+    } else if (page && typeof page === "object") {
+      list.push(util.normalizePagePath([root, page.path || page.pagePath].filter((item) => item).join("/")));
+    }
+  };
+  const addPages = (pages, root) => {
+    if (Array.isArray(pages)) {
+      pages.forEach((page) => addPage(page, root));
+    } else if (pages && typeof pages === "object") {
+      Object.keys(pages).forEach((page) => addPage(page, root));
+    }
+  };
+  addPages(common_vendor.pagesJson.pages);
+  let subPackages = common_vendor.pagesJson.subPackages || common_vendor.pagesJson.subpackages || [];
+  if (Array.isArray(subPackages)) {
+    subPackages.forEach((subPackage) => {
+      if (subPackage && typeof subPackage === "object") {
+        addPages(subPackage.pages, subPackage.root);
+      }
+    });
+  }
+  return list.filter((page, index) => page && list.indexOf(page) === index);
+};
+util.normalizePagePath = function(path) {
+  if (typeof path !== "string")
+    return "";
+  return path.split("?")[0].split("#")[0].replace(/^\/+/, "").replace(/\.html$/, "");
+};
+util.checkCurrentPagePermission = function(obj = {}) {
+  let vk = common_vendor.index.vk;
+  let currentPage = vk.pubfn.getCurrentPage();
+  let pagePath = "/" + (currentPage.route || "");
+  if (obj.url) {
+    pagePath = vk.pubfn.getPageFullPath(obj.url);
+  }
+  pagePath = pagePath.split("?")[0];
+  if (!util.checkPageExists({ url: pagePath })) {
+    vk.navigateTo404();
+    return true;
+  }
+  if (app_config.config.noPermission && app_config.config.noPermission.url) {
+    let noPermissionPath = vk.pubfn.getPageFullPath(app_config.config.noPermission.url);
+    if (pagePath === noPermissionPath) {
+      return true;
+    }
+  }
+  if (!app_config.config.noPermission) {
+    return true;
+  }
+  let pagesRule = app_config.config.checkPermissionPages;
+  if (pagesRule) {
+    let res = util.checkWildcardTest({ url: pagePath, pagesRule });
+    if (!res.key)
+      return true;
+  } else {
+    return true;
+  }
+  let pageNeedLogin = util.checkNeedLogin({ url: pagePath });
+  if (!pageNeedLogin)
+    return true;
+  let menuList = vk.getVuex("$app.menuList") || [];
+  let hasPermission = menuList.some((item) => item.url && item.url.split("?")[0] === pagePath);
+  if (!hasPermission) {
+    return false;
+  }
+  return true;
 };
 util.getPagePath = function(url) {
   let pathIndex = url.indexOf("?");
@@ -415,7 +513,7 @@ util.navigateToLuckyDraw = function(obj = {}) {
       if (subMsg) {
         errMsg += `：${subMsg}`;
       }
-      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:602", errMsg);
+      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:729", errMsg);
     }
   });
 };

@@ -3,7 +3,6 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = {
   data() {
     return {
-      sourceType: ["camera"],
       formData: {
         employee_id: "",
         bssid: "",
@@ -16,17 +15,12 @@ const _sfc_main = {
       time: "00:00",
       bssidKeys: /* @__PURE__ */ new Set(),
       bssidMap: /* @__PURE__ */ new Map(),
-      // 修正变量名
       bssid_current: "",
-      // 当前Wi-Fi MAC地址	
       ssid_current: "",
-      // 当前Wi-Fi名称				
       is_range: true,
-      // 是否在范围内
       is_range_content: "你已在打卡范围内，将按公司卡记录！",
       today: "",
-      avatarDir: "/clockin",
-      avatarFileList: []
+      avatarDir: "/clockin"
     };
   },
   onShow() {
@@ -41,38 +35,71 @@ const _sfc_main = {
     this.startTimeUpdater();
   },
   methods: {
-    //========== 头像上传相关（uni-file-picker）==========
-    onAvatarSuccess(e) {
-      const {
-        tempFiles
-      } = e;
-      if (tempFiles && tempFiles.length > 0) {
-        const file = tempFiles[0];
-        const url = file.url || file.path;
-        this.formData.img = url;
-        this.avatarFileList = [{
-          url,
-          name: file.name || "avatar.jpg"
-        }];
-      }
-    },
-    onAvatarRemove(e) {
-      var _a;
-      const fileUrl = (_a = e.tempFile) == null ? void 0 : _a.url;
-      if (fileUrl) {
-        vk.callFunction({
-          url: "common/pub/deleteFile/index",
-          data: {
-            fileList: [fileUrl]
+    //========== 拍照并上传 ==========
+    chooseAndUploadImage() {
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 1e4);
+      vk.chooseAndUploadFile({
+        type: "image",
+        count: 1,
+        sourceType: ["camera"],
+        sizeType: ["compressed"],
+        title: "上传中...",
+        onChooseFile: (res) => {
+          var _a;
+          let tempFiles = res.tempFiles.slice(0, 1);
+          const file = tempFiles[0];
+          const ext = (((_a = file.name) == null ? void 0 : _a.split(".").pop()) || "jpg").toLowerCase();
+          tempFiles[0].cloudPath = `public${this.avatarDir}/${timestamp}_${random}.${ext}`;
+          return {
+            tempFilePaths: res.tempFilePaths.slice(0, 1),
+            tempFiles
+          };
+        },
+        success: (res) => {
+          const file = res.tempFiles[0];
+          this.formData.img = file.url;
+          common_vendor.index.showToast({
+            title: "上传成功",
+            icon: "success"
+          });
+        },
+        fail: (err) => {
+          if (err.errMsg && err.errMsg.includes("cancel")) {
+            return;
           }
+          common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:184", "上传失败:", err);
+          common_vendor.index.showToast({
+            title: "上传失败",
+            icon: "none"
+          });
+        }
+      });
+    },
+    //========== 预览图片 ==========
+    previewImage() {
+      if (!this.formData.img)
+        return;
+      common_vendor.index.previewImage({
+        urls: [this.formData.img],
+        current: this.formData.img
+      });
+    },
+    //========== 删除图片 ==========
+    async removeImage() {
+      if (!this.formData.img)
+        return;
+      try {
+        await vk.myfn.deleteFile({
+          url: this.formData.img
         });
+        common_vendor.index.__f__("log", "at pages/clockin/clockin.vue:209", "删除云文件:", this.formData.img);
+      } catch (e) {
+        common_vendor.index.__f__("warn", "at pages/clockin/clockin.vue:211", "删除云文件失败:", e);
       }
       this.formData.img = "";
-      this.avatarFileList = [];
-    },
-    onFileUploadFail(err) {
       common_vendor.index.showToast({
-        title: "上传失败",
+        title: "已删除",
         icon: "none"
       });
     },
@@ -123,29 +150,6 @@ const _sfc_main = {
         common_vendor.index.stopPullDownRefresh();
       });
     },
-    // 图片上传成功
-    imgUpload(e) {
-      const {
-        tempFiles
-      } = e;
-      if (tempFiles == null ? void 0 : tempFiles.length) {
-        this.imgFiles = tempFiles[0];
-        this.formData.img = this.imgFiles.url || this.imgFiles.path;
-        vk.alert("上传成功，" + this.formData.img);
-      }
-    },
-    // 图片删除
-    async imgDelete(e) {
-      await vk.callFunction({
-        url: "common/sys/deleteFile/index",
-        title: "删除中...",
-        data: {
-          fileList: [e.tempFile.fileID]
-        }
-      });
-      this.imgFiles = [];
-      this.formData.img = "";
-    },
     // 获取当前连接的Wi-Fi
     getConnectedWifi() {
       common_vendor.index.startWifi({
@@ -156,13 +160,13 @@ const _sfc_main = {
               this.ssid_current = res.wifi.SSID;
             },
             fail: (err) => {
-              common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:257", "获取当前Wi-Fi失败", err);
+              common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:281", "获取当前Wi-Fi失败", err);
               this.bssid_current = "获取失败";
             }
           });
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:263", "启动Wi-Fi模块失败", err);
+          common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:287", "启动Wi-Fi模块失败", err);
           this.bssid_current = "无法获取";
         }
       });
@@ -202,7 +206,6 @@ const _sfc_main = {
         return;
       this.is_submit = true;
       this.formData.clockintime = vk.pubfn.timeFormat(/* @__PURE__ */ new Date(), "yyyy-MM-dd hh:mm:ss");
-      this.formData.img = this.avatarFileList.length ? this.avatarFileList[0].url : "";
       vk.callFunction({
         url: "admin/hrm/clockin/sys/add",
         title: "提交中...",
@@ -210,7 +213,9 @@ const _sfc_main = {
       }).then((res) => {
         this.is_submit = false;
         if (res.code === 0) {
-          this.toMain();
+          vk.alert("打卡成功", "提示", "确定", () => {
+            this.toMain();
+          });
         } else {
           vk.alert(res.msg);
         }
@@ -223,13 +228,11 @@ const _sfc_main = {
 };
 if (!Array) {
   const _easycom_u_icon2 = common_vendor.resolveComponent("u-icon");
-  const _easycom_uni_file_picker2 = common_vendor.resolveComponent("uni-file-picker");
-  (_easycom_u_icon2 + _easycom_uni_file_picker2)();
+  _easycom_u_icon2();
 }
 const _easycom_u_icon = () => "../../uni_modules/vk-uview-ui/components/u-icon/u-icon.js";
-const _easycom_uni_file_picker = () => "../../uni_modules/uni-file-picker/components/uni-file-picker/uni-file-picker.js";
 if (!Math) {
-  (_easycom_u_icon + _easycom_uni_file_picker)();
+  _easycom_u_icon();
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
@@ -262,43 +265,45 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     j: !$data.is_range
   }, !$data.is_range ? {} : {}, {
-    k: common_vendor.p({
+    k: !$data.formData.img
+  }, !$data.formData.img ? {
+    l: common_vendor.p({
       name: "camera",
-      size: "28",
+      size: "48",
       color: "#2979ff"
     }),
-    l: common_vendor.o($options.onAvatarSuccess, "40"),
-    m: common_vendor.o($options.onAvatarRemove, "19"),
-    n: common_vendor.o($options.onFileUploadFail, "4d"),
-    o: common_vendor.o(($event) => $data.avatarFileList = $event, "4e"),
+    m: common_vendor.o((...args) => $options.chooseAndUploadImage && $options.chooseAndUploadImage(...args), "4c")
+  } : {
+    n: $data.formData.img,
+    o: common_vendor.o((...args) => $options.previewImage && $options.previewImage(...args), "90"),
     p: common_vendor.p({
-      ["auto-upload"]: true,
-      sourceType: $data.sourceType,
-      limit: 1,
-      ["file-mediatype"]: "image",
-      dir: $data.avatarDir,
-      modelValue: $data.avatarFileList
+      name: "close",
+      size: "20",
+      color: "#fff"
     }),
-    q: common_vendor.p({
+    q: common_vendor.o((...args) => $options.removeImage && $options.removeImage(...args), "ea"),
+    r: common_vendor.o((...args) => $options.chooseAndUploadImage && $options.chooseAndUploadImage(...args), "25")
+  }, {
+    s: common_vendor.p({
       name: "compose",
       size: "32",
       color: "#2d8cff"
     }),
-    r: $data.formData.remark,
-    s: common_vendor.o(($event) => $data.formData.remark = $event.detail.value, "00"),
-    t: common_vendor.p({
+    t: $data.formData.remark,
+    v: common_vendor.o(($event) => $data.formData.remark = $event.detail.value, "31"),
+    w: common_vendor.p({
       type: "location-filled",
       size: "48",
       color: $data.is_range ? "#4caf50" : "#f44336"
     }),
-    v: common_vendor.t($data.is_range_content),
-    w: common_vendor.n($data.is_range ? "text-success" : "text-danger"),
-    x: common_vendor.t($data.formData.type),
-    y: common_vendor.t($data.time),
-    z: common_vendor.o((...args) => $options.submit && $options.submit(...args), "c7"),
-    A: $data.is_submit ? 1 : "",
-    B: !$data.is_range ? 1 : "",
-    C: $data.is_submit
+    x: common_vendor.t($data.is_range_content),
+    y: common_vendor.n($data.is_range ? "text-success" : "text-danger"),
+    z: common_vendor.t($data.formData.type),
+    A: common_vendor.t($data.time),
+    B: common_vendor.o((...args) => $options.submit && $options.submit(...args), "8b"),
+    C: $data.is_submit ? 1 : "",
+    D: !$data.is_range ? 1 : "",
+    E: $data.is_submit
   }, $data.is_submit ? {} : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-60f3b423"]]);

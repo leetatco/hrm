@@ -12,6 +12,6 @@
  * ##### 框架学习Q群：`22466457` 欢迎萌新和大佬来使用和共同改进框架
  */
 
-import vk from './vk_modules/vk-unicloud-page'
+import vk from './vk_modules/vk-unicloud-page';
 
 export default vk;

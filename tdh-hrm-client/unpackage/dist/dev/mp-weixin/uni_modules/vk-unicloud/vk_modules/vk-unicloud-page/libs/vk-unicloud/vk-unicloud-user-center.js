@@ -6,22 +6,71 @@ let { callFunction, config, saveToken, deleteToken } = uni_modules_vkUnicloud_vk
 const debounceTime = 1e3;
 const localeObj = {
   "zh-Hans": {
-    "loading": "请求中...",
-    "login": "登录中...",
-    "register": "注册中...",
-    "create": "生成中..."
+    loading: "请求中...",
+    login: "登录中...",
+    register: "注册中...",
+    create: "生成中..."
   },
   "zh-Hant": {
-    "loading": "請求中...",
-    "login": "登入中...",
-    "register": "注册中...",
-    "create": "生成中..."
+    loading: "請求中...",
+    login: "登入中...",
+    register: "注册中...",
+    create: "生成中..."
   },
-  "en": {
-    "loading": "loading...",
-    "login": "login...",
-    "register": "register...",
-    "create": "create..."
+  en: {
+    loading: "loading...",
+    login: "login...",
+    register: "register...",
+    create: "create..."
+  },
+  de: {
+    loading: "Laden...",
+    login: "Anmelden...",
+    register: "Registrieren...",
+    create: "Erstellen..."
+  },
+  es: {
+    loading: "Cargando...",
+    login: "Iniciando sesión...",
+    register: "Registrando...",
+    create: "Creando..."
+  },
+  fr: {
+    loading: "Chargement...",
+    login: "Connexion...",
+    register: "Inscription...",
+    create: "Création..."
+  },
+  it: {
+    loading: "Caricamento...",
+    login: "Accesso...",
+    register: "Registrazione...",
+    create: "Creazione..."
+  },
+  ja: {
+    loading: "読み込み中...",
+    login: "ログイン中...",
+    register: "登録中...",
+    create: "作成中..."
+  },
+  pl: {
+    loading: "Ładowanie...",
+    login: "Logowanie...",
+    register: "Rejestracja...",
+    create: "Tworzenie..."
+  },
+  pt: {
+    loading: "Carregando...",
+    login: "Entrando...",
+    register: "Registrando...",
+    create: "Criando..."
+  },
+  uk: {
+    loading: "loading...",
+    // Завантаження... 单词太长，故用loading...
+    login: "Вхід...",
+    register: "Реєстрація...",
+    create: "Створення..."
   }
 };
 function addLoading(obj, title) {
@@ -61,13 +110,18 @@ const userCenter = {
    * @param {String} uid 用户ID
    */
   register(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "register");
-      return callFunction({
-        ...obj,
-        url: "user/pub/register"
-      });
-    }, debounceTime, true, "login");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "register");
+        return callFunction({
+          ...obj,
+          url: "user/pub/register"
+        });
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 用户登录(用户名+密码)
@@ -83,13 +137,18 @@ const userCenter = {
    * @param {String} uid 用户ID
    */
   login(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      return callFunction({
-        ...obj,
-        url: "user/pub/login"
-      });
-    }, debounceTime, true, "login");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        return callFunction({
+          ...obj,
+          url: "user/pub/login"
+        });
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 登出(退出)
@@ -100,18 +159,23 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   logout(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/pub/logout",
-        success(res) {
-          deleteToken();
-          if (typeof obj.success == "function")
-            obj.success(res);
-        }
-      });
-    }, debounceTime, true, "logout");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/pub/logout",
+          success(res) {
+            deleteToken();
+            if (typeof obj.success == "function")
+              obj.success(res);
+          }
+        });
+      },
+      debounceTime,
+      true,
+      "logout"
+    );
   },
   /**
    * 修改密码
@@ -210,6 +274,49 @@ const userCenter = {
     });
   },
   /**
+   * 注销账号
+   * @param {Number} code 错误码，0表示成功
+   * @param {String} msg 详细信息
+   */
+  closeAccount(obj) {
+    addLoading(obj, "loading");
+    return callFunction({
+      ...obj,
+      url: "user/kh/closeAccount",
+      success: (res) => {
+        if (res.destroyed) {
+          deleteToken();
+        }
+        if (typeof obj.success == "function")
+          obj.success(res);
+      }
+    });
+  },
+  /**
+   * 恢复账号（取消注销）
+   * @param {Number} code 错误码，0表示成功
+   * @param {String} msg 详细信息
+   */
+  openAccount(obj) {
+    addLoading(obj, "loading");
+    return callFunction({
+      ...obj,
+      url: "user/kh/openAccount"
+    });
+  },
+  /**
+   * 获取注销冷静期状态
+   * @param {Number} code 错误码，0表示成功
+   * @param {String} msg 详细信息
+   */
+  getCoolingStatus(obj) {
+    addLoading(obj);
+    return callFunction({
+      ...obj,
+      url: "user/pub/getCoolingStatus"
+    });
+  },
+  /**
    * 绑定手机号
    * data 请求参数 说明
    * @param {String} mobile 手机号
@@ -219,13 +326,18 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   bindMobile(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/kh/bindMobile"
-      });
-    }, debounceTime, true, "bindMobile");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/kh/bindMobile"
+        });
+      },
+      debounceTime,
+      true,
+      "bindMobile"
+    );
   },
   /**
    * 解绑手机号
@@ -237,13 +349,18 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   unbindMobile(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/kh/unbindMobile"
-      });
-    }, debounceTime, true, "unbindMobile");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/kh/unbindMobile"
+        });
+      },
+      debounceTime,
+      true,
+      "unbindMobile"
+    );
   },
   /**
    * 绑定新的手机号（换绑手机号）
@@ -257,13 +374,18 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   bindNewMobile(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/kh/bindNewMobile"
-      });
-    }, debounceTime, true, "bindNewMobile");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/kh/bindNewMobile"
+        });
+      },
+      debounceTime,
+      true,
+      "bindNewMobile"
+    );
   },
   /**
    * 手机号登录(手机号+手机验证码)
@@ -277,13 +399,18 @@ const userCenter = {
    * @param {String} tokenExpired token过期时间
    */
   loginBySms(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      return callFunction({
-        url: "user/pub/loginBySms",
-        ...obj
-      });
-    }, debounceTime, true, "login");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        return callFunction({
+          url: "user/pub/loginBySms",
+          ...obj
+        });
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 发送手机号验证码
@@ -297,13 +424,18 @@ const userCenter = {
    * @param {Object} requestParam 包含服务供应商和发送的手机号
    */
   sendSmsCode(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/pub/sendSmsCode"
-      });
-    }, debounceTime, true, "sendSmsCode");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/pub/sendSmsCode"
+        });
+      },
+      debounceTime,
+      true,
+      "sendSmsCode"
+    );
   },
   /**
    * APP端 手机一键登录
@@ -340,13 +472,18 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   bindEmail(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/kh/bindEmail"
-      });
-    }, debounceTime, true, "bindEmail");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/kh/bindEmail"
+        });
+      },
+      debounceTime,
+      true,
+      "bindEmail"
+    );
   },
   /**
    * 解绑邮箱
@@ -354,13 +491,18 @@ const userCenter = {
    * @param {String} code  邮箱收到的验证码
    */
   unbindEmail(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/kh/unbindEmail"
-      });
-    }, debounceTime, true, "unbindEmail");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/kh/unbindEmail"
+        });
+      },
+      debounceTime,
+      true,
+      "unbindEmail"
+    );
   },
   /**
    * 绑定新的邮箱（换绑邮箱）
@@ -370,13 +512,18 @@ const userCenter = {
    * @param {String} code 新邮箱收到的验证码
    */
   bindNewEmail(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/kh/bindNewEmail"
-      });
-    }, debounceTime, true, "bindNewEmail");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/kh/bindNewEmail"
+        });
+      },
+      debounceTime,
+      true,
+      "bindNewEmail"
+    );
   },
   /**
    * 邮箱登录(邮箱+邮箱验证码)
@@ -390,13 +537,18 @@ const userCenter = {
    * @param {String} tokenExpired token过期时间
    */
   loginByEmail(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      return callFunction({
-        url: "user/pub/loginByEmail",
-        ...obj
-      });
-    }, debounceTime, true, "login");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        return callFunction({
+          url: "user/pub/loginByEmail",
+          ...obj
+        });
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 发送邮件验证码
@@ -410,13 +562,18 @@ const userCenter = {
    * @param {String} verifyCode 验证码
    */
   sendEmailCode(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/pub/sendEmailCode"
-      });
-    }, debounceTime, true, "sendEmailCode");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/pub/sendEmailCode"
+        });
+      },
+      debounceTime,
+      true,
+      "sendEmailCode"
+    );
   },
   /**
    * 根据邮箱+验证码重置密码
@@ -429,13 +586,18 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   resetPasswordByEmail(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/pub/resetPasswordByEmail"
-      });
-    }, debounceTime, true, "resetPasswordByEmail");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/pub/resetPasswordByEmail"
+        });
+      },
+      debounceTime,
+      true,
+      "resetPasswordByEmail"
+    );
   },
   /**
    * 设置验证码
@@ -474,7 +636,9 @@ const userCenter = {
           resolve(res.code);
         },
         fail(err) {
-          reject(new Error("微信登录失败"));
+          let msg = err.msg || err.errMsg || err.message;
+          common_vendor.index.vk.alert(msg);
+          reject(err);
         }
       });
     });
@@ -493,21 +657,26 @@ const userCenter = {
    */
   loginByWeixin(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getWeixinCode(data).then((code) => {
-        return callFunction({
-          url: "user/pub/loginByWeixin",
-          ...obj,
-          data: {
-            code,
-            ...data
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getWeixinCode(data).then((code) => {
+          return callFunction({
+            url: "user/pub/loginByWeixin",
+            ...obj,
+            data: {
+              code,
+              ...data
+            }
+          });
         });
-      });
-    }, debounceTime, true, "login");
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 获取微信openid
@@ -546,21 +715,26 @@ const userCenter = {
    */
   bindWeixin(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getWeixinCode(data).then((code) => {
-        return callFunction({
-          ...obj,
-          url: "user/kh/bindWeixin",
-          data: {
-            code,
-            ...data
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getWeixinCode(data).then((code) => {
+          return callFunction({
+            ...obj,
+            url: "user/kh/bindWeixin",
+            data: {
+              code,
+              ...data
+            }
+          });
         });
-      });
-    }, debounceTime, true, "bindWeixin");
+      },
+      debounceTime,
+      true,
+      "bindWeixin"
+    );
   },
   /**
    * 解绑微信
@@ -569,14 +743,19 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   unbindWeixin(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      return callFunction({
-        ...obj,
-        url: "user/kh/unbindWeixin"
-      });
-    }, debounceTime, true, "unbindWeixin");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        return callFunction({
+          ...obj,
+          url: "user/kh/unbindWeixin"
+        });
+      },
+      debounceTime,
+      true,
+      "unbindWeixin"
+    );
   },
   /**
    * 获取小程序绑定的手机号
@@ -586,14 +765,19 @@ const userCenter = {
    * @param {String} sessionKey
    */
   getPhoneNumber(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      return callFunction({
-        ...obj,
-        url: "user/pub/getPhoneNumber"
-      });
-    }, debounceTime, true, "getPhoneNumber");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        return callFunction({
+          ...obj,
+          url: "user/pub/getPhoneNumber"
+        });
+      },
+      debounceTime,
+      true,
+      "getPhoneNumber"
+    );
   },
   /**
    * 通过微信小程序绑定的手机号登录
@@ -608,14 +792,19 @@ const userCenter = {
    * @param {String} tokenExpired token过期时间
    */
   loginByWeixinPhoneNumber(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      return callFunction({
-        url: "user/pub/loginByWeixinPhoneNumber",
-        ...obj
-      });
-    }, debounceTime, true, "login");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        return callFunction({
+          url: "user/pub/loginByWeixinPhoneNumber",
+          ...obj
+        });
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 生成微信小程序码
@@ -633,7 +822,7 @@ const userCenter = {
     addLoading(obj, "create");
     addAppid(obj);
     if (obj.data && obj.data.env_version === "auto") {
-      obj.data.env_version = vk.pubfn.getMiniProgramEnvVersion();
+      obj.data.env_version = common_vendor.index.vk.pubfn.getMiniProgramEnvVersion();
     }
     return callFunction({
       ...obj,
@@ -653,7 +842,7 @@ const userCenter = {
     addLoading(obj, "create");
     addAppid(obj);
     if (obj.data && obj.data.env_version === "auto") {
-      obj.data.env_version = vk.pubfn.getMiniProgramEnvVersion();
+      obj.data.env_version = common_vendor.index.vk.pubfn.getMiniProgramEnvVersion();
     }
     return callFunction({
       ...obj,
@@ -674,7 +863,7 @@ const userCenter = {
     addLoading(obj, "create");
     addAppid(obj);
     if (obj.data && obj.data.env_version === "auto") {
-      obj.data.env_version = vk.pubfn.getMiniProgramEnvVersion();
+      obj.data.env_version = common_vendor.index.vk.pubfn.getMiniProgramEnvVersion();
     }
     return callFunction({
       ...obj,
@@ -705,21 +894,26 @@ const userCenter = {
    */
   loginByAlipay(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getAlipayCode(obj).then((code) => {
-        return callFunction({
-          url: "user/pub/loginByAlipay",
-          ...obj,
-          data: {
-            ...data,
-            code
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getAlipayCode(obj).then((code) => {
+          return callFunction({
+            url: "user/pub/loginByAlipay",
+            ...obj,
+            data: {
+              ...data,
+              code
+            }
+          });
         });
-      });
-    }, debounceTime, true, "login");
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 获取支付宝openid
@@ -756,21 +950,26 @@ const userCenter = {
    */
   bindAlipay(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getAlipayCode(obj).then((code) => {
-        return callFunction({
-          ...obj,
-          url: "user/kh/bindAlipay",
-          data: {
-            ...data,
-            code
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getAlipayCode(obj).then((code) => {
+          return callFunction({
+            ...obj,
+            url: "user/kh/bindAlipay",
+            data: {
+              ...data,
+              code
+            }
+          });
         });
-      });
-    }, debounceTime, true, "bindAlipay");
+      },
+      debounceTime,
+      true,
+      "bindAlipay"
+    );
   },
   /**
    * 解绑支付宝
@@ -779,14 +978,19 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   unbindAlipay(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      return callFunction({
-        ...obj,
-        url: "user/kh/unbindAlipay"
-      });
-    }, debounceTime, true, "unbindAlipay");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        return callFunction({
+          ...obj,
+          url: "user/kh/unbindAlipay"
+        });
+      },
+      debounceTime,
+      true,
+      "unbindAlipay"
+    );
   },
   /**
    * 生成支付宝小程序码
@@ -928,7 +1132,7 @@ const userCenter = {
           });
         },
         fail: function(err) {
-          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1049", err);
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1269", err);
         }
       });
     } else if (fileType === "video") {
@@ -949,7 +1153,7 @@ const userCenter = {
           });
         },
         fail: function(err) {
-          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1070", err);
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1290", err);
         }
       });
     } else {
@@ -976,21 +1180,26 @@ const userCenter = {
    */
   loginByQQ(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      let { data = {} } = obj;
-      return that.getQQCode().then(({ code, accessToken } = {}) => {
-        return callFunction({
-          url: "user/pub/loginByQQ",
-          ...obj,
-          data: {
-            ...data,
-            code,
-            accessToken
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        let { data = {} } = obj;
+        return that.getQQCode().then(({ code, accessToken } = {}) => {
+          return callFunction({
+            url: "user/pub/loginByQQ",
+            ...obj,
+            data: {
+              ...data,
+              code,
+              accessToken
+            }
+          });
         });
-      });
-    }, debounceTime, true, "login");
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 绑定QQ
@@ -1000,21 +1209,26 @@ const userCenter = {
    */
   bindQQ(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      let { data = {} } = obj;
-      return that.getQQCode().then(({ code, accessToken } = {}) => {
-        return callFunction({
-          ...obj,
-          url: "user/kh/bindQQ",
-          data: {
-            ...data,
-            code,
-            accessToken
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        let { data = {} } = obj;
+        return that.getQQCode().then(({ code, accessToken } = {}) => {
+          return callFunction({
+            ...obj,
+            url: "user/kh/bindQQ",
+            data: {
+              ...data,
+              code,
+              accessToken
+            }
+          });
         });
-      });
-    }, debounceTime, true, "bindQQ");
+      },
+      debounceTime,
+      true,
+      "bindQQ"
+    );
   },
   /**
    * 解绑QQ
@@ -1023,13 +1237,18 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   unbindQQ(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      return callFunction({
-        ...obj,
-        url: "user/kh/unbindQQ"
-      });
-    }, debounceTime, true, "unbindQQ");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        return callFunction({
+          ...obj,
+          url: "user/kh/unbindQQ"
+        });
+      },
+      debounceTime,
+      true,
+      "unbindQQ"
+    );
   },
   /**
    * 获取抖音openid
@@ -1087,13 +1306,13 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   loginByToken(obj = {}) {
-    const vk2 = common_vendor.index.vk;
-    if (!vk2.checkToken()) {
+    const vk = common_vendor.index.vk;
+    if (!vk.checkToken()) {
       return;
     }
     const keyName = "pub-vk.userCenter.loginByToken";
-    let time = vk2.getStorageSync(keyName) || 0;
-    const { todayStart, todayEnd } = vk2.pubfn.getCommonTime();
+    let time = vk.getStorageSync(keyName) || 0;
+    const { todayStart, todayEnd } = vk.pubfn.getCommonTime();
     if (time >= todayStart && time <= todayEnd) {
       return;
     }
@@ -1103,7 +1322,7 @@ const userCenter = {
       success: (res) => {
         if (typeof obj.success === "function")
           obj.success(res);
-        vk2.setStorageSync(keyName, Date.now());
+        vk.setStorageSync(keyName, Date.now());
       }
     });
   },
@@ -1117,7 +1336,7 @@ const userCenter = {
         resolve();
         return;
       }
-      vk.toast("请在抖音小程序中打开");
+      common_vendor.index.vk.toast("请在抖音小程序中打开");
       return;
     });
   },
@@ -1135,21 +1354,26 @@ const userCenter = {
    */
   loginByDouyin(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getDouyinCode(data).then((code) => {
-        return callFunction({
-          url: "user/pub/loginByDouyin",
-          ...obj,
-          data: {
-            code,
-            ...data
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getDouyinCode(data).then((code) => {
+          return callFunction({
+            url: "user/pub/loginByDouyin",
+            ...obj,
+            data: {
+              code,
+              ...data
+            }
+          });
         });
-      });
-    }, debounceTime, true, "login");
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 绑定抖音
@@ -1160,21 +1384,26 @@ const userCenter = {
    */
   bindDouyin(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getDouyinCode(data).then((code) => {
-        return callFunction({
-          ...obj,
-          url: "user/kh/bindDouyin",
-          data: {
-            code,
-            ...data
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getDouyinCode(data).then((code) => {
+          return callFunction({
+            ...obj,
+            url: "user/kh/bindDouyin",
+            data: {
+              code,
+              ...data
+            }
+          });
         });
-      });
-    }, debounceTime, true, "bindDouyin");
+      },
+      debounceTime,
+      true,
+      "bindDouyin"
+    );
   },
   /**
    * 解绑抖音
@@ -1183,14 +1412,19 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   unbindDouyin(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      return callFunction({
-        ...obj,
-        url: "user/kh/unbindDouyin"
-      });
-    }, debounceTime, true, "unbindDouyin");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        return callFunction({
+          ...obj,
+          url: "user/kh/unbindDouyin"
+        });
+      },
+      debounceTime,
+      true,
+      "unbindDouyin"
+    );
   },
   /**
    * 通过抖音小程序绑定的手机号登录
@@ -1205,14 +1439,19 @@ const userCenter = {
    * @param {String} tokenExpired token过期时间
    */
   loginByDouyinPhoneNumber(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      return callFunction({
-        url: "user/pub/loginByDouyinPhoneNumber",
-        ...obj
-      });
-    }, debounceTime, true, "login");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        return callFunction({
+          url: "user/pub/loginByDouyinPhoneNumber",
+          ...obj
+        });
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 获取抖音openid
@@ -1263,7 +1502,7 @@ const userCenter = {
         resolve();
         return;
       }
-      vk.toast("请在鸿蒙系统中打开");
+      common_vendor.index.vk.toast("请在鸿蒙系统中打开");
       return;
     });
   },
@@ -1280,21 +1519,26 @@ const userCenter = {
    */
   loginByHuawei(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getHuaweiCode(data).then((code) => {
-        return callFunction({
-          url: "user/pub/loginByHuawei",
-          ...obj,
-          data: {
-            code,
-            ...data
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getHuaweiCode(data).then((code) => {
+          return callFunction({
+            url: "user/pub/loginByHuawei",
+            ...obj,
+            data: {
+              code,
+              ...data
+            }
+          });
         });
-      });
-    }, debounceTime, true, "login");
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 绑定华为账号
@@ -1304,21 +1548,26 @@ const userCenter = {
    */
   bindHuawei(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getHuaweiCode(data).then((code) => {
-        return callFunction({
-          ...obj,
-          url: "user/kh/bindHuawei",
-          data: {
-            code,
-            ...data
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getHuaweiCode(data).then((code) => {
+          return callFunction({
+            ...obj,
+            url: "user/kh/bindHuawei",
+            data: {
+              code,
+              ...data
+            }
+          });
         });
-      });
-    }, debounceTime, true, "bindHuawei");
+      },
+      debounceTime,
+      true,
+      "bindHuawei"
+    );
   },
   /**
    * 解绑华为账号
@@ -1327,14 +1576,19 @@ const userCenter = {
    * @param {String} msg 详细信息
    */
   unbindHuawei(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "loading");
-      addAppid(obj);
-      return callFunction({
-        ...obj,
-        url: "user/kh/unbindHuawei"
-      });
-    }, debounceTime, true, "unbindHuawei");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "loading");
+        addAppid(obj);
+        return callFunction({
+          ...obj,
+          url: "user/kh/unbindHuawei"
+        });
+      },
+      debounceTime,
+      true,
+      "unbindHuawei"
+    );
   },
   /**
    * 通过华为账号绑定的手机号登录
@@ -1349,14 +1603,19 @@ const userCenter = {
    * @param {String} tokenExpired token过期时间
    */
   loginByHuaweiPhoneNumber(obj = {}) {
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      return callFunction({
-        url: "user/pub/loginByHuaweiPhoneNumber",
-        ...obj
-      });
-    }, debounceTime, true, "login");
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        return callFunction({
+          url: "user/pub/loginByHuaweiPhoneNumber",
+          ...obj
+        });
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   },
   /**
    * 获取华为openid
@@ -1402,7 +1661,7 @@ const userCenter = {
         });
         resolve(getUserInfoRes.userInfo);
       } catch (err) {
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1580", "苹果登录失败: ", err);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1860", "苹果登录失败: ", err);
         reject(err);
         return;
       }
@@ -1418,22 +1677,27 @@ const userCenter = {
    */
   loginByApple(obj = {}) {
     let that = this;
-    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(() => {
-      addLoading(obj, "login");
-      addAppid(obj);
-      let { data = {} } = obj;
-      return that.getAppleCode(data).then((userInfo) => {
-        return callFunction({
-          url: "user/pub/loginByApple",
-          ...obj,
-          data: {
-            identityToken: userInfo.identityToken,
-            fullName: userInfo.fullName,
-            ...data
-          }
+    return uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_debounce.debounce(
+      () => {
+        addLoading(obj, "login");
+        addAppid(obj);
+        let { data = {} } = obj;
+        return that.getAppleCode(data).then((userInfo) => {
+          return callFunction({
+            url: "user/pub/loginByApple",
+            ...obj,
+            data: {
+              identityToken: userInfo.identityToken,
+              fullName: userInfo.fullName,
+              ...data
+            }
+          });
         });
-      });
-    }, debounceTime, true, "login");
+      },
+      debounceTime,
+      true,
+      "login"
+    );
   }
 };
 exports.userCenter = userCenter;

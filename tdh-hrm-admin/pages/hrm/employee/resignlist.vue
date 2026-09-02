@@ -1232,7 +1232,7 @@
 								"key": "avatar",
 								"title": "头像地址",
 								"type": "avatar",
-								"cloudDirectory": "/employee/avatar",
+								"cloudDirectory": "employee/avatar",
 								"width": colWidth,
 								onRemove: (file, fileList) => {
 									vk.myfn.deleteFile(file, fileList)
@@ -1249,7 +1249,7 @@
 								sizeUnit: "mb",
 								tips: "只能上传pdf/jpg/png文件，且不超过2MB",
 								cloudPathRemoveChinese: false,
-								cloudDirectory: "/employee/file",
+								cloudDirectory: "employee/file",
 								onRemove: (file, fileList) => {
 									vk.myfn.deleteFile(file)
 								}

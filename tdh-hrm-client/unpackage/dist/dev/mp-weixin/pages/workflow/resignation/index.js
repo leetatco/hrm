@@ -449,8 +449,8 @@ const _sfc_main = {
           id: item._id
         }
       });
-      (_a = item.form_data) == null ? void 0 : _a.file_attachments.forEach((e) => {
-        vk.myfn.deleteFile(e);
+      (_a = item.form_data) == null ? void 0 : _a.file_attachments.map(async (e, index) => {
+        await vk.myfn.deleteFile(e);
       });
       if (res.code === 0) {
         common_vendor.index.showToast({
@@ -795,8 +795,8 @@ if (!Math) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o($options.handleStatusChange, "51"),
-    b: common_vendor.o(($event) => $data.queryForm1.formData.status = $event, "a0"),
+    a: common_vendor.o($options.handleStatusChange, "19"),
+    b: common_vendor.o(($event) => $data.queryForm1.formData.status = $event, "24"),
     c: common_vendor.p({
       title: $options.getStatusTitle(),
       options: $data.statusOptions,
@@ -811,7 +811,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "20",
       color: "#fff"
     }),
-    g: common_vendor.o($options.addBtn, "2a"),
+    g: common_vendor.o($options.addBtn, "4e"),
     h: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -820,11 +820,11 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["custom-style"]: $data.buttonStyle.primary
     }),
     i: common_vendor.t($data.totalCount),
-    j: common_vendor.o(($event) => $options.handleStatusChange(""), "b3"),
+    j: common_vendor.o(($event) => $options.handleStatusChange(""), "da"),
     k: common_vendor.t($data.draftCount),
-    l: common_vendor.o(($event) => $options.handleStatusChange("draft"), "a5"),
+    l: common_vendor.o(($event) => $options.handleStatusChange("draft"), "b1"),
     m: common_vendor.t($data.pendingCount),
-    n: common_vendor.o(($event) => $options.handleStatusChange("pending"), "33"),
+    n: common_vendor.o(($event) => $options.handleStatusChange("pending"), "ac"),
     o: $data.loading && !$data.formSchema
   }, $data.loading && !$data.formSchema ? {
     p: common_vendor.f(3, (i, k0, i0) => {
@@ -889,7 +889,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     t: !$data.loading && $data.tableData.length === 0
   }, !$data.loading && $data.tableData.length === 0 ? {
-    v: common_vendor.o($options.addBtn, "60"),
+    v: common_vendor.o($options.addBtn, "f1"),
     w: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -909,8 +909,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}, {
     A: $data.refreshing,
-    B: common_vendor.o((...args) => $options.onPullDownRefresh && $options.onPullDownRefresh(...args), "ae"),
-    C: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args), "d5")
+    B: common_vendor.o((...args) => $options.onPullDownRefresh && $options.onPullDownRefresh(...args), "47"),
+    C: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args), "89")
   }), {
     D: common_vendor.t($data.formDialog.title),
     E: !$data.formSchema
@@ -921,12 +921,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    G: common_vendor.o($options.handleFormSave, "5e"),
-    H: common_vendor.o($options.handleFormSubmit, "1e"),
-    I: common_vendor.o($options.handleSimulate, "61"),
-    J: common_vendor.o($options.previewFile, "85"),
-    K: common_vendor.o($options.closeFormDialog, "1e"),
-    L: common_vendor.o($options.downloadFile, "96"),
+    G: common_vendor.o($options.handleFormSave, "18"),
+    H: common_vendor.o($options.handleFormSubmit, "9e"),
+    I: common_vendor.o($options.handleSimulate, "87"),
+    J: common_vendor.o($options.previewFile, "15"),
+    K: common_vendor.o($options.closeFormDialog, "ea"),
+    L: common_vendor.o($options.downloadFile, "53"),
     M: common_vendor.p({
       ["form-schema"]: $data.formSchema,
       ["form-type-code"]: $data.formTypeCode,
@@ -938,7 +938,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       simulateLoading: $data.simulateFormLoading
     })
   }, {
-    N: common_vendor.o(($event) => $data.formDialog.show = $event, "ff"),
+    N: common_vendor.o(($event) => $data.formDialog.show = $event, "cc"),
     O: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -949,7 +949,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     P: common_vendor.p({
       ["simulate-data"]: $data.simulateDialog.data
     }),
-    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "e1"),
+    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "d2"),
     R: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -965,8 +965,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    U: common_vendor.o($options.previewFile, "c2"),
-    V: common_vendor.o($options.downloadFile, "d6"),
+    U: common_vendor.o($options.previewFile, "eb"),
+    V: common_vendor.o($options.downloadFile, "f8"),
     W: common_vendor.p({
       ["detail-data"]: $data.detailDialog.data,
       ["form-schema"]: $data.formSchema,
@@ -981,7 +981,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["form-type-configs"]: $data.formTypeConfigs
     })
   }, {
-    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "46"),
+    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "47"),
     Y: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -989,9 +989,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       height: $data.popupStyle.height,
       modelValue: $data.detailDialog.show
     }),
-    Z: common_vendor.o($options.confirmDelete, "71"),
-    aa: common_vendor.o($options.cancelDelete, "83"),
-    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "91"),
+    Z: common_vendor.o($options.confirmDelete, "a7"),
+    aa: common_vendor.o($options.cancelDelete, "46"),
+    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "98"),
     ac: common_vendor.p({
       ["show-cancel-button"]: true,
       ["show-confirm-button"]: true,
@@ -999,8 +999,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       content: $data.deleteDialog.content,
       modelValue: $data.deleteDialog.show
     }),
-    ad: common_vendor.o($options.filePreviewClose, "bb"),
-    ae: common_vendor.o($options.downloadFile, "6b"),
+    ad: common_vendor.o($options.filePreviewClose, "d1"),
+    ae: common_vendor.o($options.downloadFile, "78"),
     af: common_vendor.p({
       value: $data.filePreview.show,
       ["file-data"]: $data.filePreview.data

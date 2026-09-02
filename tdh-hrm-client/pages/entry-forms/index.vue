@@ -3,8 +3,9 @@
 		<!-- 搜索栏 -->
 		<view class="filter-section">
 			<view class="filter-row">
-				<view class="filter-item">					
-					<u-search @search="handleSearch" placeholder="请输入手机号搜索" v-model="searchMobile" :focus="true" :show-action="false"></u-search>				
+				<view class="filter-item">
+					<u-search @search="handleSearch" placeholder="请输入手机号搜索" v-model="searchMobile" :focus="true"
+						:show-action="false"></u-search>
 				</view>
 				<u-button type="primary" shape="circle" @click="addEntry" :custom-style="buttonStyle.primary">
 					<u-icon name="plus" size="20" color="#fff" />
@@ -92,7 +93,7 @@
 							<u-input v-model="formData.mobile" placeholder="请输入" />
 						</u-form-item>
 						<u-form-item label="性别" prop="gender">
-							<u-radio-group v-model="formData.gender" disabled >
+							<u-radio-group v-model="formData.gender" disabled>
 								<u-radio :name="1">男</u-radio>
 								<u-radio :name="2">女</u-radio>
 							</u-radio-group>
@@ -157,19 +158,12 @@
 							<u-input v-model="formData.comment" type="textarea" />
 						</u-form-item>
 
-						<!-- 头像上传 - 替换为 uni-file-picker -->
+						<!-- 头像上传 - 手动上传模式 -->
 						<u-form-item label="头像" prop="avatar">
-							<uni-file-picker 
-								v-model="avatarFileList" 
-								:auto-upload="true" 								 
-								:limit="1" 
-								file-mediatype="image" 
-								:max-size="1*1024*1024" 
-								@success="onAvatarSuccess" 
-								@delete="onAvatarRemove" 
-								@fail="onFileUploadFail"
-								:dir="avatarDir"
-							>
+							<uni-file-picker v-model="avatarFileList" :auto-upload="false" :limit="1"
+								file-mediatype="image" :max-size="1*1024*1024"
+								@select="(e) => onFileSelect(e, 'avatar')" @delete="(e) => onAvatarRemove(e)"
+								@fail="onFileUploadFail" :dir="avatarDir">
 								<view class="custom-upload-btn">
 									<u-icon name="camera" size="28" color="#2979ff" />
 									<text class="btn-text">上传头像</text>
@@ -177,17 +171,13 @@
 							</uni-file-picker>
 						</u-form-item>
 
-						<!-- 证明文件：使用 uni-file-picker 并集成 file-preview-dialog -->
+						<!-- 证明文件：手动上传模式 -->
 						<u-form-item label="证明文件" prop="file_attachments">
 							<view class="file-upload-container">
-								<uni-file-picker v-model="attachFiles"
-									file-mediatype=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png" :auto-upload="true" :limit="9"
-									:response-format="responseFormat" @success="onAttachSuccess" :dir="fileDir"
-									@delete="onAttachRemove" @fail="onFileUploadFail">
-									<view class="custom-upload-btn">
-										<u-icon name="plus" size="28" color="#2979ff" />
-										<text class="btn-text">选择文件</text>
-									</view>
+								<uni-file-picker :value="attachFiles" @input="(val) => onAttachInput(val)"
+									file-mediatype="all" :auto-upload="false" :limit="9"
+									@select="(e) => onFileSelect(e, 'attachment')" :dir="fileDir"
+									@delete="(e) => onAttachRemove(e)" @fail="onFileUploadFail">
 								</uni-file-picker>
 
 								<view class="file-list" v-if="attachFiles.length">
@@ -227,13 +217,13 @@
 			FilePreviewDialog
 		},
 		data() {
-			return {				
+			return {
 				buttonStyle: {
 					primary: {
 						height: '64rpx',
 						padding: '0 24rpx'
 					}
-				},				
+				},
 				searchMobile: '',
 				list: [],
 				loading: false,
@@ -250,8 +240,8 @@
 					loading: '正在加载...',
 					nomore: '没有更多了'
 				},
-				avatarDir:'/entry-forms/avatar',
-				fileDir:'/entry-forms/file',
+				avatarDir: '/entry-forms/avatar',
+				fileDir: '/entry-forms/file',
 				// 弹窗
 				formDialog: {
 					show: false,
@@ -352,8 +342,8 @@
 					}
 				},
 				submitting: false,
-				avatarFileList: [],   // 头像文件列表（uni-file-picker 用）
-				attachFiles: [],      // 证明文件列表
+				avatarFileList: [], // 头像文件列表（uni-file-picker 用）
+				attachFiles: [], // 证明文件列表
 				selectVisible: {
 					location: false,
 					nation: false,
@@ -395,19 +385,27 @@
 					const [banks, locations, nations, edus] = await Promise.all([
 						vk.callFunction({
 							url: 'admin/hrm/bank/pub/getList',
-							data: { pageSize: 1000 }
+							data: {
+								pageSize: 1000
+							}
 						}),
 						vk.callFunction({
 							url: 'admin/hrm/banklocation/pub/getList',
-							data: { pageSize: 1000 }
+							data: {
+								pageSize: 1000
+							}
 						}),
 						vk.callFunction({
 							url: 'admin/hrm/nation/pub/getList',
-							data: { pageSize: 1000 }
+							data: {
+								pageSize: 1000
+							}
 						}),
 						vk.callFunction({
 							url: 'admin/hrm/educational/pub/getList',
-							data: { pageSize: 1000 }
+							data: {
+								pageSize: 1000
+							}
 						})
 					]);
 
@@ -442,7 +440,7 @@
 			async loadList(reset = true) {
 				if (reset) this.pagination.pageIndex = 1;
 				if (reset && !this.loading) this.loading = true;
-				if(vk.pubfn.isNull(this.searchMobile)) return;
+				if (vk.pubfn.isNull(this.searchMobile)) return;
 				try {
 					let res = await vk.callFunction({
 						url: 'admin/hrm/entry-forms/pub/getList',
@@ -466,7 +464,10 @@
 					this.loadMoreStatus = this.hasMore ? 'loadmore' : 'nomore';
 				} catch (err) {
 					console.error(err);
-					uni.showToast({ title: '网络错误', icon: 'none' });
+					uni.showToast({
+						title: '网络错误',
+						icon: 'none'
+					});
 					this.loading = false;
 					this.refreshing = false;
 				}
@@ -506,14 +507,20 @@
 				const res = await vk.request({
 					method: 'get',
 					url: 'https://ccdcapi.alipay.com/validateAndCacheCardInfo.json',
-					data: { cardNo, cardBinCheck: true }
+					data: {
+						cardNo,
+						cardBinCheck: true
+					}
 				});
 				if (res.bank) {
 					this.formData.bank_id = res.bank;
 					const bank = this.bankOptions.find(b => b.value == res.bank);
 					this.formData.bank_id_label = bank ? bank.label : res.bank;
 				} else {
-					uni.showToast({ title: '银行卡号不正确', icon: 'none' });
+					uni.showToast({
+						title: '银行卡号不正确',
+						icon: 'none'
+					});
 				}
 			},
 			addEntry() {
@@ -558,7 +565,7 @@
 				this.formData.bank_id_label = bank ? bank.label : this.formData.bank_id;
 				const edu = this.eduOptions.find(e => e.value == this.formData.educational_id);
 				if (edu) this.formData.educational_id_label = edu.label;
-				
+
 				// 附件回显（证明文件）
 				if (item.file_attachments && Array.isArray(item.file_attachments)) {
 					this.attachFiles = item.file_attachments.map((url, index) => ({
@@ -587,8 +594,11 @@
 				this.$refs.entryForm.validate(async valid => {
 					if (!valid) return;
 					this.submitting = true;
-					const action = this.formData._id ? 'admin/hrm/entry-forms/pub/update' : 'admin/hrm/entry-forms/pub/add';
-					const data = { ...this.formData };
+					const action = this.formData._id ? 'admin/hrm/entry-forms/pub/update' :
+						'admin/hrm/entry-forms/pub/add';
+					const data = {
+						...this.formData
+					};
 					// 处理证明文件
 					data.file_attachments = this.attachFiles.map(f => f.url);
 					// 处理头像
@@ -598,14 +608,23 @@
 					delete data.educational_id_label;
 					delete data._add_time;
 					delete data._update_time;
-					const res = await vk.callFunction({ url: action, data });
+					const res = await vk.callFunction({
+						url: action,
+						data
+					});
 					this.submitting = false;
 					if (res.code === 0) {
-						uni.showToast({ title: '保存成功', icon: 'success' });
+						uni.showToast({
+							title: '保存成功',
+							icon: 'success'
+						});
 						this.formDialog.show = false;
 						this.loadList(true);
 					} else {
-						uni.showToast({ title: res.message || '保存失败', icon: 'none' });
+						uni.showToast({
+							title: res.message || '保存失败',
+							icon: 'none'
+						});
 					}
 				});
 			},
@@ -617,13 +636,20 @@
 						if (modal.confirm) {
 							const res = await vk.callFunction({
 								url: 'admin/hrm/entry-forms/pub/delete',
-								data: { _id: item._id }
+								data: {
+									_id: item._id
+								}
 							});
 							if (res.code === 0) {
-								uni.showToast({ title: '删除成功' });
+								uni.showToast({
+									title: '删除成功'
+								});
 								this.loadList(true);
 							} else {
-								uni.showToast({ title: res.message, icon: 'none' });
+								uni.showToast({
+									title: res.message,
+									icon: 'none'
+								});
 							}
 						}
 					}
@@ -636,66 +662,205 @@
 				});
 			},
 
-			// ========== 头像上传相关（uni-file-picker）==========
-			onAvatarSuccess(e) {
-				const { tempFiles } = e;
-				if (tempFiles && tempFiles.length > 0) {
-					const file = tempFiles[0];
-					const url = file.url || file.path;
-					this.formData.avatar = url;
-					this.avatarFileList = [{
-						url: url,
-						name: file.name || 'avatar.jpg'
-					}];
+			// ========== 手动上传文件（头像和证明文件共用） ==========
+			async onFileSelect(e, fileType) {
+				console.log('文件选择事件:', e, '文件类型:', fileType);
+
+				if (!e.tempFilePaths || e.tempFilePaths.length === 0) {
+					return;
+				}
+
+				try {
+					uni.showLoading({
+						title: '上传中...',
+						mask: true
+					});
+
+					// 遍历所有选中的文件进行上传
+					for (let i = 0; i < e.tempFilePaths.length; i++) {
+						const tempFilePath = e.tempFilePaths[i];
+
+						// 获取文件信息
+						const fileInfo = e.tempFiles[i] || {};
+						const fileName = fileInfo.name || this.getFileNameFromPath(tempFilePath);
+						const fileSize = fileInfo.size || 0;
+
+						// 构建云存储路径
+						const timestamp = Date.now();
+						const random = Math.floor(Math.random() * 10000);
+						const ext = fileName.split('.').pop() || 'file';
+
+						// 根据文件类型选择不同的目录
+						let dirPath;
+						if (fileType === 'avatar') {
+							dirPath = `public${this.avatarDir}`;
+						} else {
+							dirPath = `public${this.fileDir}`;
+						}
+
+						const cloudPath = `${dirPath}/${timestamp}_${random}.${ext}`;
+
+						// 1. 获取上传参数
+						const uploadOptionsRes = await vk.callFunction({
+							url: 'common/pub/getUploadFileOptions/index',
+							data: {
+								cloudPath: cloudPath
+							}
+						});
+
+						if (uploadOptionsRes.code !== 0) {
+							throw new Error(uploadOptionsRes.msg || '获取上传参数失败');
+						}
+
+						const uploadOptions = uploadOptionsRes.rows;
+
+						// 2. 使用 uni.uploadFile 上传到七牛云
+						const uploadResult = await new Promise((resolve, reject) => {
+							uni.uploadFile({
+								...uploadOptions.uploadFileOptions,
+								filePath: tempFilePath,
+								name: 'file',
+								success: (res) => {
+									if (res.statusCode === 200) {
+										resolve(res);
+									} else {
+										reject(new Error(`上传失败: ${res.statusCode}`));
+									}
+								},
+								fail: reject
+							});
+						});
+
+						// 3. 构建文件信息
+						const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
+
+						// 4. 根据文件类型添加到对应的数据中
+						if (fileType === 'avatar') {
+							// 头像：只保留一个
+							const avatarItem = {
+								name: fileName,
+								size: fileSize,
+								url: fileUrl,
+								fileID: cloudPath,
+								path: fileUrl,
+								cloudPath: cloudPath,
+								ext: ext
+							};
+
+							this.avatarFileList = [avatarItem];
+							this.formData.avatar = fileUrl;
+						} else {
+							// 证明文件：添加到列表
+							const attachItem = {
+								name: fileName,
+								size: fileSize,
+								url: fileUrl,
+								fileID: cloudPath,
+								path: fileUrl,
+								cloudPath: cloudPath,
+								ext: ext,
+								uuid: `${timestamp}_${random}`
+							};
+
+							this.attachFiles.push(attachItem);
+						}
+					}
+
+					uni.hideLoading();
+					uni.showToast({
+						title: '上传成功',
+						icon: 'success'
+					});
+
+				} catch (error) {
+					uni.hideLoading();
+					console.error('文件上传失败:', error);
+					uni.showToast({
+						title: '上传失败: ' + (error.message || '未知错误'),
+						icon: 'none'
+					});
 				}
 			},
-			onAvatarRemove(e) {
-				const fileUrl = e.tempFile?.url;
-				if (fileUrl) {
-					vk.callFunction({
-						url: 'common/pub/deleteFile/index',
-						data: { fileList: [fileUrl] }
-					});
+
+			getFileNameFromPath(filePath) {
+				if (!filePath) return '未命名文件';
+				const parts = filePath.split('/');
+				return parts[parts.length - 1];
+			},
+
+			// ========== 头像删除 ==========
+			async onAvatarRemove(e) {
+				const cloudPath = e.tempFile?.url || this.formData.avatar;
+				if (cloudPath) {
+					await vk.myfn.deleteFile(e.tempFile);
+					console.log('删除云文件:', cloudPath);
 				}
 				this.formData.avatar = '';
 				this.avatarFileList = [];
 			},
+			
+			onAttachInput(val) {
+			    // 如果 val 是临时路径，忽略更新
+			    if (Array.isArray(val) && val.length > 0) {
+			        const hasTempPath = val.some(file => 
+			            file.url && (file.url.startsWith('http://tmp/') || file.url.startsWith('blob:'))
+			        );
+			        if (hasTempPath) {
+			            console.log('忽略临时路径更新');
+			            return;
+			        }
+			    }
+			    // 正常更新
+			    this.attachFiles = val;
+			},
 
-			// ========== 证明文件上传相关 ==========
-			responseFormat(res) {
-				if (res && res.url) return { url: res.url };
-				return res;
+			// ========== 证明文件删除 ==========
+			async onAttachRemove(e) {
+			    try {
+			        // 直接从 attachFiles 中获取要删除的文件
+			        const index = e.index;
+			        const fileToDelete = this.attachFiles[index];
+					
+					console.log(fileToDelete)
+			        
+			        if (fileToDelete && fileToDelete.url) {
+			            await vk.myfn.deleteFile(fileToDelete);
+			            console.log('删除云文件:', fileToDelete.url);
+			        }
+			        
+			        // 手动从列表中移除
+			        if (index !== undefined && index >= 0 && index < this.attachFiles.length) {
+			            this.attachFiles.splice(index, 1);
+			        }
+			        
+			        uni.showToast({
+			            title: '删除成功',
+			            icon: 'success'
+			        });
+			    } catch (error) {
+			        console.error('删除文件失败:', error);
+			        uni.showToast({
+			            title: '删除失败',
+			            icon: 'none'
+			        });
+			    }
 			},
-			onAttachSuccess(e) {
-				const { tempFiles } = e;
-				if (tempFiles) {
-					tempFiles.forEach(tempFile => {
-						const idx = this.attachFiles.findIndex(f => f.uuid === tempFile.uuid);
-						if (idx !== -1) {
-							this.attachFiles[idx].url = tempFile.url || tempFile.path;
-							// 美化文件名
-							let rawName = tempFile.name || '';
-							this.attachFiles[idx].name = this.beautifyFileName(rawName);
-						}
-					});
-				}
-			},
-			onAttachRemove(e) {
-				this.removeFile(e);
-			},
+
 			onFileUploadFail(err) {
-				uni.showToast({ title: '上传失败', icon: 'none' });
-			},
-			removeFile(e) {
-				const file = this.attachFiles[e.index];
-				vk.myfn.deleteFile(file);
-				this.attachFiles.splice(e.index, 1);
+				console.error('文件上传失败:', err);
+				uni.showToast({
+					title: '上传失败',
+					icon: 'none'
+				});
 			},
 
 			// ========== 文件预览 / 下载 ==========
 			previewFile(file) {
 				if (!file?.url) {
-					uni.showToast({ title: '文件地址无效', icon: 'none' });
+					uni.showToast({
+						title: '文件地址无效',
+						icon: 'none'
+					});
 					return;
 				}
 				this.filePreview.data = {
@@ -709,7 +874,10 @@
 			},
 			downloadFile(file) {
 				if (!file?.url) {
-					uni.showToast({ title: '文件地址无效', icon: 'none' });
+					uni.showToast({
+						title: '文件地址无效',
+						icon: 'none'
+					});
 					return;
 				}
 				uni.downloadFile({
@@ -718,12 +886,21 @@
 						if (res.statusCode === 200) {
 							uni.saveFile({
 								tempFilePath: res.tempFilePath,
-								success: () => uni.showToast({ title: '下载成功', icon: 'success' }),
-								fail: () => uni.showToast({ title: '保存失败', icon: 'none' })
+								success: () => uni.showToast({
+									title: '下载成功',
+									icon: 'success'
+								}),
+								fail: () => uni.showToast({
+									title: '保存失败',
+									icon: 'none'
+								})
 							});
 						}
 					},
-					fail: () => uni.showToast({ title: '下载失败', icon: 'none' })
+					fail: () => uni.showToast({
+						title: '下载失败',
+						icon: 'none'
+					})
 				});
 			},
 			filePreviewClose() {

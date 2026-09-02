@@ -53,7 +53,7 @@ const _sfc_main = {
     goto() {
       vk.navigateTo("../pwd/update-password");
     },
-    // 选择并上传文件
+    // 选择图片
     async chooseAndUploadFile() {
       try {
         const res = await new Promise((resolve, reject) => {
@@ -70,7 +70,7 @@ const _sfc_main = {
           this.showCropModal = true;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/setting/index.vue:164", "选择图片失败:", error);
+        common_vendor.index.__f__("error", "at pages/setting/index.vue:163", "选择图片失败:", error);
         common_vendor.index.showToast({
           title: "选择图片失败",
           icon: "none"
@@ -79,34 +79,57 @@ const _sfc_main = {
     },
     // 确认裁剪并上传
     async confirmCrop() {
+      if (!this.tempAvatarPath) {
+        common_vendor.index.showToast({
+          title: "请先选择图片",
+          icon: "none"
+        });
+        return;
+      }
       this.showCropModal = false;
       this.isUploading = true;
       try {
-        const uploadResult = await new Promise((resolve, reject) => {
-          common_vendor.wr.chooseAndUploadFile({
-            type: "image",
-            fileList: [{
-              path: this.tempAvatarPath,
-              cloudPath: `avatar_${Date.now()}_${this.uid}.jpg`
-            }]
-          }).then((res) => {
-            resolve(res);
-          }).catch((err) => {
-            reject(err);
-          });
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 1e4);
+        const cloudPath = `public/avatar/${this.uid}_${timestamp}_${random}.jpg`;
+        const uploadOptionsRes = await vk.callFunction({
+          url: "common/pub/getUploadFileOptions/index",
+          data: {
+            cloudPath
+          }
         });
-        if (uploadResult.tempFiles && uploadResult.tempFiles[0]) {
-          const avatarUrl = uploadResult.tempFiles[0].url;
-          await this.submitForm(avatarUrl);
+        if (uploadOptionsRes.code !== 0) {
+          throw new Error(uploadOptionsRes.msg || "获取上传参数失败");
         }
+        const uploadOptions = uploadOptionsRes.rows;
+        const uploadResult = await new Promise((resolve, reject) => {
+          const uploadTask = common_vendor.index.uploadFile({
+            ...uploadOptions.uploadFileOptions,
+            filePath: this.tempAvatarPath,
+            name: "file",
+            success: (res) => {
+              if (res.statusCode === 200) {
+                resolve(res);
+              } else {
+                reject(new Error(`上传失败: ${res.statusCode}`));
+              }
+            },
+            fail: reject
+          });
+          this.uploadTask = uploadTask;
+        });
+        const avatarUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
+        await this.submitForm(avatarUrl, cloudPath);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/setting/index.vue:199", "上传头像失败:", error);
+        common_vendor.index.__f__("error", "at pages/setting/index.vue:230", "上传头像失败:", error);
         common_vendor.index.showToast({
-          title: "上传失败，请重试",
+          title: "上传失败，请重试" + error.toString(),
           icon: "none"
         });
       } finally {
         this.isUploading = false;
+        this.uploadTask = null;
+        this.tempAvatarPath = "";
       }
     },
     // 取消裁剪
@@ -115,8 +138,9 @@ const _sfc_main = {
       this.tempAvatarPath = "";
     },
     // 提交表单更新头像
-    async submitForm(avatarUrl) {
+    async submitForm(avatarUrl, cloudPath) {
       try {
+        const oldAvatar = vk.getVuex("$user.userInfo").avatar;
         const userInfo = vk.getVuex("$user.userInfo");
         const updateData = {
           ...userInfo,
@@ -130,11 +154,27 @@ const _sfc_main = {
             title: "头像更新成功",
             icon: "success"
           });
-          setTimeout(() => {
-          }, 500);
+          if (oldAvatar && oldAvatar !== this.defaultAvatar && oldAvatar.includes(
+            "tdhstorage.cntdh.net"
+          )) {
+            try {
+              const urlParts = oldAvatar.split("/");
+              const oldCloudPath = urlParts.slice(3).join("/");
+              if (oldCloudPath) {
+                await vk.callFunction({
+                  url: "common/pub/deleteFile/index",
+                  data: {
+                    fileList: [oldCloudPath]
+                  }
+                });
+              }
+            } catch (deleteError) {
+              common_vendor.index.__f__("error", "at pages/setting/index.vue:287", "删除旧头像失败:", deleteError);
+            }
+          }
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/setting/index.vue:241", "更新头像失败:", error);
+        common_vendor.index.__f__("error", "at pages/setting/index.vue:293", "更新头像失败:", error);
         common_vendor.index.showToast({
           title: "更新失败，请重试",
           icon: "none"
@@ -174,7 +214,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#999",
       size: "24"
     }),
-    d: common_vendor.o((...args) => $options.confirmCrop && $options.confirmCrop(...args), "e7"),
+    d: common_vendor.o((...args) => $options.chooseAndUploadFile && $options.chooseAndUploadFile(...args), "3f"),
     e: common_vendor.p({
       name: "lock",
       size: "44",
@@ -185,7 +225,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#999",
       size: "24"
     }),
-    g: common_vendor.o((...args) => $options.goto && $options.goto(...args), "6e"),
+    g: common_vendor.o((...args) => $options.goto && $options.goto(...args), "e6"),
     h: common_vendor.p({
       name: "swap",
       size: "44",
@@ -196,7 +236,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#999",
       size: "24"
     }),
-    j: common_vendor.o((...args) => $options.bindLogout && $options.bindLogout(...args), "12"),
+    j: common_vendor.o((...args) => $options.bindLogout && $options.bindLogout(...args), "10"),
     k: _ctx.vk.getVuex("$user.userInfo").username
   }, _ctx.vk.getVuex("$user.userInfo").username ? common_vendor.e({
     l: common_vendor.t(_ctx.vk.getVuex("$user.userInfo").username),
@@ -213,9 +253,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     r: $data.showCropModal
   }, $data.showCropModal ? {
     s: $data.tempAvatarPath,
-    t: common_vendor.o($options.confirmCrop, "73"),
-    v: common_vendor.o($options.cancelCrop, "68"),
-    w: common_vendor.o(($event) => $data.showCropModal = $event, "c1"),
+    t: common_vendor.o($options.confirmCrop, "1a"),
+    v: common_vendor.o($options.cancelCrop, "c9"),
+    w: common_vendor.o(($event) => $data.showCropModal = $event, "4d"),
     x: common_vendor.p({
       ["show-cancel-button"]: true,
       ["show-confirm-button"]: true,

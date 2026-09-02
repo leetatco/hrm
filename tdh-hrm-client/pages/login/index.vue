@@ -116,8 +116,7 @@
 			<view class="bind-popup">
 				<view class="bind-popup-header">
 					<text class="bind-popup-title">绑定账号</text>
-					<text class="bind-popup-desc">请绑定您的手机号以完成登录</text>
-					<text class="bind-popup-desc">{{wxOpenid}}</text>
+					<text class="bind-popup-desc">请绑定您的手机号以完成登录</text>					
 				</view>
 				<view class="bind-popup-body">
 					<button class="wechat-phone-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">
@@ -575,7 +574,8 @@
 					title: '验证中...',
 					data: {
 						mobile: account,
-						username: account
+						username: account,
+						wx_openid: this.wxOpenid
 					}
 				});
 				if (userRes.code !== 0) {

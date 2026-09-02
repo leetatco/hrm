@@ -5,7 +5,14 @@ const WebSocketPool = {
   // 根据url获取连接
   getConnection(obj = {}) {
     let { url, channel } = obj;
-    return this.connections.find((item) => item.url === url && item.channel === channel);
+    return this.connections.find((item) => (item.url === url || item.wsUrl === url) && item.channel === channel);
+  },
+  getCloudObjectUrl(url) {
+    let urlObj = vk.pubfn.queryStringToJson(url.split("?")[1]);
+    if (urlObj && urlObj.url) {
+      return urlObj.url;
+    }
+    throw new Error("WebSocket连接地址错误");
   },
   // 预添加连接
   preAddConnection(obj = {}) {
@@ -26,7 +33,7 @@ const WebSocketPool = {
   },
   // 添加连接
   addConnection(connection = {}) {
-    const index = this.connections.findIndex((item) => item.url === connection.url && item.channel === connection.channel);
+    const index = this.connections.findIndex((item) => item.url === connection.wsUrl && item.channel === connection.channel);
     this.connections.push(connection);
     if (index > -1) {
       const { resolve } = this.connections[index];
@@ -44,7 +51,7 @@ const WebSocketPool = {
   }
 };
 async function connectWebSocket(obj = {}) {
-  const vk = common_vendor.index.vk;
+  const vk2 = common_vendor.index.vk;
   let {
     name,
     url,
@@ -57,7 +64,7 @@ async function connectWebSocket(obj = {}) {
     // 如果传入cache为true，则相同的channel会缓存连接，避免重复创建
   } = obj;
   if (!name) {
-    name = vk.getConfig("functionName");
+    name = vk2.getConfig("functionName");
   }
   if (!url) {
     throw new Error("请传入 WebSocket 的 url 参数");
@@ -71,10 +78,11 @@ async function connectWebSocket(obj = {}) {
     }
     WebSocketPool.preAddConnection({ url, channel });
   }
+  let wsUrl = url;
   let webSocket;
   if (title)
-    vk.showLoading(title);
-  if (url.indexOf("wss://") === 0) {
+    vk2.showLoading(title);
+  if (url.indexOf("wss://") === 0 || url.indexOf("ws://") === 0) {
     webSocket = common_vendor.index.connectSocket({
       url,
       header: {
@@ -83,14 +91,13 @@ async function connectWebSocket(obj = {}) {
       complete: () => {
       }
     });
-    let urlObj = vk.pubfn.queryStringToJson(url.split("?")[1]);
-    url = urlObj.url;
+    url = WebSocketPool.getCloudObjectUrl(url);
   } else {
     if (typeof common_vendor.wr.connectWebSocket === "undefined") {
       if (title)
-        vk.hideLoading();
+        vk2.hideLoading();
       let errMsg = "当前环境不支持WebSocket";
-      vk.toast(errMsg);
+      vk2.toast(errMsg);
       throw new Error(errMsg + `（仅支付宝云支持）`);
     }
     webSocket = await common_vendor.wr.connectWebSocket({
@@ -102,6 +109,7 @@ async function connectWebSocket(obj = {}) {
   }
   const vkWebSocket = new WebSocketService({
     webSocket,
+    wsUrl,
     url,
     data,
     title,
@@ -115,15 +123,9 @@ async function connectWebSocket(obj = {}) {
 }
 class WebSocketService {
   constructor(obj = {}) {
-    let {
-      webSocket,
-      url,
-      data,
-      title,
-      encrypt,
-      channel
-    } = obj;
+    let { webSocket, wsUrl, url, data, title, encrypt, channel } = obj;
     this.webSocket = webSocket;
+    this.wsUrl = wsUrl;
     this.url = url;
     this.data = data;
     this.encrypt = encrypt;
@@ -133,6 +135,7 @@ class WebSocketService {
     this.status = 0;
     this.awaitConnect = new Promise((resolve, reject) => {
       this.success = resolve;
+      this.fail = reject;
     });
     this.encryptMode = "aes-256-ecb";
     this.callbackStack = {
@@ -146,12 +149,12 @@ class WebSocketService {
   }
   // 初始化
   init() {
-    const vk = common_vendor.index.vk;
+    const vk2 = common_vendor.index.vk;
     this.webSocket.onOpen(() => {
       this.status = 1;
       this.send({
         data: {
-          "vkWebSocket": {
+          vkWebSocket: {
             type: "connect",
             data: this.data
           }
@@ -165,21 +168,21 @@ class WebSocketService {
       } catch (err) {
       }
       if (data.encrypt) {
-        data = vk.crypto.aes.decrypt({
+        data = vk2.crypto.aes.decrypt({
           mode: this.encryptMode,
           data: data.data,
-          key: vk.crypto.md5(data.timeStamp)
+          key: vk2.crypto.md5(data.timeStamp)
         });
       }
       if (data.vkWebSocket) {
         if (this.isLoading) {
-          vk.hideLoading();
+          vk2.hideLoading();
           this.isLoading = false;
         }
         if (data.vkWebSocket.type === "error") {
           let err = data.vkWebSocket.data;
           if ([1301, 1302, 30201, 30202, 30203, 30204].indexOf(err.code) > -1 && err.msg.indexOf("token") > -1) {
-            common_vendor.index.__f__("warn", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:200", "【WebSocketInvalidToken】: ", err);
+            common_vendor.index.__f__("warn", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:202", "【WebSocketInvalidToken】: ", err);
             this.emitEvent("onVkMessage", {
               type: "invalidToken",
               err
@@ -187,10 +190,10 @@ class WebSocketService {
             return;
           }
           if (err && err.stack) {
-            common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:209", "【WebSocketError】: ", err);
-            common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:210", "【WebSocketStack】: ", err.stack);
+            common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:211", "【WebSocketError】: ", err);
+            common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:212", "【WebSocketStack】: ", err.stack);
           } else {
-            common_vendor.index.__f__("warn", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:213", "【WebSocketError】: ", err);
+            common_vendor.index.__f__("warn", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.connectWebSocket.js:215", "【WebSocketError】: ", err);
           }
           this.emitEvent("onVkMessage", {
             type: "error",
@@ -272,20 +275,20 @@ class WebSocketService {
     this.status = null;
     this.awaitConnect = null;
     this.encryptMode = null;
+    this.success = null;
+    this.fail = null;
     for (let i in this.callbackStack) {
       this.callbackStack[i] = [];
     }
   }
   // 发送消息
   async send(obj = {}) {
-    let {
-      data
-    } = obj;
+    let { data } = obj;
     if (!this.status) {
       await this.awaitConnect;
     }
-    const vk = common_vendor.index.vk;
-    const uniIdToken = vk.getToken();
+    const vk2 = common_vendor.index.vk;
+    const uniIdToken = vk2.getToken();
     const sysInfo = common_vendor.index.getSystemInfoSync();
     const clientInfo = {
       appid: sysInfo.appId,
@@ -309,10 +312,10 @@ class WebSocketService {
     let encrypt = this.encrypt;
     if (encrypt) {
       clientData.timeStamp = Date.now();
-      clientData = vk.crypto.aes.encrypt({
+      clientData = vk2.crypto.aes.encrypt({
         mode: this.encryptMode,
         data: clientData,
-        key: vk.crypto.md5(sysInfo.deviceId)
+        key: vk2.crypto.md5(sysInfo.deviceId)
       });
       sendData.encrypt = true;
     }

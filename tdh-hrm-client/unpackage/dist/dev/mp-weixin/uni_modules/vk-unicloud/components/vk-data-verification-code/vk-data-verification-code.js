@@ -2,46 +2,46 @@
 const common_vendor = require("../../../../common/vendor.js");
 const localeObj = {
   "zh-Hans": {
-    "startText": "获取验证码",
-    "changeText": "X秒重新获取",
-    "endText": "重新获取",
-    "tryAgainInSeconds": "秒后再重试",
-    "pleaseEnterTheCorrectMobileNumber": "请输入正确的手机号码",
-    "sending": "发送中...",
-    "verificationCodeSent": "验证码已发送",
-    "triggerDayLevelFlowControl": "触发天级流控",
-    "pleaseTryAgainTomorrow": "短信发送频繁，请明日再试！",
-    "pleaseTryAgainIn1Hour": "短信发送频繁，请过1小时后再试！",
-    "triggerMinuteLevelFlowControl": "触发分钟级流控",
-    "pleaseTryAgainLater": "短信发送频繁，请稍后再试！"
+    startText: "获取验证码",
+    changeText: "X秒重新获取",
+    endText: "重新获取",
+    tryAgainInSeconds: "秒后再重试",
+    pleaseEnterTheCorrectMobileNumber: "请输入正确的手机号码",
+    sending: "发送中...",
+    verificationCodeSent: "验证码已发送",
+    triggerDayLevelFlowControl: "触发天级流控",
+    pleaseTryAgainTomorrow: "短信发送频繁，请明日再试！",
+    pleaseTryAgainIn1Hour: "短信发送频繁，请过1小时后再试！",
+    triggerMinuteLevelFlowControl: "触发分钟级流控",
+    pleaseTryAgainLater: "短信发送频繁，请稍后再试！"
   },
   "zh-Hant": {
-    "startText": "獲取驗證碼",
-    "changeText": "X秒重新獲取",
-    "endText": "重新獲取",
-    "tryAgainInSeconds": "秒後再重試",
-    "pleaseEnterTheCorrectMobileNumber": "請輸入正確的手機號碼",
-    "sending": "發送中...",
-    "verificationCodeSent": "驗證碼已發送",
-    "triggerDayLevelFlowControl": "觸發天級流控",
-    "pleaseTryAgainTomorrow": "短信發送頻繁，請明日再試！",
-    "pleaseTryAgainIn1Hour": "短信發送頻繁，請過1小時後再試！",
-    "triggerMinuteLevelFlowControl": "觸發分鐘級流控",
-    "pleaseTryAgainLater": "短信發送頻繁，請稍後再試！"
+    startText: "獲取驗證碼",
+    changeText: "X秒重新獲取",
+    endText: "重新獲取",
+    tryAgainInSeconds: "秒後再重試",
+    pleaseEnterTheCorrectMobileNumber: "請輸入正確的手機號碼",
+    sending: "發送中...",
+    verificationCodeSent: "驗證碼已發送",
+    triggerDayLevelFlowControl: "觸發天級流控",
+    pleaseTryAgainTomorrow: "短信發送頻繁，請明日再試！",
+    pleaseTryAgainIn1Hour: "短信發送頻繁，請過1小時後再試！",
+    triggerMinuteLevelFlowControl: "觸發分鐘級流控",
+    pleaseTryAgainLater: "短信發送頻繁，請稍後再試！"
   },
-  "en": {
-    "startText": "Get code",
-    "changeText": "X second reacquire",
-    "endText": "Reacquire",
-    "tryAgainInSeconds": "Try again in seconds",
-    "pleaseEnterTheCorrectMobileNumber": "Please enter the correct mobile number",
-    "sending": "Sending...",
-    "verificationCodeSent": "Verification code sent",
-    "triggerDayLevelFlowControl": "Trigger day level flow control",
-    "pleaseTryAgainTomorrow": "SMS sent frequently, please try again tomorrow!",
-    "pleaseTryAgainIn1Hour": "SMS sent frequently, please try again in 1 hour",
-    "triggerMinuteLevelFlowControl": "Trigger minute level flow control",
-    "pleaseTryAgainLater": "SMS sent frequently, please try again later"
+  en: {
+    startText: "Get code",
+    changeText: "X second reacquire",
+    endText: "Reacquire",
+    tryAgainInSeconds: "Try again in seconds",
+    pleaseEnterTheCorrectMobileNumber: "Please enter the correct mobile number",
+    sending: "Sending...",
+    verificationCodeSent: "Verification code sent",
+    triggerDayLevelFlowControl: "Trigger day level flow control",
+    pleaseTryAgainTomorrow: "SMS sent frequently, please try again tomorrow!",
+    pleaseTryAgainIn1Hour: "SMS sent frequently, please try again in 1 hour",
+    triggerMinuteLevelFlowControl: "Trigger minute level flow control",
+    pleaseTryAgainLater: "SMS sent frequently, please try again later"
   }
 };
 const _sfc_main = {
@@ -210,29 +210,21 @@ const _sfc_main = {
     },
     // 发送短信验证码
     sendSmsCode() {
-      let that = this;
       let vk2 = common_vendor.index.vk;
-      let {
-        mobile,
-        type,
-        canGetCode,
-        checkUserExist,
-        secNum,
-        mode
-      } = that;
+      let { mobile, type, canGetCode, checkUserExist, secNum, mode } = this;
       if (!canGetCode) {
-        vk2.toast(`${secNum}${that.locale.tryAgainInSeconds}`, "none");
+        vk2.toast(`${secNum}${this.locale.tryAgainInSeconds}`, "none");
         return;
       }
       if (mode === "custom") {
-        that.$emit("send", { type });
+        this.$emit("send", { type });
         return;
       }
       if (!vk2.pubfn.test(mobile, "mobile")) {
-        vk2.toast(that.locale.pleaseEnterTheCorrectMobileNumber, "none");
+        vk2.toast(this.locale.pleaseEnterTheCorrectMobileNumber, "none");
         return;
       }
-      that.tips = that.locale.sending;
+      this.tips = this.locale.sending;
       vk2.userCenter.sendSmsCode({
         needAlert: false,
         data: {
@@ -240,32 +232,32 @@ const _sfc_main = {
           type,
           checkUserExist
         },
-        success: function(data) {
-          vk2.toast(that.locale.verificationCodeSent);
-          that.start();
-          that.$emit("success", data);
+        success: (data) => {
+          vk2.toast(this.locale.verificationCodeSent);
+          this.start();
+          this.$emit("success", data);
         },
-        fail: function(err) {
-          that.tips = that.startTextCom;
+        fail: (err) => {
+          this.tips = this.startTextCom;
           if (err.errMsg && err.errMsg.indexOf("触发天级流控") > -1) {
-            vk2.alert(that.locale.pleaseTryAgainTomorrow, () => {
-              that.$emit("error", err);
+            vk2.alert(this.locale.pleaseTryAgainTomorrow, () => {
+              this.$emit("error", err);
             });
           } else if (err.errMsg && err.errMsg.indexOf("触发小时级流控") > -1) {
-            vk2.alert(that.locale.pleaseTryAgainIn1Hour, () => {
-              that.$emit("error", err);
+            vk2.alert(this.locale.pleaseTryAgainIn1Hour, () => {
+              this.$emit("error", err);
             });
           } else if (err.errMsg && err.errMsg.indexOf("触发分钟级流控") > -1) {
-            vk2.alert(that.locale.pleaseTryAgainLater, () => {
-              that.$emit("error", err);
+            vk2.alert(this.locale.pleaseTryAgainLater, () => {
+              this.$emit("error", err);
             });
           } else if (err.msg) {
             vk2.alert(err.msg, () => {
-              that.$emit("error", err);
+              this.$emit("error", err);
             });
           } else {
-            vk2.alert(that.locale.pleaseTryAgainLater, () => {
-              that.$emit("error", err);
+            vk2.alert(this.locale.pleaseTryAgainLater, () => {
+              this.$emit("error", err);
             });
           }
         }
@@ -286,7 +278,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       tips: $data.tips,
       secNum: $data.secNum
     }),
-    c: common_vendor.o((...args) => $options.sendSmsCode && $options.sendSmsCode(...args), "56"),
+    c: common_vendor.o((...args) => $options.sendSmsCode && $options.sendSmsCode(...args), "94"),
     d: common_vendor.s($props.customStyle)
   };
 }

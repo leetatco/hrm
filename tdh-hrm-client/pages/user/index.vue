@@ -29,7 +29,7 @@
 
 			<!-- 用户数据统计 -->
 			<view class="user-status" v-if="hasLogin">
-				<view class="status-item">
+				<view class="status-item" @click="handleFunction({action:'attendance'})">
 					<text class="status-value">{{ userInfo.attendance || 0 }}</text>
 					<text class="status-label">{{ new Date().getMonth()+1 }}月考勤天数</text>
 				</view>
@@ -384,6 +384,7 @@
 				const actionMap = {
 					'approval': '/pages/workflow/application-form/list',
 					'document': '/pages/opendb-notice/index',
+					'attendance':'/pages/clockin/index',
 					'notice': '/pages/notice/index',
 					'setting': '/pages/setting/index'
 				};

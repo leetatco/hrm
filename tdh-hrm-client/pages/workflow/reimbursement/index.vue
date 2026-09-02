@@ -306,7 +306,7 @@
 				statusHistory: [],
 			};
 		},
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.init(options);
 		},
 		onShow() {
@@ -325,7 +325,7 @@
 				};
 				return map[type] || type || '未指定';
 			},
-			
+
 			filePreviewClose() {
 				this.filePreview.show = false;
 			},
@@ -669,8 +669,8 @@
 					}
 				});
 				// 删除附件
-				item.form_data?.file_attachments.forEach((e) => {
-					vk.myfn.deleteFile(e);
+				item.form_data?.file_attachments.map(async (e, index) => {
+					await vk.myfn.deleteFile(e);
 				});
 				if (res.code === 0) {
 					uni.showToast({
@@ -730,7 +730,7 @@
 				formData._id = formData._id || this.formDialog.data._id;
 				this.submitFormLoading = true;
 				try {
-					const details = formData.form_data?.items || [];					
+					const details = formData.form_data?.items || [];
 					const userInfo = vk.getVuex('$user.userInfo');
 					const submitData = {
 						...formData,
@@ -772,10 +772,10 @@
 				}
 			},
 			async handleSimulate(formData) {
-				this.simulateFormLoading = true;				
+				this.simulateFormLoading = true;
 				try {
-					const details = formData.form_data?.items || [];					
-					const userInfo = vk.getVuex('$user.userInfo');					
+					const details = formData.form_data?.items || [];
+					const userInfo = vk.getVuex('$user.userInfo');
 					const simulateData = {
 						form_type_code: this.formTypeCode,
 						form_data: formData.form_data,
@@ -785,7 +785,7 @@
 						},
 						process_definition_key: 'REIMBURSEMENT_APPLICATION',
 						userInfo,
-					};					
+					};
 					const res = await vk.callFunction({
 						url: 'admin/bpmn/process-engine/pub/simulate',
 						data: simulateData

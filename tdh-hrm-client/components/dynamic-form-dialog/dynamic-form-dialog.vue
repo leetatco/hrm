@@ -61,12 +61,21 @@
 							<u-form-item v-else-if="field.type === 'file'" :label="field.label" :prop="field.name"
 								:required="field.required" class="custom-form-item file-form-item">
 								<view class="file-upload-container">
-									<uni-file-picker ref="fileUploadRef" :disabled="field.disabled"
-										v-model="formData[field.name]" :limit="field.maxCount || 10" :del-icon="true"
-										:auto-upload="true" :disable-preview="true" :dir="fileDir"
-										:file-mediatype="getFileMediaType(field.accept)" @select="onFileSelect"
-										@success="(e)=>onFileUploadSuccess(e,field.name)" @fail="onFileUploadFail"
-										@delete="(e)=>onFileDelete(e,field.name)">
+									<uni-file-picker
+									    ref="fileUploadRef"
+									    :disabled="field.disabled"
+									    :value="formData[field.name]"
+									    @input="(val) => onFilePickerInput(val, field.name)"
+									    :limit="field.maxCount || 10"
+									    :del-icon="true"
+									    :auto-upload="false"
+									    :disable-preview="true"
+									    :dir="fileDir"
+									    :file-mediatype="getFileMediaType(field.accept)"
+									    @select="(e) => onFileSelect(e, field.name)"
+									    @success="(e) => onFileUploadSuccess(e, field.name)"
+									    @fail="onFileUploadFail"
+									    @delete="(e) => onFileDelete(e, field.name)"									
 									</uni-file-picker>
 									<view class="file-list">
 										<view v-for="(file, index) in formData[field.name]" :key="index"
@@ -521,7 +530,7 @@
 				submitLoadingLocal: false,
 				simulateLoadingLocal: false,
 				// 附件目录
-				fileDir: '/oa'
+				fileDir: 'oa'
 			}
 		},
 		computed: {
@@ -649,7 +658,6 @@
 					const valueKey = field.valueName || 'value';
 					const labelKey = field.labelName || 'label';
 					this.subRemote.options = field.options.map(opt => ({
-						// 替换 ?? 为三元判断
 						value: (opt[valueKey] !== undefined && opt[valueKey] !== null) ? opt[valueKey] : opt
 							.value,
 						label: (opt[labelKey] !== undefined && opt[labelKey] !== null) ? opt[labelKey] : opt
@@ -728,7 +736,6 @@
 						const valueKey = (currentField.props && currentField.props.value) || 'value';
 						const labelKey = (currentField.props && currentField.props.label) || 'label';
 						this.subRemote.options = rows.map((item) => ({
-							// 链式 ?? 替换为多层三元判断
 							value: (item[valueKey] !== undefined && item[valueKey] !== null) ? item[
 								valueKey] : (item.employee_id !== undefined && item.employee_id !==
 								null) ? item.employee_id : (item.department_id !== undefined && item
@@ -997,7 +1004,7 @@
 						);
 						if (conflict) {
 							uni.showToast({
-								title: `“${conflict}”存在重复`,
+								title: `"${conflict}"存在重复`,
 								icon: 'none'
 							});
 							return false;
@@ -1020,7 +1027,7 @@
 								if (!start || !end) continue;
 								if (start >= end) {
 									uni.showToast({
-										title: `第${i+1}项“${col.title}”开始时间必须早于结束时间`,
+										title: `第${i+1}项"${col.title}"开始时间必须早于结束时间`,
 										icon: 'none'
 									});
 									return false;
@@ -1032,7 +1039,7 @@
 									const maxEnd = this.timeToMinutes(col.allowedRangeEnd);
 									if (startMins < minStart || endMins > maxEnd) {
 										uni.showToast({
-											title: `第${i+1}项“${col.title}”时间必须在 ${col.allowedRangeStart}-${col.allowedRangeEnd} 之间`,
+											title: `第${i+1}项"${col.title}"时间必须在 ${col.allowedRangeStart}-${col.allowedRangeEnd} 之间`,
 											icon: 'none'
 										});
 										return false;
@@ -1064,7 +1071,7 @@
 								if (col.type === 'time' && col.isRange) {
 									if (!Array.isArray(value) || value.length !== 2 || !value[0] || !value[1]) {
 										uni.showToast({
-											title: `第${i+1}项“${col.title}”为必填，请完善`,
+											title: `第${i+1}项"${col.title}"为必填，请完善`,
 											icon: 'none'
 										});
 										return false;
@@ -1072,7 +1079,7 @@
 								} else {
 									if (value === undefined || value === null || value === '') {
 										uni.showToast({
-											title: `第${i+1}项“${col.title}”为必填`,
+											title: `第${i+1}项"${col.title}"为必填`,
 											icon: 'none'
 										});
 										return false;
@@ -1091,14 +1098,14 @@
 					if (isNaN(val)) continue;
 					if (field.min !== undefined && val < field.min) {
 						uni.showToast({
-							title: `“${field.label}”不能小于${field.min}`,
+							title: `"${field.label}"不能小于${field.min}`,
 							icon: 'none'
 						});
 						return false;
 					}
 					if (field.max !== undefined && val > field.max) {
 						uni.showToast({
-							title: `“${field.label}”不能大于${field.max}`,
+							title: `"${field.label}"不能大于${field.max}`,
 							icon: 'none'
 						});
 						return false;
@@ -1116,7 +1123,7 @@
 								if (isNaN(val)) continue;
 								if (col.min !== undefined && val < col.min) {
 									uni.showToast({
-										title: `第${i+1}项“${col.title}”不能小于${col.min}`,
+										title: `第${i+1}项"${col.title}"不能小于${col.min}`,
 										icon: 'none'
 									});
 									return false;
@@ -1125,7 +1132,7 @@
 									const maxVal = parseFloat(item[col.maxFromField]);
 									if (!isNaN(maxVal) && val > maxVal) {
 										uni.showToast({
-											title: `第${i+1}项“${col.title}”不能超过${maxVal}`,
+											title: `第${i+1}项"${col.title}"不能超过${maxVal}`,
 											icon: 'none'
 										});
 										return false;
@@ -1553,28 +1560,165 @@
 				if (accept.includes('video')) return 'video';
 				return 'all';
 			},
-			onFileSelect(e) {},
-			onFileUploadSuccess(e, filedName) {
-				e.tempFilePaths.forEach((url, index) => {
-					this.formData[filedName][index].fileID = url;
-					this.formData[filedName][index].path = url;
-					this.formData[filedName][index].url = url;
-				});
-				uni.showToast({
-					title: '上传成功',
-					icon: 'success'
-				});
+
+			async onFileSelect(e, fieldName) {
+				// uni-file-picker 的 auto-upload 设为 false 后，select 事件会返回临时文件路径
+				console.log('文件选择事件:', e);
+				
+				if (!e.tempFilePaths || e.tempFilePaths.length === 0) {
+					return;
+				}
+				
+				try {
+					uni.showLoading({
+						title: '上传中...',
+						mask: true
+					});
+					
+					// 遍历所有选中的文件进行上传
+					for (let i = 0; i < e.tempFilePaths.length; i++) {
+						const tempFilePath = e.tempFilePaths[i];
+						
+						// 获取文件信息
+						const fileInfo = e.tempFiles[i] || {};
+						const fileName = fileInfo.name || this.getFileNameFromPath(tempFilePath);
+						const fileSize = fileInfo.size || 0;
+						
+						// 构建云存储路径
+						const timestamp = Date.now();
+						const random = Math.floor(Math.random() * 10000);
+						const ext = fileName.split('.').pop() || 'file';
+						const cloudPath = `public/${this.fileDir}/${timestamp}_${random}.${ext}`;
+						
+						// 1. 获取上传扩展库参数
+						const uploadOptionsRes = await vk.callFunction({
+							url: 'common/pub/getUploadFileOptions/index',
+							data: {
+								cloudPath: cloudPath
+							}
+						});
+						
+						if (uploadOptionsRes.code !== 0) {
+							throw new Error(uploadOptionsRes.msg || '获取上传参数失败');
+						}
+						
+						const uploadOptions = uploadOptionsRes.rows;
+						
+						// 2. 使用 uni.uploadFile 上传到七牛云
+						const uploadResult = await new Promise((resolve, reject) => {
+							uni.uploadFile({
+								...uploadOptions.uploadFileOptions,
+								filePath: tempFilePath,
+								name: 'file',
+								success: (res) => {
+									if (res.statusCode === 200) {
+										resolve(res);
+									} else {
+										reject(new Error(`上传失败: ${res.statusCode}`));
+									}
+								},
+								fail: reject
+							});
+						});
+						
+						// 3. 构建文件信息
+						const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
+						
+						// 4. 添加到表单数据中
+						if (!this.formData[fieldName]) {
+							this.$set(this.formData, fieldName, []);
+						}
+						
+						const fileItem = {
+							name: fileName,
+							size: fileSize,
+							url: fileUrl,
+							fileID: cloudPath,
+							path: fileUrl,
+							cloudPath: cloudPath,
+							ext: ext
+						};
+						
+						this.formData[fieldName].push(fileItem);
+					}
+					
+					uni.hideLoading();
+					uni.showToast({
+						title: '上传成功',
+						icon: 'success'
+					});
+					
+				} catch (error) {
+					uni.hideLoading();
+					console.error('文件上传失败:', error);
+					uni.showToast({
+						title: '上传失败: ' + (error.message || '未知错误'),
+						icon: 'none'
+					});
+				}
 			},
-			onFileUploadFail() {
+
+			getFileNameFromPath(filePath) {
+				if (!filePath) return '未命名文件';
+				const parts = filePath.split('/');
+				return parts[parts.length - 1];
+			},
+
+			onFileUploadSuccess(e, fieldName) {
+				// 手动上传模式下，success 事件可能不会触发，但保留此方法以兼容
+				console.log('文件上传成功回调:', e);
+			},
+
+			onFileUploadFail(err) {
+				console.error('文件上传失败:', err);
 				uni.showToast({
 					title: '上传失败',
 					icon: 'none'
 				});
 			},
-			async onFileDelete(e, filedName) {
-				await vk.myfn.deleteFile(this.formData[filedName][e.index]);
-				this.formData[filedName].splice([e.index], 1);
+			
+			onFilePickerInput(val, fieldName) {
+			    // 如果 val 是临时路径，忽略更新
+			    if (Array.isArray(val) && val.length > 0) {
+			        const hasTempPath = val.some(file => 
+			            file.url && file.url.startsWith('http://tmp/')
+			        );
+			        if (hasTempPath) {
+			            console.log('忽略临时路径更新');
+			            return;
+			        }
+			    }
+			    // 否则正常更新
+			    this.$set(this.formData, fieldName, val);			    
 			},
+
+			async onFileDelete(e, fieldName) {
+				try {
+					// 获取要删除的文件信息
+					const fileInfo = this.formData[fieldName][e.index];									
+					// console.log('fileInfo11:', this.formData[fieldName]);							
+					// 如果有 url，可以调用删除接口
+					if (fileInfo.cloudPath || fileInfo.fileID) {
+						const cloudPath = fileInfo.cloudPath || fileInfo.fileID;						
+						await vk.myfn.deleteFile(fileInfo);
+						console.log('删除云文件:', cloudPath);
+					}					
+					// 从数组中删除
+					this.formData[fieldName].splice(e.index, 1);					
+					// console.log('fileInfo22:', this.formData[fieldName]);					
+					uni.showToast({
+						title: '删除成功',
+						icon: 'success'
+					});
+				} catch (error) {
+					console.error('删除文件失败:', error);
+					uni.showToast({
+						title: '删除失败',
+						icon: 'none'
+					});
+				}
+			},
+			
 			handleFilePreview(file, fieldName) {
 				this.$emit('preview-file', {
 					url: file.url,
@@ -1633,7 +1777,7 @@
 				);
 				if (conflict) {
 					uni.showToast({
-						title: `“${conflict}”不能重复添加`,
+						title: `"${conflict}"不能重复添加`,
 						icon: 'none'
 					});
 					return;

@@ -342,52 +342,73 @@
 							"width": colWidth - 50
 						},
 						// {
-						// 	"key": "comment",
-						// 	"title": "备注",
-						// 	"type": "text",
-						// 	"width": colWidth,
-						// 	"show": ["detail"]
+						// 	"key": "company_sb",
+						// 	"title": "公司部份社保",
+						// 	"type": "number",
+						// 	"width": colWidth - 50
 						// },
-						{
-							"key": "company_sb",
-							"title": "公司部份社保",
-							"type": "number",
-							"width": colWidth - 50
-						},
-						{
-							"key": "company_gjj",
-							"title": "公司部份公积金",
-							"type": "number",
-							"width": colWidth - 50
-						},
-						{
-							"key": "last_month_sb",
-							"title": "下月社保",
-							"type": "number",
-							"width": colWidth - 100
-						},
-						{
-							"key": "last_month_gjj",
-							"title": "下月公积金",
-							"type": "number",
-							"width": colWidth - 100
-						},
+						// {
+						// 	"key": "company_gjj",
+						// 	"title": "公司部份公积金",
+						// 	"type": "number",
+						// 	"width": colWidth - 50
+						// },
+						// {
+						// 	"key": "last_month_sb",
+						// 	"title": "下月社保",
+						// 	"type": "number",
+						// 	"width": colWidth - 100
+						// },
+						// {
+						// 	"key": "last_month_gjj",
+						// 	"title": "下月公积金",
+						// 	"type": "number",
+						// 	"width": colWidth - 100
+						// },
 						{
 							key: "status",
 							title: "状态",
 							type: "tag",
 							width: colWidth - 100,
 							data: [{
+									value: 0,
+									label: "未签名",
+									tagType: "danger"
+								}, {
 									value: 1,
 									label: "已签名",
 									tagType: "success"
 								},
 								{
-									value: 0,
-									label: "未签名",
+									value: 2,
+									label: "其他",
 									tagType: "warning"
 								}
 							]
+						},
+						{
+							"key": "bank_name",
+							"title": "开户行",
+							"type": "text",
+							"width": colWidth - 100
+						},
+						{
+							"key": "bank_location",
+							"title": "开户地",
+							"type": "text",
+							"width": colWidth
+						},
+						{
+							"key": "bank_card",
+							"title": "银行账号",
+							"type": "text",
+							"width": colWidth
+						},
+						{
+							"key": "comment",
+							"title": "备注",
+							"type": "text",
+							"width": colWidth
 						},
 						{
 							"key": "update_date",
@@ -503,6 +524,10 @@
 								{
 									value: 1,
 									label: "已签名"
+								},
+								{
+									value: 2,
+									label: "其他"
 								}
 							],
 							mode: "="
@@ -745,30 +770,30 @@
 								disabled: true,
 								"width": colWidth
 							},
-							{
-								"key": "company_sb",
-								"title": "公司部份社保",
-								"type": "number",
-								"width": colWidth
-							},
-							{
-								"key": "company_gjj",
-								"title": "公司部份公积金",
-								"type": "number",
-								"width": colWidth
-							},
-							{
-								"key": "last_month_sb",
-								"title": "下月社保",
-								"type": "number",
-								"width": colWidth
-							},
-							{
-								"key": "last_month_gjj",
-								"title": "下月公积金",
-								"type": "number",
-								"width": colWidth
-							},
+							// {
+							// 	"key": "company_sb",
+							// 	"title": "公司部份社保",
+							// 	"type": "number",
+							// 	"width": colWidth
+							// },
+							// {
+							// 	"key": "company_gjj",
+							// 	"title": "公司部份公积金",
+							// 	"type": "number",
+							// 	"width": colWidth
+							// },
+							// {
+							// 	"key": "last_month_sb",
+							// 	"title": "下月社保",
+							// 	"type": "number",
+							// 	"width": colWidth
+							// },
+							// {
+							// 	"key": "last_month_gjj",
+							// 	"title": "下月公积金",
+							// 	"type": "number",
+							// 	"width": colWidth
+							// },
 							{
 								key: "status",
 								title: "状态",
@@ -781,8 +806,30 @@
 									{
 										value: 1,
 										label: "已签名"
+									},
+									{
+										value: 2,
+										label: "其他"
 									}
 								]
+							},
+							{
+								"key": "bank_name",
+								"title": "开户行",
+								"type": "text",
+								"width": colWidth
+							},
+							{
+								"key": "bank_location",
+								"title": "开户地",
+								"type": "text",
+								"width": colWidth
+							},
+							{
+								"key": "bank_card",
+								"title": "银行账号",
+								"type": "text",
+								"width": colWidth
 							},
 							{
 								key: "comment",
@@ -1008,25 +1055,41 @@
 						"title": "实发工资",
 						"type": "number"
 					},
-					// comment: {
-					// 	"title": "备注",
-					// 	"type": "text"
+					// company_sb: {
+					// 	"title": "公司部份社保",
+					// 	"type": "number",
 					// },
-					company_sb: {
-						"title": "公司部份社保",
-						"type": "number",
+					// company_gjj: {
+					// 	"title": "公司部份公积金",
+					// 	"type": "number",
+					// },
+					// last_month_sb: {
+					// 	"title": "下月社保",
+					// 	"type": "number"
+					// },
+					// last_month_dk: {
+					// 	"title": "下月公积金",
+					// 	"type": "number"
+					// },
+					status: {
+						"title": "状态",
+						"type": "text"
 					},
-					company_gjj: {
-						"title": "公司部份公积金",
-						"type": "number",
+					bank_name: {
+						"title": "开户行",
+						"type": "text"
 					},
-					last_month_sb: {
-						"title": "下月社保",
-						"type": "number"
+					bank_location: {
+						"title": "开户地",
+						"type": "text"
 					},
-					last_month_dk: {
-						"title": "下月公积金",
-						"type": "number"
+					bank_card: {
+						"title": "银行账号",
+						"type": "text"
+					},
+					comment: {
+						"title": "备注",
+						"type": "text"
 					}
 				};
 
@@ -1084,7 +1147,13 @@
 							item.attendance_ym = attendance_ym;
 
 							//状态
-							item.status = 0;
+							const STATUS_MAP = {
+								'未签名': 0,
+								'已签名': 1,
+								'其他': 2
+							};
+							item.status = STATUS_MAP[item.status] ? STATUS_MAP[item.status] : 0;
+
 
 							// 验证必要字段
 							if (!item.attendance_ym) {
@@ -1138,10 +1207,12 @@
 									});
 
 									if (result.code === 0) {
-										let resultMessage = `导入完成！成功: ${result.id.length}条`;
-										return vk.alert(resultMessage, "导入成功", "确定", () => {
-											this.refresh();
-										})
+										let resultMessage =
+											`导入完成！成功: ${result.id.length}条`;
+										return vk.alert(resultMessage, "导入成功", "确定",
+											() => {
+												this.refresh();
+											})
 									} else {
 										return vk.alert(`导入Excel失败!`, "系统错误", "确定");
 									}
@@ -1263,10 +1334,13 @@
 				this.form1.data = item;
 			},
 			// 删除按钮
-			deleteBtn({
+			async deleteBtn({
 				item,
 				deleteFn
 			}) {
+				item.url = item.signature_url;
+				await vk.myfn.deleteFile(item);
+				console.log("item:", item);
 				deleteFn({
 					action: "admin/hrm/salary/sys/payslip/delete",
 					data: {
@@ -1277,7 +1351,7 @@
 			// 导入xls表格文件模版
 			exportExcelModel() {
 				this.$refs.table1.exportExcel({
-					fileName: new Date().getFullYear() + '考勤明细模版',
+					fileName: new Date().getFullYear() + '月份工资条（含签名）模版',
 					title: "正在导出数据...",
 					columns: [{
 							"key": "total_salary",
@@ -1450,29 +1524,54 @@
 							"type": "number"
 						},
 						// {
-						// 	"key": "comment",
-						// 	"title": "备注",
-						// 	"type": "text"
+						// 	"key": "company_sb",
+						// 	"title": "公司部份社保",
+						// 	"type": "number",
+						// },
+						// {
+						// 	"key": "company_gjj",
+						// 	"title": "公司部份公积金",
+						// 	"type": "number",
+						// },
+						// {
+						// 	"key": "last_month_sb",
+						// 	"title": "下月社保",
+						// 	"type": "number"
+						// },
+						// {
+						// 	"key": "last_month_gjj",
+						// 	"title": "下月公积金",
+						// 	"type": "number"
 						// },
 						{
-							"key": "company_sb",
-							"title": "公司部份社保",
-							"type": "number",
+							"key": "status",
+							"title": "状态",
+							"type": "text",
+							formatter: function(val, row, column, index) {
+								if (val == 0) return '未签名';
+								if (val == 1) return '已签名';
+								if (val == 2) return '其他';
+							}
 						},
 						{
-							"key": "company_gjj",
-							"title": "公司部份公积金",
-							"type": "number",
+							"key": "bank_name",
+							"title": "开户行",
+							"type": "text"
 						},
 						{
-							"key": "last_month_sb",
-							"title": "下月社保",
-							"type": "number"
+							"key": "bank_location",
+							"title": "开户地",
+							"type": "text"
 						},
 						{
-							"key": "last_month_gjj",
-							"title": "下月公积金",
-							"type": "number"
+							"key": "bank_card",
+							"title": "银行账号",
+							"type": "text"
+						},
+						{
+							"key": "comment",
+							"title": "备注",
+							"type": "text"
 						}
 					],
 					pageIndex: 1,
@@ -1711,33 +1810,60 @@
 							key: 'real_salary',
 							width: 15
 						},
-						{
-							header: '公司部份社保',
-							key: 'company_sb',
-							width: 15
-						},
-						{
-							header: '公司部份公积金',
-							key: 'company_gjj',
-							width: 15
-						},
-						{
-							header: '下月社保',
-							key: 'last_month_sb',
-							width: 15
-						},
-						{
-							header: '下月公积金',
-							key: 'last_month_gjj',
-							width: 15
-						},
+						// {
+						// 	header: '公司部份社保',
+						// 	key: 'company_sb',
+						// 	width: 15
+						// },
+						// {
+						// 	header: '公司部份公积金',
+						// 	key: 'company_gjj',
+						// 	width: 15
+						// },
+						// {
+						// 	header: '下月社保',
+						// 	key: 'last_month_sb',
+						// 	width: 15
+						// },
+						// {
+						// 	header: '下月公积金',
+						// 	key: 'last_month_gjj',
+						// 	width: 15
+						// },
 						{
 							header: '状态',
 							key: 'status',
 							width: 15
+						},
+						{
+							header: '开户行',
+							key: 'bank_name',
+							width: 15
+						},
+						{
+							header: '开户地',
+							key: 'bank_location',
+							width: 15
+						},
+						{
+							header: '银行账号',
+							key: 'bank_card',
+							width: 15
+						},
+						{
+							header: '备注',
+							key: 'comment',
+							width: 15
 						}
 					];
 					worksheet.columns = columnDefs;
+
+					//状态
+					const STATUS_MAP = {
+						0: '未签名',
+						1: '已签名',
+						2: '其他'
+					};
 
 					// 6. 填充数据行（先写文本，签名列临时放 URL，后面覆盖）
 					listData.forEach((item, idx) => {
@@ -1782,7 +1908,11 @@
 							company_gjj: item.company_gjj,
 							last_month_sb: item.last_month_sb,
 							last_month_gjj: item.last_month_gjj,
-							status: item.status == 1 ? '已签名' : '未签名'
+							status: STATUS_MAP[item.status],
+							bank_name: item.bank_name,
+							bank_location: item.bank_location,
+							bank_card: item.bank_card,
+							comment: item.comment
 						});
 					});
 

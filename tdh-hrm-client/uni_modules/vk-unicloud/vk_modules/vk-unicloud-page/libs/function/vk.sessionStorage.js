@@ -19,20 +19,20 @@ const storage = {};
  * @param {Any} data 需要存储的内容，只支持原生类型、及能够通过 JSON.stringify 序列化的对象
  * vk.setSessionStorageSync(key, data);
  */
-storage.setSessionStorageSync = function(key, data = "") {
-	// #ifdef H5
-	let type = typeof data;
-	let value = {
-		type: typeof data,
-		data: data
-	};
-	sessionStorage.setItem(key, JSON.stringify(value));
-	watchSessionStorage({ type: "set", key, data });
-	// #endif
+storage.setSessionStorageSync = function (key, data = '') {
+  // #ifdef WEB
+  let type = typeof data;
+  let value = {
+    type: typeof data,
+    data: data,
+  };
+  sessionStorage.setItem(key, JSON.stringify(value));
+  watchSessionStorage({ type: 'set', key, data });
+  // #endif
 
-	// #ifndef H5
-	console.warn("非H5环境不支持此API");
-	// #endif
+  // #ifndef WEB
+  console.warn('非H5环境不支持此API');
+  // #endif
 };
 
 /**
@@ -40,23 +40,23 @@ storage.setSessionStorageSync = function(key, data = "") {
  * @param {String} key 本地缓存中的指定的 key
  * vk.getSessionStorageSync(key);
  */
-storage.getSessionStorageSync = function(key) {
-	// #ifdef H5
-	let data;
-	try {
-		let value = JSON.parse(sessionStorage.getItem(key));
-		data = value.data;
-	} catch (err) {
-		data = sessionStorage.getItem(key);
-	}
-	// get 没有必要监听
-	// watchSessionStorage({ type:"get", key, data });
-	return data;
-	// #endif
+storage.getSessionStorageSync = function (key) {
+  // #ifdef WEB
+  let data;
+  try {
+    let value = JSON.parse(sessionStorage.getItem(key));
+    data = value.data;
+  } catch (err) {
+    data = sessionStorage.getItem(key);
+  }
+  // get 没有必要监听
+  // watchSessionStorage({ type:"get", key, data });
+  return data;
+  // #endif
 
-	// #ifndef H5
-	console.warn("非H5环境不支持此API");
-	// #endif
+  // #ifndef WEB
+  console.warn('非H5环境不支持此API');
+  // #endif
 };
 
 /**
@@ -64,15 +64,15 @@ storage.getSessionStorageSync = function(key) {
  * @param {String} key 本地缓存中的指定的 key
  * vk.removeSessionStorageSync(key);
  */
-storage.removeSessionStorageSync = function(key) {
-	// #ifdef H5
-	sessionStorage.removeItem(key);
-	watchSessionStorage({ type: "remove", key });
-	// #endif
+storage.removeSessionStorageSync = function (key) {
+  // #ifdef WEB
+  sessionStorage.removeItem(key);
+  watchSessionStorage({ type: 'remove', key });
+  // #endif
 
-	// #ifndef H5
-	console.warn("非H5环境不支持此API");
-	// #endif
+  // #ifndef WEB
+  console.warn('非H5环境不支持此API');
+  // #endif
 };
 
 /**
@@ -80,31 +80,29 @@ storage.removeSessionStorageSync = function(key) {
  * @param {String} key 本地缓存中的指定的 key
  * vk.clearSessionStorageSync();
  */
-storage.clearSessionStorageSync = function(key) {
-	// #ifdef H5
-	if (key) {
-		let keys = Object.keys(sessionStorage);
-		if (keys) {
-			keys.map((keyName) => {
-				if (keyName.indexOf(key) == 0) {
-					sessionStorage.removeItem(keyName);
-				}
-			});
-		}
-	} else {
-		sessionStorage.clear();
-		watchSessionStorage({ type: "clear" });
-	}
-	// #endif
+storage.clearSessionStorageSync = function (key) {
+  // #ifdef WEB
+  if (key) {
+    let keys = Object.keys(sessionStorage);
+    if (keys) {
+      keys.map((keyName) => {
+        if (keyName.indexOf(key) == 0) {
+          sessionStorage.removeItem(keyName);
+        }
+      });
+    }
+  } else {
+    sessionStorage.clear();
+    watchSessionStorage({ type: 'clear' });
+  }
+  // #endif
 
-	// #ifndef H5
-	console.warn("非H5环境不支持此API");
-	// #endif
+  // #ifndef WEB
+  console.warn('非H5环境不支持此API');
+  // #endif
 };
 
 export default storage;
-
-
 
 /**
  * 单位进制换算
@@ -115,32 +113,32 @@ export default storage;
  * calcSize(length,1024,3,["B","KB","MB","GB"]);
  */
 function calcSize(length = 0, ary, precision, arr) {
-	let size = parseFloat(length);
-	let mySize = 0;
-	let type = "";
-	if (size < ary || arr.length <= 1) {
-		type = arr[0];
-		mySize = parseFloat(size.toFixed(precision));
-	} else {
-		for (let i = 1; i < arr.length; i++) {
-			let g = arr[i];
-			size = size / ary;
-			if (size < ary) {
-				type = g;
-				mySize = parseFloat(size.toFixed(precision));
-				break;
-			}
-		}
-	}
-	return {
-		size: mySize,
-		type: type,
-		title: mySize + " " + type
-	}
-};
+  let size = parseFloat(length);
+  let mySize = 0;
+  let type = '';
+  if (size < ary || arr.length <= 1) {
+    type = arr[0];
+    mySize = parseFloat(size.toFixed(precision));
+  } else {
+    for (let i = 1; i < arr.length; i++) {
+      let g = arr[i];
+      size = size / ary;
+      if (size < ary) {
+        type = g;
+        mySize = parseFloat(size.toFixed(precision));
+        break;
+      }
+    }
+  }
+  return {
+    size: mySize,
+    type: type,
+    title: mySize + ' ' + type,
+  };
+}
 
 function watchSessionStorage(obj) {
-	if (typeof storage.watch === "function") {
-		storage.watch(obj);
-	}
+  if (typeof storage.watch === 'function') {
+    storage.watch(obj);
+  }
 }

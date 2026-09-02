@@ -56,7 +56,7 @@
 					<view class="list-item" v-for="(item, index) in tableData" :key="index">
 						<view class="item-header">
 							<view class="title-wrapper">
-								<u-icon name="account" size="32" color="#2979ff"></u-icon>								
+								<u-icon name="account" size="32" color="#2979ff"></u-icon>
 								<text class="item-title">
 									{{ getTransferTypeLabel(item.form_data?.transfer_type) }}
 								</text>
@@ -326,7 +326,7 @@
 				statusHistory: [],
 			};
 		},
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.init(options);
 		},
 		onShow() {
@@ -784,8 +784,8 @@
 					},
 				});
 				// 删除附件
-				item.form_data?.file_attachments.forEach((e) => {
-					vk.myfn.deleteFile(e);
+				item.form_data?.file_attachments.map(async (e, index) => {
+					await vk.myfn.deleteFile(e);
 				});
 				if (res.code === 0) {
 					uni.showToast({
