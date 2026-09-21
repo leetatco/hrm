@@ -128,7 +128,7 @@
 					"path": "attendance/attendance-shift/list"
 				},
 				{
-					"path": "attendance/attendance-sign/list"
+					"path": "attendance/attendance-punchrule/list"
 				},
 				{
 					"path": "attendance/attendance-leave/list"
@@ -159,10 +159,7 @@
 				},
 				{
 					"path": "attendance/attendance-abnormalrule/list"
-				},
-				{
-					"path": "attendance/attendance-outrule/list"
-				},
+				},				
 				{
 					"path": "attendance/attendance-clockin-set/list"
 				},
@@ -189,6 +186,9 @@
 				},
 				{
 					"path": "attendance/daily/list"
+				},
+				{
+					"path": "attendance/month/list"
 				},
 				{
 					"path": "bank/list"

@@ -323,8 +323,8 @@ const _sfc_main = {
             ]
           },
           {
-            name: "total_hours",
-            label: "请假总小时数",
+            name: "total_minutes",
+            label: "总时数",
             type: "text",
             required: false,
             disabled: true,
@@ -365,7 +365,7 @@ const _sfc_main = {
             },
             {
               title: "统计与说明",
-              fields: ["remarks", "file_attachments", "total_hours"],
+              fields: ["remarks", "file_attachments", "total_minutes"],
               fullWidth: true
             }
           ]
@@ -544,21 +544,52 @@ const _sfc_main = {
       }
     },
     async handleFormSubmit(formData) {
-      var _a, _b;
+      var _a, _b, _c;
       formData._id = formData._id ? formData._id : this.formDialog.data._id;
       this.submitFormLoading = true;
       try {
         const userInfo = vk.getVuex("$user.userInfo");
-        const leaveItems = ((_a = formData.form_data) == null ? void 0 : _a.items) || [];
-        const totalHours = formData.form_data.total_hours;
+        const leaveType = (_a = formData.form_data) == null ? void 0 : _a.leave_type;
+        const totalMinutes = parseFloat((_b = formData.form_data) == null ? void 0 : _b.total_minutes) || 0;
+        if (leaveType && totalMinutes > 0) {
+          const checkRes = await vk.callFunction({
+            url: "admin/hrm/attendance/pub/checkLeaveBalance",
+            data: {
+              employee_id: userInfo.employee_id || userInfo.username,
+              leave_type: leaveType,
+              total_minutes: totalMinutes
+            }
+          });
+          if (checkRes.code !== 0) {
+            common_vendor.index.showModal({
+              title: "额度校验失败",
+              content: checkRes.msg || "额度不足，无法提交",
+              showCancel: false,
+              confirmText: "知道了"
+            });
+            this.submitFormLoading = false;
+            return;
+          }
+          const roundedMinutes = checkRes.rounded_minutes;
+          if (roundedMinutes && Math.round(roundedMinutes) !== Math.round(totalMinutes)) {
+            const confirmed = await new Promise((resolve) => {
+              common_vendor.index.showModal({
+                title: "提示",
+                content: `本次请假将按 ${vk.myfn.formatMinutes(roundedMinutes)} 计算，是否继续提交？`,
+                success: (res2) => resolve(res2.confirm)
+              });
+            });
+            if (!confirmed) {
+              this.submitFormLoading = false;
+              return;
+            }
+            formData.form_data.total_minutes = String(roundedMinutes);
+          }
+        }
         const submitData = {
           ...formData,
-          calculated_values: {
-            total_hours: totalHours,
-            items_count: leaveItems.length
-          },
           userInfo,
-          title: ((_b = formData.form_data) == null ? void 0 : _b.leave_title) || "请假申请"
+          title: ((_c = formData.form_data) == null ? void 0 : _c.leave_title) || "请假申请"
         };
         if (formData._id) {
           submitData._id = formData._id;
@@ -582,7 +613,7 @@ const _sfc_main = {
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:776", "提交失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:813", "提交失败:", e);
         common_vendor.index.showToast({
           title: "提交失败",
           icon: "none"
@@ -592,19 +623,12 @@ const _sfc_main = {
       }
     },
     async handleSimulate(formData) {
-      var _a;
       this.simulateFormLoading = true;
       try {
         const userInfo = vk.getVuex("$user.userInfo");
-        const leaveItems = ((_a = formData.form_data) == null ? void 0 : _a.items) || [];
-        const totalHours = formData.form_data.total_hours;
         const simulateData = {
           form_type_code: this.formTypeCode,
           form_data: formData.form_data,
-          calculated_values: {
-            total_hours: totalHours,
-            items_count: leaveItems.length
-          },
           process_definition_key: "LEAVE_APPLICATION",
           userInfo
         };
@@ -622,7 +646,7 @@ const _sfc_main = {
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:816", "试算失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:846", "试算失败:", e);
         common_vendor.index.showToast({
           title: "试算失败",
           icon: "none"
@@ -711,7 +735,7 @@ const _sfc_main = {
             this.processInfo.instance = instanceRes.rows[0];
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:904", "加载审批流程失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:934", "加载审批流程失败:", e);
       }
     },
     async loadStatusHistory(item) {
@@ -746,7 +770,7 @@ const _sfc_main = {
         }
         this.statusHistory.sort((a, b) => a.operation_time - b.operation_time);
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:939", "加载状态历史失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/leave/index.vue:969", "加载状态历史失败:", e);
       }
     },
     getTaskNameFromHistory(history) {
@@ -911,7 +935,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
           border: false
         }),
         f: common_vendor.t($options.getLeaveTypeText((_b = item.form_data) == null ? void 0 : _b.leave_type)),
-        g: common_vendor.t(((_c = item.form_data) == null ? void 0 : _c.total_hours) || "0"),
+        g: common_vendor.t(_ctx.vk.myfn.formatMinutes(((_c = item.form_data) == null ? void 0 : _c.total_minutes) || "0")),
         h: common_vendor.t(item.applicant_name || "未知"),
         i: common_vendor.t($options.formatDate(item._add_time, "yyyy-MM-dd")),
         j: $options.canEdit(item)
@@ -954,7 +978,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     t: !$data.loading && $data.tableData.length === 0
   }, !$data.loading && $data.tableData.length === 0 ? {
-    v: common_vendor.o($options.addBtn, "90"),
+    v: common_vendor.o($options.addBtn, "e4"),
     w: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -986,12 +1010,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    G: common_vendor.o($options.handleFormSave, "bd"),
-    H: common_vendor.o($options.handleFormSubmit, "45"),
-    I: common_vendor.o($options.handleSimulate, "b6"),
-    J: common_vendor.o($options.previewFile, "08"),
-    K: common_vendor.o($options.closeFormDialog, "d8"),
-    L: common_vendor.o($options.downloadFile, "41"),
+    G: common_vendor.o($options.handleFormSave, "d3"),
+    H: common_vendor.o($options.handleFormSubmit, "f3"),
+    I: common_vendor.o($options.handleSimulate, "d8"),
+    J: common_vendor.o($options.previewFile, "21"),
+    K: common_vendor.o($options.closeFormDialog, "fb"),
+    L: common_vendor.o($options.downloadFile, "d8"),
     M: common_vendor.p({
       ["form-schema"]: $data.formSchema,
       ["form-type-code"]: $data.formTypeCode,
@@ -1003,7 +1027,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       simulateLoading: $data.simulateFormLoading
     })
   }, {
-    N: common_vendor.o(($event) => $data.formDialog.show = $event, "46"),
+    N: common_vendor.o(($event) => $data.formDialog.show = $event, "14"),
     O: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1014,7 +1038,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     P: common_vendor.p({
       ["simulate-data"]: $data.simulateDialog.data
     }),
-    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "62"),
+    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "44"),
     R: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1030,8 +1054,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    U: common_vendor.o($options.previewFile, "d1"),
-    V: common_vendor.o($options.downloadFile, "37"),
+    U: common_vendor.o($options.previewFile, "79"),
+    V: common_vendor.o($options.downloadFile, "25"),
     W: common_vendor.p({
       ["detail-data"]: $data.detailDialog.data,
       ["form-schema"]: $data.formSchema,
@@ -1046,7 +1070,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["form-type-configs"]: $data.formTypeConfigs
     })
   }, {
-    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "56"),
+    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "63"),
     Y: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1054,9 +1078,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       height: $data.popupStyle.height,
       modelValue: $data.detailDialog.show
     }),
-    Z: common_vendor.o($options.confirmDelete, "bd"),
-    aa: common_vendor.o($options.cancelDelete, "24"),
-    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "3f"),
+    Z: common_vendor.o($options.confirmDelete, "c8"),
+    aa: common_vendor.o($options.cancelDelete, "05"),
+    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "c5"),
     ac: common_vendor.p({
       ["show-cancel-button"]: true,
       ["show-confirm-button"]: true,
@@ -1064,8 +1088,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       content: $data.deleteDialog.content,
       modelValue: $data.deleteDialog.show
     }),
-    ad: common_vendor.o($options.filePreviewClose, "47"),
-    ae: common_vendor.o($options.downloadFile, "c0"),
+    ad: common_vendor.o($options.filePreviewClose, "05"),
+    ae: common_vendor.o($options.downloadFile, "cd"),
     af: common_vendor.p({
       value: $data.filePreview.show,
       ["file-data"]: $data.filePreview.data

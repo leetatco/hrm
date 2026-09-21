@@ -9,11 +9,13 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-upload2"
-					:disabled="!table1.selectItem || table1.selectItem.import_status !== 0"
+					:disabled="!table1.selectItem || (table1.selectItem.import_status !== 0 && table1.selectItem.import_status !== 2)"
 					v-if="$hasRole('admin') || $hasPermission('attendance-import-execute')"
-					@click="executeImport">汇入</el-button>
+					@click="executeImport">
+					{{ table1.selectItem && table1.selectItem.import_status === 2 ? '重新汇入' : '汇入' }}
+				</el-button>
 				<el-button type="warning" size="small" icon="el-icon-upload"
-					:disabled="table1.multipleSelection.length === 0 || queryForm1.formData.import_status !== 0"
+					:disabled="table1.multipleSelection.length === 0"
 					v-if="$hasRole('admin') || $hasPermission('attendance-import-batch')"
 					@click="batchImport">批量汇入</el-button>
 			</el-row>
@@ -46,7 +48,7 @@
 
 <script>
 	let vk = uni.vk;
-	let originalForms = {}; // 表单初始化数据	
+	let originalForms = {};
 	const colWidth = 200;
 	import ApproveHeaderDetail from '@/components/approve-header-detail/approve-header-detail.vue';
 
@@ -58,23 +60,32 @@
 			return {
 				table1: {
 					action: "admin/hrm/attendance/sys/oaimport/getList",
-					// 右侧内置按钮：将 detail_auto 替换为自定义按钮，通过监听 detail 事件或重写 onClick
 					rightBtns: [{
 						mode: 'detail_auto',
 						title: '查看详情',
 						show: () => this.$hasRole('admin') || this.$hasPermission('attendance-import-view')
 					}],
-					// 自定义按钮：查看汇入表单
 					customRightBtns: [{
-						mode: 'custom',
-						title: '查看汇入表单',
-						icon: 'el-icon-view',
-						type: 'primary',
-						show: () => this.$hasRole('admin') || this.$hasPermission('attendance-import-view'),
-						onClick: (item) => {
-							this.viewImportForm(item);
+							mode: 'custom',
+							title: '查看汇入表单',
+							icon: 'el-icon-view',
+							type: 'primary',
+							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-import-view'),
+							onClick: (item) => {
+								this.viewImportForm(item);
+							}
+						},
+						{
+							mode: 'custom',
+							title: '失败原因',
+							icon: 'el-icon-warning-outline',
+							type: 'danger',
+							show: (item) => item.import_status === 2,
+							onClick: (item) => {
+								vk.alert(item.import_msg || '无失败信息', '失败原因');
+							}
 						}
-					}],
+					],
 					columns: [{
 							key: "title",
 							title: "申请标题",
@@ -181,23 +192,18 @@
 			await this.loadFormTypeConfigs();
 		},
 		methods: {
-			// 页面数据初始化函数
 			init(options) {
 				originalForms["form1"] = vk.pubfn.copyObject(this.form1);
 			},
-			// 页面跳转
 			pageTo(path) {
 				vk.navigateTo(path);
 			},
-			// 表单重置
 			resetForm() {
 				vk.pubfn.resetForm(originalForms, this);
 			},
-			// 搜索
 			search() {
 				this.$refs.table1.search();
 			},
-			// 刷新
 			refresh() {
 				this.$refs.table1.refresh();
 			},
@@ -301,42 +307,75 @@
 				return timestamp ? vk.pubfn.timeFormat(timestamp, 'yyyy-MM-dd hh:mm:ss') : '-';
 			},
 
+			// 单条汇入（支持失败后重新汇入）
 			async executeImport() {
 				if (!this.table1.selectItem) return vk.toast('请先选择一条记录');
 				const item = this.table1.selectItem;
-				vk.confirm('确定要汇入该条审批数据吗？', async (res) => {
+
+				if (item.import_status !== 0 && item.import_status !== 2) {
+					return vk.toast('当前状态不允许汇入');
+				}
+
+				const confirmMsg = item.import_status === 2 ? '该记录之前汇入失败，确定要重新汇入吗？' : '确定要汇入该条审批数据吗？';
+
+				vk.confirm(confirmMsg, async (res) => {
 					if (res.confirm) {
-						vk.toast('开始处理数据...');
-						const result = await vk.callFunction({
-							url: 'admin/hrm/attendance/sys/oaimport/importOAData',
-							data: {
-								_id: item._id
-							}
-						});
-						if (result.code === 0) vk.toast('汇入成功');
-						else vk.toast(result.msg || '汇入失败');
-						this.refresh();
-					}
-				});
-			},
-			async batchImport() {
-				const ids = this.table1.multipleSelection.map(item => item._id);
-				if (ids.length === 0) return vk.toast('请勾选要汇入的记录');
-				vk.confirm(`确定要批量汇入 ${ids.length} 条记录吗？`, async (res) => {
-					if (res.confirm) {
-						vk.toast('开始处理数据...');
-						let successCount = 0;
-						for (let _id of ids) {
+						vk.showLoading('正在汇入...');
+						try {
 							const result = await vk.callFunction({
 								url: 'admin/hrm/attendance/sys/oaimport/importOAData',
 								data: {
-									_id
+									_id: item._id
 								}
 							});
-							if (result.code === 0) successCount++;
+							vk.hideLoading();
+							if (result.code === 0) {
+								vk.toast('汇入成功');
+							} else {
+								vk.alert(result.msg || '汇入失败', '汇入失败');
+							}
+							this.refresh();
+						} catch (e) {
+							vk.hideLoading();
+							vk.alert('请求异常：' + (e.message || '未知错误'), '汇入失败');
 						}
-						vk.alert(`成功汇入 ${successCount} 条，失败 ${ids.length - successCount} 条`, '提示', () =>
-							this.refresh());
+					}
+				});
+			},
+
+			// 批量汇入（只处理未汇入和失败的）
+			async batchImport() {
+				const items = this.table1.multipleSelection.filter(
+					item => item.import_status === 0 || item.import_status === 2
+				);
+				if (items.length === 0) return vk.toast('没有可汇入的记录');
+
+				vk.confirm(`确定要批量汇入 ${items.length} 条记录吗？`, async (res) => {
+					if (res.confirm) {
+						vk.showLoading('正在批量汇入...');
+						let successCount = 0;
+						let failCount = 0;
+						let failMsgs = [];
+						for (let item of items) {
+							const result = await vk.callFunction({
+								url: 'admin/hrm/attendance/sys/oaimport/importOAData',
+								data: {
+									_id: item._id
+								}
+							});
+							if (result.code === 0) {
+								successCount++;
+							} else {
+								failCount++;
+								failMsgs.push(`${item.title || item._id}: ${result.msg}`);
+							}
+						}
+						vk.hideLoading();
+						if (failCount > 0) {
+							vk.alert(`成功 ${successCount} 条，失败 ${failCount} 条`, '批量汇入结果', () => this.refresh());
+						} else {
+							vk.alert(`成功汇入 ${successCount} 条`, '提示', () => this.refresh());
+						}
 					}
 				});
 			}

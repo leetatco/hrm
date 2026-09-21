@@ -1,118 +1,306 @@
 {
-  "bsonType": "object",
-  "required": ["employee_id", "attendance_date"],
-  "properties": {
-    "_id": {
-      "description": "ID"
-    },
-    "employee_id": {
-      "title": "员工工号",
-      "bsonType": "string"
-    },
-    "attendance_date": {
-      "title": "考勤日期",
-      "bsonType": "string",
-      "description": "yyyy-MM-dd"
-    },
-    "shift_id": {
-      "title": "当天班次ID",
-      "bsonType": "string"
-    },
-    "shift_name": {
-      "title": "班次名称",
-      "bsonType": "string"
-    },
-    "schedule_type": {
-      "title": "排班类型",
-      "bsonType": "int",
-      "description": "1=工作日,2=休息日,3=节假日,4=调休工作日"
-    },
-    "segments": {
-      "title": "班次时段打卡详情",
-      "bsonType": "array",
-      "description": "每个工作时段的具体打卡和异常情况",
-      "items": {
-        "bsonType": "object",
-        "properties": {
-          "segment_name": { "bsonType": "string", "description": "时段名称，如上午、下午" },
-          "start_time": { "bsonType": "string", "description": "时段上班时间 HH:mm" },
-          "end_time": { "bsonType": "string", "description": "时段下班时间 HH:mm" },
-          "clock_in": { "bsonType": "string", "description": "实际签到时间 HH:mm" },
-          "clock_out": { "bsonType": "string", "description": "实际签退时间 HH:mm" },
-          "late_minutes": { "bsonType": "int", "description": "该时段迟到分钟数" },
-          "early_minutes": { "bsonType": "int", "description": "该时段早退分钟数" },
-          "missing_in": { "bsonType": "bool", "description": "是否缺签到卡" },
-          "missing_out": { "bsonType": "bool", "description": "是否缺签退卡" }
-        }
-      }
-    },
-    "clock_in": {
-      "title": "最早签到时间",
-      "bsonType": "string",
-      "description": "汇总字段，取所有时段最早的签到时间"
-    },
-    "clock_out": {
-      "title": "最晚签退时间",
-      "bsonType": "string",
-      "description": "汇总字段，取所有时段最晚的签退时间"
-    },
-    "late_minutes": {
-      "title": "总迟到分钟数",
-      "bsonType": "int",
-      "defaultValue": 0,
-      "description": "所有时段迟到分钟数之和"
-    },
-    "early_minutes": {
-      "title": "总早退分钟数",
-      "bsonType": "int",
-      "defaultValue": 0,
-      "description": "所有时段早退分钟数之和"
-    },
-    "absent_minutes": {
-      "title": "旷工分钟数",
-      "bsonType": "int",
-      "defaultValue": 0
-    },
-    "overtime_hours": {
-      "title": "加班小时数",
-      "bsonType": "double",
-      "defaultValue": 0
-    },
-    "leave_hours": {
-      "title": "请假小时数",
-      "bsonType": "double",
-      "defaultValue": 0
-    },
-    "trip_hours": {
-      "title": "出差小时数",
-      "bsonType": "double",
-      "defaultValue": 0
-    },
-    "compensatory_hours": {
-      "title": "调休小时数",
-      "bsonType": "double",
-      "defaultValue": 0
-    },
-    "remedy_flag": {
-      "title": "是否有补卡",
-      "bsonType": "bool",
-      "defaultValue": false
-    },
-    "attendance_status": {
-      "title": "考勤状态",
-      "bsonType": "int",
-      "description": "0=异常,1=正常,2=请假,3=出差,4=调休,5=旷工"
-    },
-    "update_date": {
-      "title": "更新时间",
-      "bsonType": "timestamp",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updat_id": {
-      "title": "更新人",
-      "bsonType": "string"
-    }
-  }
+	"bsonType": "object",
+	"required": ["employee_id", "attendance_date"],
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string"
+		},
+		"attendance_date": {
+			"title": "考勤日期",
+			"bsonType": "timestamp",
+			"description": "当天零点时间戳（毫秒）"
+		},
+		"shift_id": {
+			"title": "当天班次ID",
+			"bsonType": "string"
+		},
+		"shift_name": {
+			"title": "班次名称",
+			"bsonType": "string"
+		},
+		"schedule_type": {
+			"title": "排班类型",
+			"bsonType": "int",
+			"description": "1=工作日,2=休息日,3=节假日,4=调休工作日"
+		},
+		"segments": {
+			"title": "班次时段打卡详情",
+			"bsonType": "array",
+			"description": "每个工作时段的具体打卡和异常情况",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"segment_name": {
+						"bsonType": "string",
+						"description": "时段名称，如上午、下午"
+					},
+					"start_time": {
+						"bsonType": "string",
+						"description": "时段上班时间 HH:mm"
+					},
+					"end_time": {
+						"bsonType": "string",
+						"description": "时段下班时间 HH:mm"
+					},
+					"clock_in": {
+						"bsonType": "string",
+						"description": "实际签到时间 HH:mm"
+					},
+					"clock_out": {
+						"bsonType": "string",
+						"description": "实际签退时间 HH:mm"
+					},
+					"late_minutes": {
+						"bsonType": "int",
+						"description": "该时段迟到分钟数"
+					},
+					"early_minutes": {
+						"bsonType": "int",
+						"description": "该时段早退分钟数"
+					},
+					"missing_in": {
+						"bsonType": "bool",
+						"description": "是否缺签到卡"
+					},
+					"missing_out": {
+						"bsonType": "bool",
+						"description": "是否缺签退卡"
+					}
+				}
+			}
+		},
+		"late_minutes": {
+			"title": "总迟到分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"early_minutes": {
+			"title": "总早退分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"absent_minutes": {
+			"title": "旷工分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"overtime_minutes": {
+			"title": "加班分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"leave_minutes": {
+			"title": "请假分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"trip_minutes": {
+			"title": "出差分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"compensatory_minutes": {
+			"title": "调休分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"remedy_flag": {
+			"title": "是否有补卡",
+			"bsonType": "bool",
+			"defaultValue": false
+		},
+		"outing_minutes": {
+			"title": "外出分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"outing_records": {
+			"title": "外出明细",
+			"bsonType": "array",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"outing_title": {
+						"bsonType": "string"
+					},
+					"outing_type": {
+						"bsonType": "string"
+					},
+					"start_time": {
+						"bsonType": "string"
+					},
+					"end_time": {
+						"bsonType": "string"
+					},
+					"total_minutes": {
+						"bsonType": "number"
+					},
+					"outing_reason": {
+						"bsonType": "string"
+					},
+					"remark": {
+						"bsonType": "string"
+					}
+				}
+			}
+		},
+		"leave_records": {
+			"title": "请假明细",
+			"bsonType": "array",
+			"description": "当天所有请假记录明细",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"leave_type": {
+						"bsonType": "string",
+						"description": "假期类型代码"
+					},
+					"leave_name": {
+						"bsonType": "string",
+						"description": "假期类型名称"
+					},
+					"total_minutes": {
+						"bsonType": "int",
+						"description": "请假分钟数"
+					},
+					"reason": {
+						"bsonType": "string",
+						"description": "请假原因"
+					},
+					"leave_date": {
+						"bsonType": "timestamp",
+						"description": "请假日期时间戳"
+					}
+				}
+			}
+		},
+		"trip_records": {
+			"title": "出差明细",
+			"bsonType": "array",
+			"description": "当天所有出差记录明细",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"trip_location": {
+						"bsonType": "string",
+						"description": "出差地点"
+					},
+					"start_time": {
+						"bsonType": "timestamp",
+						"description": "开始时间"
+					},
+					"end_time": {
+						"bsonType": "timestamp",
+						"description": "结束时间"
+					},
+					"total_minutes": {
+						"bsonType": "int",
+						"description": "总分钟数"
+					},
+					"trip_type": {
+						"bsonType": "string",
+						"description": "国内/国际"
+					},
+					"reason": {
+						"bsonType": "string",
+						"description": "备注"
+					}
+				}
+			}
+		},
+		"compensatory_records": {
+			"title": "调休明细",
+			"bsonType": "array",
+			"description": "当天所有调休记录明细",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"total_minutes": {
+						"bsonType": "int",
+						"description": "调休分钟数"
+					},
+					"reason": {
+						"bsonType": "string",
+						"description": "调休原因"
+					},
+					"items": {
+						"bsonType": "array",
+						"description": "关联加班单明细"
+					}
+				}
+			}
+		},
+		"overtime_records": {
+			"title": "加班明细",
+			"bsonType": "array",
+			"description": "当天所有加班记录明细",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"overtime_date": {
+						"bsonType": "timestamp",
+						"description": "加班日期"
+					},
+					"total_minutes": {
+						"bsonType": "int",
+						"description": "加班分钟数"
+					},
+					"overtime_type": {
+						"bsonType": "string",
+						"description": "计薪/调休"
+					},
+					"morning_range": {
+						"bsonType": "array",
+						"description": "上午时段"
+					},
+					"afternoon_range": {
+						"bsonType": "array",
+						"description": "下午时段"
+					}
+				}
+			}
+		},
+		"remedy_records": {
+			"title": "补卡明细",
+			"bsonType": "array",
+			"description": "实际使用的补卡记录",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"miss_type": {
+						"bsonType": "string",
+						"description": "补卡类型 clock_in/clock_out"
+					},
+					"miss_time": {
+						"bsonType": "string",
+						"description": "补卡时间 HH:mm"
+					},
+					"miss_reason": {
+						"bsonType": "string",
+						"description": "补卡原因"
+					}
+				}
+			}
+		},
+		"attendance_status": {
+			"title": "考勤状态",
+			"bsonType": "int",
+			"description": "0=异常,1=正常,2=请假,3=出差,4=调休,5=旷工,6=加班"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string"
+		}
+	}
 }

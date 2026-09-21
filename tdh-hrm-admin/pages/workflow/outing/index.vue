@@ -108,7 +108,7 @@
 						{ key: "form_data.outing_date", title: "外出日期", type: "date", width: 120 },
 						{ key: "form_data.start_time", title: "开始时间", type: "text", width: 100 },
 						{ key: "form_data.end_time", title: "结束时间", type: "text", width: 100 },
-						{ key: "form_data.total_duration", title: "总时长", type: "text", width: 100, formatter: (val) => val || '-' },
+						{ key: "form_data.total_minutes", title: "总时长", type: "text", width: 120, formatter: (val) => vk.myfn.formatMinutes(val) },
 						{ key: "applicant_name", title: "申请人", type: "text", width: 100 },
 						{ key: "_add_time", title: "申请日期", type: "time", valueFormat: "yyyy-MM-dd", width: 180 },
 						{ key: "status", title: "状态", type: "tag", width: 100, data: [
@@ -223,7 +223,7 @@
 					data: {
 						form_type_code: this.formTypeCode,
 						form_data: {
-							total_duration: '0小时'
+							total_minutes: 0
 						}
 					}
 				};
@@ -236,7 +236,7 @@
 				if (item.form_data) {
 					Object.keys(item.form_data).forEach(key => formData[key] = item.form_data[key]);
 				}
-				if (!formData.total_duration) formData.total_duration = '0小时';
+				if (!formData.total_minutes) formData.total_minutes = 0;
 				this.formDialog = { show: true, title: '编辑外出申请', data: formData };
 				this.openForm("formDialog", this.formDialog);
 			},

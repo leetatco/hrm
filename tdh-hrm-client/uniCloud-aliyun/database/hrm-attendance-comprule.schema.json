@@ -1,33 +1,29 @@
 {
 	"bsonType": "object",
 	"required": ["rule_name"],
-	"permission": {
-		"read": false,
-		"create": false,
-		"update": false,
-		"delete": false
-	},
 	"properties": {
 		"_id": {
-			"description": "存储文档 ID，系统自动生成"
+			"description": "ID"
 		},
 		"rule_name": {
 			"title": "规则名称",
-			"bsonType": "string",
-			"description": "如‘标准调休规则’",
-			"trim": "both"
+			"bsonType": "string"
 		},
 		"valid_period": {
 			"title": "调休有效期(月)",
 			"bsonType": "int",
-			"description": "调休额度在生成后多少个月内可使用，0表示永久有效",
 			"defaultValue": 3
 		},
 		"auto_expire": {
 			"title": "到期自动清零",
 			"bsonType": "bool",
-			"description": "有效期过后未用完的调休是否自动清零",
 			"defaultValue": true
+		},
+		"same_month_only": {
+			"title": "仅限当月调休",
+			"bsonType": "bool",
+			"description": "true=本月加班产生的调休只能本月使用，不能跨月",
+			"defaultValue": false
 		},
 		"min_unit": {
 			"title": "最小调休单位",
@@ -36,10 +32,16 @@
 			"enum": [1, 2, 3],
 			"defaultValue": 1
 		},
-		"max_accumulate": {
-			"title": "最大累积(小时)",
+		"min_unit_minutes": {
+			"title": "最小调休单位(分钟)",
 			"bsonType": "int",
-			"description": "每人可累积的调休时长上限，0表示无上限",
+			"description": "根据min_unit自动推导，用于统一计算",
+			"defaultValue": 60
+		},
+		"max_accumulate_minutes": {
+			"title": "最大累积(分钟)",
+			"bsonType": "int",
+			"description": "每人可累积的调休时长上限（分钟），0表示无上限",
 			"defaultValue": 0
 		},
 		"overtime_to_comp_ratio": {

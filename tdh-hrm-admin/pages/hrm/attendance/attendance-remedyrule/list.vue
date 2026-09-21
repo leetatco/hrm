@@ -34,7 +34,7 @@ export default {
   data() {
     return {
       table1: {
-        action: "admin/hrm/attendance/sys/remedyRule/getList",
+        action: "admin/hrm/attendance/sys/remedyrule/getList",
         rightBtns: [
           {
             mode: 'detail_auto',
@@ -204,13 +204,13 @@ export default {
     resetForm() { vk.pubfn.resetForm(originalForms, this); },
     addBtn() {
       this.resetForm();
-      this.form1.props.action = 'admin/hrm/attendance/sys/remedyRule/add';
+      this.form1.props.action = 'admin/hrm/attendance/sys/remedyrule/add';
       this.form1.props.formType = 'add';
       this.form1.props.title = '添加补卡规则';
       this.form1.props.show = true;
     },
     updateBtn({ item }) {
-      this.form1.props.action = 'admin/hrm/attendance/sys/remedyRule/update';
+      this.form1.props.action = 'admin/hrm/attendance/sys/remedyrule/update';
       this.form1.props.formType = 'update';
       this.form1.props.title = '编辑补卡规则';
       this.form1.props.show = true;
@@ -218,7 +218,7 @@ export default {
     },
     deleteBtn({ item, deleteFn }) {
       deleteFn({
-        action: "admin/hrm/attendance/sys/remedyRule/delete",
+        action: "admin/hrm/attendance/sys/remedyrule/delete",
         data: { _id: item._id }
       });
     },
@@ -227,7 +227,7 @@ export default {
         if (res.confirm) {
           try {
             const listRes = await vk.callFunction({
-              url: 'admin/hrm/attendance/sys/remedyRule/getList',
+              url: 'admin/hrm/attendance/sys/remedyrule/getList',
               data: { pageSize: 1 }
             });
             const existing = listRes.rows ? listRes.rows[0] : null;
@@ -242,13 +242,13 @@ export default {
             };
             if (existing) {
               await vk.callFunction({
-                url: 'admin/hrm/attendance/sys/remedyRule/update',
+                url: 'admin/hrm/attendance/sys/remedyrule/update',
                 data: { _id: existing._id, ...defaultData }
               });
               vk.toast('已恢复默认');
             } else {
               await vk.callFunction({
-                url: 'admin/hrm/attendance/sys/remedyRule/add',
+                url: 'admin/hrm/attendance/sys/remedyrule/add',
                 data: defaultData
               });
               vk.toast('已创建默认规则');

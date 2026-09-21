@@ -84,8 +84,9 @@
 									</text>
 								</view>
 								<view class="info-item">
-									<text class="info-label">总时长</text>
-									<text class="info-value">{{ item.form_data?.total_duration || 0 }} 小时</text>
+									<text class="info-label">总时数</text>
+									<text
+										class="info-value">{{ vk.myfn.formatMinutes(item.form_data?.total_minutes || 0) }}</text>
 								</view>
 								<view class="info-item full-width">
 									<text class="info-label">事由</text>
@@ -554,8 +555,8 @@
 							trigger: ["change", "blur"]
 						}]
 					}, {
-						name: "total_duration",
-						label: "外出总小时",
+						name: "total_minutes",
+						label: "总时数",
 						type: "number",
 						disabled: true,
 						defaultValue: 0,
@@ -605,7 +606,7 @@
 								"outing_date",
 								"start_time",
 								"end_time",
-								"total_duration"
+								"total_minutes"
 							]
 						}, {
 							title: "外出事由",
@@ -802,17 +803,10 @@
 				try {
 					const userInfo = this.vk.getVuex('$user.userInfo');
 
-					let totalDuration = formData.total_duration;
-
-					const calculatedValues = {
-						total_duration: totalDuration,
-					};
-
 					const title = formData.form_data?.outing_title || `${userInfo?.username || '用户'}的外出申请`;
 
 					const submitData = {
 						...formData,
-						calculated_values: calculatedValues,
 						userInfo,
 						title,
 					};
@@ -854,15 +848,10 @@
 				this.simulateFormLoading = true;
 				try {
 					const userInfo = this.vk.getVuex('$user.userInfo');
-					let totalDuration = formData.total_duration;
-					const calculatedValues = {
-						total_duration: totalDuration,
-					};
 
 					const simulateData = {
 						form_type_code: this.formTypeCode,
 						form_data: formData.form_data,
-						calculated_values: calculatedValues,
 						process_definition_key: 'OUTING_APPLICATION', // 根据实际流程定义 key 调整
 						userInfo,
 					};

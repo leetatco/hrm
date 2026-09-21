@@ -22,13 +22,7 @@
       "bsonType": "string",
       "description": "格式 YYYY-MM-DD",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-    },
-    "shift_id": {
-      "title": "班次",
-      "bsonType": "string",
-      "description": "关联班次表 _id，为空表示休息",
-      "trim": "both"
-    },
+    },    
     "attendance_group_id": {
       "title": "所属考勤组",
       "bsonType": "string",

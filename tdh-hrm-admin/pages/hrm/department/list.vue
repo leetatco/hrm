@@ -11,7 +11,7 @@
 			</template>
 			<!-- 显示department_id的值，必须用form1.department_id -->
 			<template v-slot:department_id="{form}">
-				<vk-data-input-tree-select v-model="form1.department_id" :localdata="departments" placeholder="请选择"
+				<vk-data-input-tree-select v-model="form.department_id" :localdata="departments" placeholder="请选择"
 					@change="toDepartment"></vk-data-input-tree-select>
 			</template>
 		</vk-data-table-query>

@@ -79,29 +79,32 @@
 						{
 							key: "min_unit",
 							title: "最小单位",
-							type: "select",
-							width: colWidth - 60,
-							data: [
-								{ value: 1, label: "小时" },
-								{ value: 2, label: "半天" },
-								{ value: 3, label: "天" }
-							],
+							type: "text",
+							width: colWidth - 60,							
 							formatter: (val) => {
-								const map = { 1: '小时', 2: '半天', 3: '天' };
+								const map = { 1: '小时', 2: '半天', 3: '天',4: '分钟' };
 								return map[val] || val;
 							}
 						},
 						{
-							key: "max_accumulate",
-							title: "最大累积(时)",
-							type: "number",
-							width: colWidth - 60
+							key: "max_accumulate_minutes",
+							title: "最大累积",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "overtime_to_comp_ratio",
 							title: "加班转调休系数",
 							type: "number",
 							width: colWidth
+						},
+						{
+							key: "same_month_only",
+							title: "仅限当月调休",
+							type: "switch",
+							width: colWidth - 80,
+							formatter: (val) => val ? '是' : '否'
 						},
 						{
 							key: "status",
@@ -141,7 +144,7 @@
 							type: "text",
 							width: colWidth,
 							mode: "%%"
-						},
+						},						
 						{
 							key: "status",
 							title: "启用状态",
@@ -161,7 +164,7 @@
 						valid_period: 3,
 						auto_expire: true,
 						min_unit: 1,
-						max_accumulate: 0,
+						max_accumulate_minutes: 0,
 						overtime_to_comp_ratio: 1.0,
 						status: true,
 						remark: ''
@@ -198,21 +201,30 @@
 								data: [
 									{ value: 1, label: "小时" },
 									{ value: 2, label: "半天" },
-									{ value: 3, label: "天" }
+									{ value: 3, label: "天" },
+									{ value: 4, label: "分钟" },
 								]
 							},
 							{
-								key: "max_accumulate",
-								title: "最大累积(小时)",
+								key: "max_accumulate_minutes",
+								title: "最大累积(分钟)",
 								type: "number",
-								width: colWidth - 60
+								width: colWidth - 60,
+								tips: "0表示无上限，例如480分钟=8小时"
 							},
 							{
 								key: "overtime_to_comp_ratio",
 								title: "加班转调休系数",
 								type: "number",
 								width: colWidth - 60,
+								tips: "如1.5倍：加班1小时得1.5小时调休",
 								required: true
+							},
+							{
+								key: "same_month_only",
+								title: "仅限当月调休",
+								type: "switch",
+								width: colWidth - 80
 							},
 							{
 								key: "status",

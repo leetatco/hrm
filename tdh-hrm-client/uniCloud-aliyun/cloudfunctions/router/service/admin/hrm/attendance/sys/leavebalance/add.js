@@ -1,67 +1,75 @@
+// admin/hrm/attendance/sys/leavebalance/add
 module.exports = {
-	/**
-	 * 添加单条数据
-	 * @url admin/hrm/attendance/sys/leavebalance/add 前端调用的url参数地址
-	 * data 请求参数 说明
-	 * res 返回参数说明
-	 * @params {Number} code 错误码，0表示成功
-	 * @params {String} msg 详细信息
-	 */
 	main: async (event) => {
-		let {
-			data = {}, userInfo, util, filterResponse, originalParam
-		} = event;
-		let {
-			customUtil,
-			uniID,
-			config,
-			pubFun,
-			vk,
-			db,
-			_
-		} = util;
-		let {
-			uid
-		} = data;
-		let res = {
-			code: 0,
-			msg: 'ok'
-		};
-		// 业务逻辑开始-----------------------------------------------------------
-		// 获取前端传过来的参数
-		let {
+		const { data = {}, userInfo, util } = event;
+		const { vk, db } = util;
+
+		const {
+			uid,
 			employee_id,
 			leave_type_id,
 			year,
-			total_quota = 0,
-			used_quota = 0,
-			adjust_reason,
+			total_minutes = 0,
+			used_minutes = 0,
+			adjust_reason = '',
 			status = true,
-			remark,
-			update_date,
-			updat_id
+			remark = ''
 		} = data;
-		// 参数验证开始
 
-		// 参数验证结束
-		let dbName = 'hrm-attendance-leavebalance'; // 表名
-		// 执行 数据库add 命令
-		res.id = await vk.baseDao.add({
+		if (!employee_id || !leave_type_id || !year) {
+			return { code: -1, msg: '员工、假期类型、年度不能为空' };
+		}
+
+		const dbName = 'hrm-attendance-leavebalance';
+		const nowTime = Date.now();
+
+		// 1. 检查是否已存在
+		const existRes = await vk.baseDao.selects({
+			dbName,
+			whereJson: { employee_id, leave_type_id, year },
+			limit: 1
+		});
+
+		if (existRes.rows.length > 0) {
+			return { code: -1, msg: '该员工该年度该假期类型额度已存在，请勿重复添加' };
+		}
+
+		// 2. 新增额度
+		const id = await vk.baseDao.add({
 			dbName,
 			dataJson: {
 				employee_id,
 				leave_type_id,
 				year,
-				total_quota,
-				used_quota,
+				total_minutes,
+				used_minutes,
 				adjust_reason,
 				status,
 				remark,
 				update_id: uid,
-				update_date: new Date().getTime()
-			},
+				update_date: nowTime
+			}
 		});
-		// 业务逻辑结束-----------------------------------------------------------
-		return res;
-	},
+
+		// 3. 写入额度日志
+		await vk.baseDao.add({
+			dbName: 'hrm-attendance-balancelog',
+			dataJson: {
+				employee_id,
+				leave_type_id,
+				year,
+				change_type: 1,  // 初始化
+				change_amount: total_minutes,
+				before_balance: 0,
+				after_balance: total_minutes,
+				ref_id: '',
+				ref_type: 'manual',
+				remark: adjust_reason || 'HR手工初始化',
+				update_id: uid,
+				update_date: nowTime
+			}
+		});
+
+		return { code: 0, msg: '添加成功', id };
+	}
 };

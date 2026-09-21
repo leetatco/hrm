@@ -6,12 +6,16 @@
 				<template v-for="(group, groupIndex) in formLayoutGroups" :key="groupIndex">
 					<view class="form-group">
 						<view class="group-title" v-if="group.title">{{ group.title }}</view>
-
 						<template v-for="field in getGroupFields(group)" :key="field.name">
 							<!-- 文本输入 -->
 							<u-form-item v-if="field.type === 'text'" :label="field.label" :prop="field.name"
 								:required="field.required" class="custom-form-item">
-								<u-input v-model="formData[field.name]" :placeholder="field.placeholder || '请输入'"
+								<!-- total_minutes 特殊处理：只读展示 -->
+								<view v-if="field.name === 'total_minutes'">
+									{{ vk.myfn.formatMinutes(formData[field.name]) }}
+								</view>
+								<!-- 其他普通文本字段 -->
+								<u-input v-else v-model="formData[field.name]" :placeholder="field.placeholder || '请输入'"
 									:disabled="field.disabled" :type="field.inputType || 'text'"
 									:maxlength="field.maxLength" :clearable="true" />
 							</u-form-item>
@@ -24,7 +28,7 @@
 									@input="(e) => onNumberInput(field.name, e)" :clearable="true" />
 							</u-form-item>
 
-							<!-- 顶层选择字段（统一处理 select、remote-select、table-select、cascader） -->
+							<!-- 顶层选择字段 -->
 							<u-form-item v-else-if="isSelectField(field)" :label="field.label" :prop="field.name"
 								:required="field.required" class="custom-form-item">
 								<u-input v-model="formData[getDisplayKeyForField(field)]" type="select"
@@ -41,7 +45,7 @@
 									:height="field.rows ? field.rows * 40 : 120" :maxlength="field.maxLength" />
 							</u-form-item>
 
-							<!-- 日期选择（顶层） -->
+							<!-- 日期选择 -->
 							<u-form-item v-else-if="field.type === 'date'" :label="field.label" :prop="field.name"
 								:required="field.required" class="custom-form-item">
 								<u-input v-model="formData[field.name]" type="select"
@@ -49,7 +53,7 @@
 									:clearable="true" @click="showDatePicker(field)" />
 							</u-form-item>
 
-							<!-- 时间选择（顶层） -->
+							<!-- 时间选择 -->
 							<u-form-item v-else-if="field.type === 'time'" :label="field.label" :prop="field.name"
 								:required="field.required" class="custom-form-item">
 								<u-input v-model="formData[field.name]" type="select"
@@ -61,27 +65,21 @@
 							<u-form-item v-else-if="field.type === 'file'" :label="field.label" :prop="field.name"
 								:required="field.required" class="custom-form-item file-form-item">
 								<view class="file-upload-container">
-									<uni-file-picker
-									    ref="fileUploadRef"
-									    :disabled="field.disabled"
-									    :value="formData[field.name]"
-									    @input="(val) => onFilePickerInput(val, field.name)"
-									    :limit="field.maxCount || 10"
-									    :del-icon="true"
-									    :auto-upload="false"
-									    :disable-preview="true"
-									    :dir="fileDir"
-									    :file-mediatype="getFileMediaType(field.accept)"
-									    @select="(e) => onFileSelect(e, field.name)"
-									    @success="(e) => onFileUploadSuccess(e, field.name)"
-									    @fail="onFileUploadFail"
-									    @delete="(e) => onFileDelete(e, field.name)"									
-									</uni-file-picker>
+									<uni-file-picker ref="fileUploadRef" :disabled="field.disabled"
+										:value="formData[field.name]"
+										@input="(val) => onFilePickerInput(val, field.name)"
+										:limit="field.maxCount || 10" :del-icon="true" :auto-upload="false"
+										:disable-preview="true" :dir="fileDir"
+										:file-mediatype="getFileMediaType(field.accept)"
+										@select="(e) => onFileSelect(e, field.name)"
+										@success="(e) => onFileUploadSuccess(e, field.name)" @fail="onFileUploadFail"
+										@delete="(e) => onFileDelete(e, field.name)" />
 									<view class="file-list">
 										<view v-for="(file, index) in formData[field.name]" :key="index"
 											class="file-item">
 											<view class="file-item-inner">
-												<view class="file-info" @click="handleFilePreview(file, field.name)">
+												<view class="file-info"
+													@click="handleFilePreview(file, field.name)">
 													<u-icon name="file-text" class="file-icon"></u-icon>
 													<text class="file-name">{{ getFileName(file) }}</text>
 													<text class="file-size"
@@ -212,7 +210,7 @@
 															:placeholder="subField.placeholder || '请输入'"
 															:disabled="subField.disabled" :type="subField.type"
 															size="mini" :clearable="true" />
-													</view>													
+													</view>
 													<!-- 数字子字段 -->
 													<view class="sub-field" v-else-if="subField.type === 'number'">
 														<view class="sub-label">
@@ -228,16 +226,15 @@
 													</view>
 													<!-- 多行文本子字段 -->
 													<view class="sub-field" v-else-if="subField.type === 'textarea'">
-													    <view class="sub-label">
-													        <text v-if="subField.required" style="color: #f56c6c; margin-right: 4rpx;">*</text>
-													        {{ subField.title }}
-													    </view>
-													    <u-input v-model="item[subField.key]"
-													             :placeholder="subField.placeholder || '请输入'"
-													             :disabled="subField.disabled"
-													             type="text"													             
-													             :maxlength="subField.maxLength"
-													             :clearable="true" />
+														<view class="sub-label">
+															<text v-if="subField.required"
+																style="color: #f56c6c; margin-right: 4rpx;">*</text>
+															{{ subField.title }}
+														</view>
+														<u-input v-model="item[subField.key]"
+															:placeholder="subField.placeholder || '请输入'"
+															:disabled="subField.disabled" type="text"
+															:maxlength="subField.maxLength" :clearable="true" />
 													</view>
 												</template>
 											</view>
@@ -269,12 +266,12 @@
 			</view>
 		</view>
 
-		<!-- 日期选择器（顶层） -->
+		<!-- 日期选择器 -->
 		<u-picker v-model="datePickerShow" mode="time" :params="datePickerParams" @confirm="onDateConfirm" />
-		<!-- 时间选择器（顶层） -->
+		<!-- 时间选择器 -->
 		<u-picker v-model="timePickerShow" mode="time" :params="timePickerParams" @confirm="onTimeConfirm" />
 
-		<!-- 子字段远程搜索选择弹窗（同时供顶层和子级使用） -->
+		<!-- 子字段远程搜索选择弹窗 -->
 		<u-popup v-model="subRemoteSelectVisible" mode="bottom" height="70%" border-radius="20">
 			<view class="sub-remote-popup">
 				<view class="popup-header">
@@ -432,12 +429,11 @@
 		},
 		data() {
 			return {
-				// 批量生成日期相关
 				showBatchDatePicker: false,
 				batchStartDate: '',
 				batchEndDate: '',
 				batchPickerShow: false,
-				batchPickerType: 'start', // 'start' 或 'end'
+				batchPickerType: 'start',
 				batchDatePickerParams: {
 					year: true,
 					month: true,
@@ -448,7 +444,6 @@
 				formLayoutGroups: [],
 				formFields: [],
 				selectShow: {},
-				// 子字段远程选择（同时用于顶层）
 				subRemoteSelectVisible: false,
 				subRemote: {
 					keyword: '',
@@ -462,14 +457,13 @@
 					pageSize: 20,
 					total: 0,
 					mode: 'single',
-					isTopLevel: false, // 标识是否为顶层字段
+					isTopLevel: false,
 					cascaderData: {
 						companies: [],
 						selectedCompany: null,
 						selectedDept: null,
 					},
 				},
-				// 顶层日期/时间
 				datePickerShow: false,
 				datePickerParams: {
 					year: true,
@@ -485,7 +479,6 @@
 					second: false
 				},
 				currentTimeField: null,
-				// 子字段日期选择
 				subDatePickerShow: {},
 				subDatePickerParams: {
 					year: true,
@@ -497,7 +490,6 @@
 					itemIndex: -1,
 					subField: null
 				},
-				//子字段日期和时间选择
 				subDateTimePickerShow: {},
 				subDateTimePickerParams: {
 					year: true,
@@ -512,7 +504,6 @@
 					itemIndex: -1,
 					subField: null
 				},
-				// 子字段时间选择
 				subTimePickerShow: {},
 				subTimePickerParams: {
 					hour: true,
@@ -525,11 +516,9 @@
 					subField: null,
 					range: ''
 				},
-				// 按钮加载状态
 				saveLoadingLocal: false,
 				submitLoadingLocal: false,
 				simulateLoadingLocal: false,
-				// 附件目录
 				fileDir: 'oa'
 			}
 		},
@@ -551,14 +540,14 @@
 						this.$set(arrayItem, 'current_position_name', (emp.positions && emp.positions.position_name) ||
 							'');
 					},
-					//交接人姓名
 					watchHandoverEmployeeChange: (arrayItem, empData) => {
 						const emp = empData.raw || empData;
 						this.$set(arrayItem, 'handover_person_name', emp.employee_name || '');
 					},
+					// 加班单选择回调（改为分钟）
 					onOvertimeSelected: (arrayItem, overtimeData) => {
 						const over = overtimeData.raw || overtimeData;
-						this.$set(arrayItem, 'remaining_hours', (over && over.remaining_hours) || '');
+						this.$set(arrayItem, 'remaining_minutes', (over && over.remaining_minutes) || 0);
 					}
 				}
 			}
@@ -618,7 +607,6 @@
 					}
 				}
 			},
-			// ========== 字段类型判断（顶层/子级通用） ==========
 			isSelectField(field) {
 				const types = ['select', 'remote-select', 'table-select', 'cascader'];
 				return types.includes(field.type) || !!field.displayNameKey;
@@ -627,20 +615,15 @@
 				const types = ['select', 'remote-select', 'table-select', 'cascader'];
 				return types.includes(subField.type) || !!subField.displayNameKey;
 			},
-			// ========== 顶层选择弹窗显示 ==========
 			showTopSelectPicker(field) {
-				// 初始化顶层选择数据
-				const currentValue = this.formData[field.name] || '';
-				const displayKey = this.getDisplayKeyForField(field);
 				this.subRemote = {
 					keyword: '',
 					currentField: field,
-					selectedValue: currentValue,
+					selectedValue: this.formData[field.name] || '',
 					arrayFieldName: '',
 					itemIndex: -1,
 					options: [],
 					loading: false,
-					selectedValue: this.formData[field.name] || '',
 					pageIndex: 1,
 					pageSize: 20,
 					total: 0,
@@ -653,7 +636,6 @@
 					},
 				};
 
-				// 如果有静态选项
 				if (field.options && Array.isArray(field.options)) {
 					const valueKey = field.valueName || 'value';
 					const labelKey = field.labelName || 'label';
@@ -669,7 +651,6 @@
 					return;
 				}
 
-				// 否则远程加载
 				if (field.action) {
 					this.fetchSubRemoteOptions();
 					this.subRemoteSelectVisible = true;
@@ -680,7 +661,6 @@
 					});
 				}
 			},
-			// ========== 子级选择弹窗（原有） ==========
 			showSubRemoteSelect(subField, arrayFieldName, itemIndex) {
 				const isCascader = subField.type === 'cascader';
 				const arrayItem = this.formData[arrayFieldName][itemIndex];
@@ -710,7 +690,6 @@
 					this.fetchSubRemoteOptions();
 				}
 			},
-			// ========== 远程加载选项（顶层/子级共用） ==========
 			async fetchSubRemoteOptions() {
 				const {
 					currentField
@@ -723,7 +702,6 @@
 						pageSize: this.subRemote.pageSize,
 					};
 					if (this.subRemote.keyword) params.keyword = this.subRemote.keyword;
-					// 合并 actionData（如果有）
 					if (currentField.actionData) {
 						Object.assign(params, currentField.actionData);
 					}
@@ -822,7 +800,6 @@
 				this.subRemote.pageIndex = 1;
 				this.fetchSubRemoteOptions();
 			},
-			// ========== 选择确认（顶层/子级共用） ==========
 			selectSubRemoteItem(item) {
 				const {
 					arrayFieldName,
@@ -850,15 +827,12 @@
 				}
 				this.subRemoteSelectVisible = false;
 			},
-			// ========== 工具方法 ==========
 			isItemBatchDisabled(item, subFieldKey) {
 				return this.formTypeCode === 'LEAVE_APPLICATION' && item.batchGenerated === true;
 			},
-			// 顶级显示
 			getDisplayKeyForField(field) {
 				return field.displayNameKey || (field.name + '_label');
 			},
-			//子级显示
 			getDisplayKey(field) {
 				return field.displayNameKey || field.key + '_label';
 			},
@@ -917,12 +891,12 @@
 
 				const diffTime = Math.abs(end - start);
 				const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-				const totalHours = diffDays * 8;
-				this.$set(this.formData, 'total_hours', String(totalHours));
+				const totalMinutes = diffDays * 8 * 60; // 每天8小时=480分钟
+				this.$set(this.formData, 'total_minutes', String(totalMinutes));
 
 				this.showBatchDatePicker = false;
 				uni.showToast({
-					title: `已生成首尾明细，共 ${totalHours} 小时`,
+					title: `已生成首尾明细，共 ${vk.myfn.formatMinutes(totalMinutes)}`,
 					icon: 'success'
 				});
 			},
@@ -1144,7 +1118,6 @@
 				}
 				return true;
 			},
-			// ========== 初始化 ==========
 			initForm() {
 				if (!this.formSchema || !this.formSchema.fields) return;
 				this.initFormData();
@@ -1280,14 +1253,13 @@
 				});
 			},
 			handleInitialData(initialData) {
-				if (initialData && initialData.form_data) {					
+				if (initialData && initialData.form_data) {
 					Object.assign(this.formData, initialData.form_data);
 					this.syncSelectLabels();
 					this.normalizeArrayFields();
 					this.$nextTick(() => this.calcAutoTotal());
 				}
 			},
-			// ========== 顶层日期/时间 ==========
 			showDatePicker(field) {
 				this.currentDateField = field.name;
 				this.dateRange = field.day || 0;
@@ -1329,7 +1301,6 @@
 				}
 				this.timePickerShow = false;
 			},
-			// ========== 子字段日期/时间 ==========
 			showSubDatePicker(fieldName, itemIndex, subField) {
 				this.currentSubDateInfo = {
 					fieldName,
@@ -1372,6 +1343,7 @@
 				const dateStr = `${e.year}-${e.month}-${e.day} ${e.hour}:${e.minute}`;
 				this.$set(item, subField.key, dateStr);
 				this.subDateTimePickerShow[`${fieldName}_${itemIndex}_${subField.key}`] = false;
+				this.calcAutoTotal();
 			},
 			showSubTimePicker(fieldName, itemIndex, subField, range) {
 				this.currentSubTimeInfo = {
@@ -1401,112 +1373,62 @@
 				this.subTimePickerShow[`${fieldName}_${itemIndex}_${subField.key}_${range}`] = false;
 				this.calcAutoTotal();
 			},
-			// ========== 自动计算数 ==========
+			// ========== 自动计算总时长（统一为分钟） ==========
 			calcAutoTotal() {
 				const type = this.formTypeCode;
 				const formData = this.formData;
-				let itemsField, totalField;
-				itemsField = 'items';
-				if (type === 'LEAVE_APPLICATION') {
-					totalField = 'total_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items) || items.length === 0) return;
-					const hasBatchItems = items.some(item => item.batchGenerated === true);
-					if (hasBatchItems) {
-						const batchItems = items.filter(item => item.batchGenerated === true);
-						const dates = batchItems.map(item => new Date(item.leave_date.replace(/-/g, '/')));
-						const minDate = new Date(Math.min(...dates));
-						const maxDate = new Date(Math.max(...dates));
-						const diffDays = Math.round((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
-						const baseHours = diffDays * 8;
-						let extraHours = 0;
+				const itemsField = 'items';
+				const totalField = 'total_minutes';
+
+				if (['LEAVE_APPLICATION', 'OVERTIME_APPLICATION', 'COMPENSATORY_APPLICATION',
+						'BUSINESS_TRIP_APPLICATION', 'OUTING_APPLICATION'
+					].includes(type)) {
+					let totalMinutes = 0;
+
+					if (type === 'LEAVE_APPLICATION' || type === 'OVERTIME_APPLICATION') {
+						const items = formData[itemsField];
+						if (!Array.isArray(items)) return;
+						totalMinutes = this.computeTotalMinutes(items);
+
+					} else if (type === 'COMPENSATORY_APPLICATION') {
+						// 调休：直接累加 deduct_minutes（单位已是分钟）
+						const items = formData[itemsField];
+						if (!Array.isArray(items)) return;
 						items.forEach(item => {
-							if (!item.batchGenerated) {
-								const calc = (range) => {
-									if (Array.isArray(range) && range[0] && range[1]) {
-										const [s, e] = range;
-										const [sh, sm] = s.split(':').map(Number);
-										const [eh, em] = e.split(':').map(Number);
-										return ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-									}
-									return 0;
-								};
-								extraHours += calc(item.morning_range);
-								extraHours += calc(item.afternoon_range);
+							const minutes = parseFloat(item.deduct_minutes) || 0;
+							totalMinutes += minutes;
+						});
+
+					} else if (type === 'BUSINESS_TRIP_APPLICATION') {
+						const items = formData[itemsField];
+						if (!Array.isArray(items)) return;
+						items.forEach(item => {
+							const start = item.start_time;
+							const end = item.end_time;
+							if (start && end) {
+								const startDate = new Date(start.replace(/-/g, '/'));
+								const endDate = new Date(end.replace(/-/g, '/'));
+								if (!isNaN(startDate) && !isNaN(endDate)) {
+									totalMinutes += Math.max(0, (endDate - startDate) / 60000);
+								}
 							}
 						});
-						const total = baseHours + extraHours;
-						this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-						return;
-					}
-					let total = 0;
-					items.forEach(item => {
-						const calc = (range) => {
-							if (Array.isArray(range) && range[0] && range[1]) {
-								const [s, e] = range;
-								const [sh, sm] = s.split(':').map(Number);
-								const [eh, em] = e.split(':').map(Number);
-								return ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-							}
-							return 0;
-						};
-						total += calc(item.morning_range);
-						total += calc(item.afternoon_range);
-					});
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-					return;
-				} else if (type === 'OVERTIME_APPLICATION') {
-					totalField = 'overtime_total_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const calc = (range) => {
-							if (Array.isArray(range) && range[0] && range[1]) {
-								const [s, e] = range;
-								const [sh, sm] = s.split(':').map(Number);
-								const [eh, em] = e.split(':').map(Number);
-								return ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-							}
-							return 0;
-						};
-						total += calc(item.morning_range);
-						total += calc(item.afternoon_range);
-					});
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-					return;
-				} else if (type === 'COMPENSATORY_APPLICATION') {
-					totalField = 'total_compensatory_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const hours = parseFloat(item.deduct_hours) || 0;
-						total += hours;
-					});
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-					return;
-				} else if (type === 'BUSINESS_TRIP_APPLICATION') {
-					totalField = 'total_trip_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const start = item.start_time;
-						const end = item.end_time;
+
+					} else if (type === 'OUTING_APPLICATION') {
+						const start = formData.start_time;
+						const end = formData.end_time;
 						if (start && end) {
-							const startDate = new Date(start.replace(/-/g, '/'));
-							const endDate = new Date(end.replace(/-/g, '/'));
-							if (!isNaN(startDate) && !isNaN(endDate)) {
-								const hours = (endDate - startDate) / 3600000;
-								total += Math.max(0, hours);
-							}
+							const [sh, sm] = start.split(':').map(Number);
+							const [eh, em] = end.split(':').map(Number);
+							totalMinutes = (eh * 60 + em) - (sh * 60 + sm);
 						}
-					});
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
+					}
+
+					this.$set(formData, totalField, Math.max(0, Math.round(totalMinutes)).toString());
 					return;
-				} else if (type === 'REIMBURSEMENT_APPLICATION') {
-					totalField = 'total_detail_amount';
+				}
+
+				if (type === 'REIMBURSEMENT_APPLICATION') {
 					const items = formData[itemsField];
 					if (!Array.isArray(items)) return;
 					let total = 0;
@@ -1514,46 +1436,80 @@
 						const val = parseFloat(item.expense_amount);
 						if (!isNaN(val)) total += val;
 					});
-					this.$set(formData, totalField, (Math.round(total * 100) / 100).toString());
+					this.$set(formData, 'total_detail_amount', (Math.round(total * 100) / 100).toString());
 					return;
-				} else if (type === 'WORK_CLOTHES_APPLICATION') {
-					totalField = 'total_quantity';
+				}
+
+				if (type === 'WORK_CLOTHES_APPLICATION' || type === 'RECRUITMENT_APPLICATION') {
 					const items = formData[itemsField];
 					if (!Array.isArray(items)) return;
 					let total = 0;
 					items.forEach(item => {
-						const qty = parseInt(item.quantity) || 0;
-						total += qty;
+						total += parseInt(item.quantity) || 0;
 					});
-					this.$set(formData, totalField, total.toString());
-					return;
-				} else if (type === 'RECRUITMENT_APPLICATION') {
-					totalField = 'total_quantity';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const qty = parseInt(item.quantity) || 0;
-						total += qty;
-					});
-					this.$set(formData, totalField, total.toString());
-					return;
-				} else if (type === 'OUTING_APPLICATION') {
-					totalField = 'total_duration';
-					const start = formData.start_time;
-					const end = formData.end_time;
-					let total = 0;
-					if (start && end) {
-						const [sh, sm] = start.split(':').map(Number);
-						const [eh, em] = end.split(':').map(Number);
-						total = ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-					}
-					const result = total.toFixed(1);
-					this.$set(formData, totalField, result.endsWith('.0') ? result.slice(0, -2) : result);
+					this.$set(formData, 'total_quantity', total.toString());
 					return;
 				}
 			},
-			// ========== 文件处理 ==========
+
+			_calcRangeMinutes(range, toMinutes) {
+				if (Array.isArray(range) && range.length === 2) {
+					const startMins = toMinutes(range[0]);
+					const endMins = toMinutes(range[1]);
+					if (endMins > startMins) return endMins - startMins;
+				}
+				return 0;
+			},
+
+			computeTotalMinutes(items) {
+				if (!Array.isArray(items) || items.length === 0) return 0;
+				const toMinutes = (timeStr) => {
+					if (!timeStr) return 0;
+					const parts = timeStr.split(':');
+					const hours = parseInt(parts[0], 10) || 0;
+					const minutes = parseInt(parts[1], 10) || 0;
+					const seconds = parts[2] ? parseInt(parts[2], 10) : 0;
+					return hours * 60 + minutes + Math.round(seconds / 60);
+				};
+
+				const hasBatchItems = items.some(item => item.batchGenerated === true);
+				if (hasBatchItems) {
+					const batchItems = items.filter(item => item.batchGenerated === true);
+					const dates = batchItems
+						.map(item => item.leave_date)
+						.filter(date => date)
+						.map(date => new Date(date.replace(/-/g, '/')));
+					if (dates.length === 0) {
+						let totalMinutes = 0;
+						for (const item of items) {
+							totalMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+							totalMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+						}
+						return Math.max(0, totalMinutes);
+					}
+					const minDate = new Date(Math.min(...dates));
+					const maxDate = new Date(Math.max(...dates));
+					const diffDays = Math.round((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
+					const baseMinutes = diffDays * 8 * 60;
+
+					let extraMinutes = 0;
+					items.forEach(item => {
+						if (!item.batchGenerated) {
+							extraMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+							extraMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+						}
+					});
+					return Math.max(0, baseMinutes + extraMinutes);
+				}
+
+				let totalMinutes = 0;
+				for (const item of items) {
+					totalMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+					totalMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+				}
+				return Math.max(0, totalMinutes);
+			},
+
 			getFileMediaType(accept) {
 				if (!accept) return 'all';
 				if (accept.includes('image')) return 'image';
@@ -1562,74 +1518,55 @@
 			},
 
 			async onFileSelect(e, fieldName) {
-				// uni-file-picker 的 auto-upload 设为 false 后，select 事件会返回临时文件路径
-				console.log('文件选择事件:', e);
-				
-				if (!e.tempFilePaths || e.tempFilePaths.length === 0) {
-					return;
-				}
-				
+				if (!e.tempFilePaths || e.tempFilePaths.length === 0) return;
 				try {
 					uni.showLoading({
 						title: '上传中...',
 						mask: true
 					});
-					
-					// 遍历所有选中的文件进行上传
 					for (let i = 0; i < e.tempFilePaths.length; i++) {
 						const tempFilePath = e.tempFilePaths[i];
-						
-						// 获取文件信息
 						const fileInfo = e.tempFiles[i] || {};
 						const fileName = fileInfo.name || this.getFileNameFromPath(tempFilePath);
 						const fileSize = fileInfo.size || 0;
-						
-						// 构建云存储路径
 						const timestamp = Date.now();
 						const random = Math.floor(Math.random() * 10000);
 						const ext = fileName.split('.').pop() || 'file';
 						const cloudPath = `public/${this.fileDir}/${timestamp}_${random}.${ext}`;
-						
-						// 1. 获取上传扩展库参数
+
 						const uploadOptionsRes = await vk.callFunction({
 							url: 'common/pub/getUploadFileOptions/index',
 							data: {
 								cloudPath: cloudPath
 							}
 						});
-						
+
 						if (uploadOptionsRes.code !== 0) {
 							throw new Error(uploadOptionsRes.msg || '获取上传参数失败');
 						}
-						
+
 						const uploadOptions = uploadOptionsRes.rows;
-						
-						// 2. 使用 uni.uploadFile 上传到七牛云
-						const uploadResult = await new Promise((resolve, reject) => {
+
+						await new Promise((resolve, reject) => {
 							uni.uploadFile({
 								...uploadOptions.uploadFileOptions,
 								filePath: tempFilePath,
 								name: 'file',
 								success: (res) => {
-									if (res.statusCode === 200) {
-										resolve(res);
-									} else {
-										reject(new Error(`上传失败: ${res.statusCode}`));
-									}
+									if (res.statusCode === 200) resolve(res);
+									else reject(new Error(`上传失败: ${res.statusCode}`));
 								},
 								fail: reject
 							});
 						});
-						
-						// 3. 构建文件信息
+
 						const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
-						
-						// 4. 添加到表单数据中
+
 						if (!this.formData[fieldName]) {
 							this.$set(this.formData, fieldName, []);
 						}
-						
-						const fileItem = {
+
+						this.formData[fieldName].push({
 							name: fileName,
 							size: fileSize,
 							url: fileUrl,
@@ -1637,17 +1574,13 @@
 							path: fileUrl,
 							cloudPath: cloudPath,
 							ext: ext
-						};
-						
-						this.formData[fieldName].push(fileItem);
+						});
 					}
-					
 					uni.hideLoading();
 					uni.showToast({
 						title: '上传成功',
 						icon: 'success'
 					});
-					
 				} catch (error) {
 					uni.hideLoading();
 					console.error('文件上传失败:', error);
@@ -1663,12 +1596,9 @@
 				const parts = filePath.split('/');
 				return parts[parts.length - 1];
 			},
-
 			onFileUploadSuccess(e, fieldName) {
-				// 手动上传模式下，success 事件可能不会触发，但保留此方法以兼容
 				console.log('文件上传成功回调:', e);
 			},
-
 			onFileUploadFail(err) {
 				console.error('文件上传失败:', err);
 				uni.showToast({
@@ -1676,39 +1606,26 @@
 					icon: 'none'
 				});
 			},
-			
 			onFilePickerInput(val, fieldName) {
-			    // 如果 val 是临时路径，忽略更新
-			    if (Array.isArray(val) && val.length > 0) {
-			        const hasTempPath = val.some(file => 
-			            file.url && file.url.startsWith('http://tmp/')
-			        );
-			        if (hasTempPath) {
-			            console.log('忽略临时路径更新');
-			            return;
-			        }
-			    }
-			    // 否则正常更新
-			    this.$set(this.formData, fieldName, val);			    
+				if (Array.isArray(val) && val.length > 0) {
+					const hasTempPath = val.some(file =>
+						file.url && file.url.startsWith('http://tmp/')
+					);
+					if (hasTempPath) return;
+				}
+				this.$set(this.formData, fieldName, val);
 			},
-
 			async onFileDelete(e, fieldName) {
 				try {
-					// 获取要删除的文件信息
-					const fileInfo = this.formData[fieldName][e.index];									
-					// console.log('fileInfo11:', this.formData[fieldName]);							
-					// 如果有 url，可以调用删除接口
+					const fileInfo = this.formData[fieldName][e.index];
 					if (fileInfo.cloudPath || fileInfo.fileID) {
-						const cloudPath = fileInfo.cloudPath || fileInfo.fileID;						
+						const cloudPath = fileInfo.cloudPath || fileInfo.fileID;
 						await vk.myfn.deleteFile(fileInfo);
-						console.log('删除云文件:', cloudPath);
-					}					
-					// 从数组中删除
-					this.formData[fieldName].splice(e.index, 1);					
-					// console.log('fileInfo22:', this.formData[fieldName]);					
+					}
+					this.formData[fieldName].splice(e.index, 1);
 					uni.showToast({
 						title: '删除成功',
-						icon: 'success'
+							icon: 'success'
 					});
 				} catch (error) {
 					console.error('删除文件失败:', error);
@@ -1718,7 +1635,6 @@
 					});
 				}
 			},
-			
 			handleFilePreview(file, fieldName) {
 				this.$emit('preview-file', {
 					url: file.url,
@@ -1758,7 +1674,6 @@
 				const i = Math.floor(Math.log(bytes) / Math.log(k));
 				return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 			},
-			// ========== array<object> 操作 ==========
 			addArrayItem(field) {
 				if (!this.formData[field.name]) this.$set(this.formData, field.name, []);
 				const item = {};
@@ -1802,7 +1717,6 @@
 				this.formData[fieldName] = [];
 				this.calcAutoTotal();
 			},
-			// ========== 提交相关 ==========
 			async handleSave(status) {
 				try {
 					this.saveLoadingLocal = true;

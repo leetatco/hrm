@@ -1,6 +1,6 @@
 {
 	"bsonType": "object",
-	"required": ["employee_id", "compensatory_date", "oa_instance_id", "total_hours"],
+	"required": ["employee_id", "compensatory_date", "oa_instance_id", "total_minutes"],
 	"properties": {
 		"_id": {
 			"description": "ID"
@@ -17,9 +17,9 @@
 			"bsonType": "string",
 			"description": "调休日期 YYYY-MM-DD"
 		},
-		"total_hours": {
+		"total_minutes": {
 			"bsonType": "double",
-			"description": "本次调休总小时数"
+			"description": "本次调休时数"
 		},
 		"items": {
 			"bsonType": "array",
@@ -34,9 +34,9 @@
 					"overtime_title": {
 						"bsonType": "string"
 					},
-					"deduct_hours": {
+					"deduct_minutes": {
 						"bsonType": "double",
-						"description": "本次调休小时数"
+						"description": "本次调休时数"
 					}
 				}
 			}

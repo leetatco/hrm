@@ -908,6 +908,23 @@
 				this.submitFormLoading = true;
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
+					
+					// ===== 校验每月补卡次数 =====
+					const checkRes = await vk.callFunction({
+						url: 'admin/hrm/attendance/pub/checkRemedyLimit',
+						data: {
+							employee_id: userInfo.username, // 假设工号与用户名一致，请根据实际调整
+							date: formData.form_data?.miss_date,
+							fileLength: formData.form_data?.file_attachments.length
+						}
+					});
+					if (checkRes.code !== 0) {
+						this.$message.error(checkRes.msg || '补卡次数校验失败');
+						this.submitFormLoading = false;
+						return;
+					}
+					// ================================
+					
 					const calculatedValues = {
 						miss_date: formData.form_data?.miss_date,
 						miss_reason_label: this.getMissReasonLabel(formData.form_data?.miss_reason)

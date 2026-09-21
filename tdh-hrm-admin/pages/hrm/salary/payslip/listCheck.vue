@@ -214,7 +214,15 @@
 							dateType: "date",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
-							"width": colWidth
+							width: colWidth
+						}, {
+							key: "attendance_ym_key",
+							title: "月份",
+							type: "date",
+							dateType: "date",
+							valueFormat: "yyyy-MM",
+							format: "yyyy-MM",
+							width: colWidth
 						}, {
 							key: "card",
 							title: "",
@@ -275,6 +283,9 @@
 							},
 							showAll: true,
 							actionData: {
+								otherWhereJson: {
+									status: 0
+								},
 								pageSize: -1,
 								pageIndex: 1
 							}
@@ -486,10 +497,11 @@
 
 			// 导出xls表格文件（全部数据）
 			async exportExcelAll() {
-				// 1. 校验月份
+				// 1. 校验月份和时间
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
-				if (vk.pubfn.isNull(attendance_ym)) {
-					return vk.alert('时间不能为空！');
+				const attendance_ym_key = this.queryForm1.formData.attendance_ym_key;
+				if (vk.pubfn.isNull(attendance_ym) && vk.pubfn.isNull(attendance_ym_key)) {
+					return vk.alert('时间和月份不能同时为空！');
 				}
 
 				uni.showLoading({
@@ -611,7 +623,7 @@
 					let failCount = 0;
 
 					if (imageUrls.length > 0) {
-						const BATCH_SIZE = 80; // 低于云函数 maxCount(100)，留有余量
+						const BATCH_SIZE = 60; // 低于云函数 maxCount(100)，留有余量
 						const total = imageUrls.length;
 						const batches = [];
 						for (let i = 0; i < total; i += BATCH_SIZE) {
@@ -696,7 +708,7 @@
 					const blob = new Blob([buffer], {
 						type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					});
-					FileSaver.saveAs(blob, `${attendance_ym}月份工资条（含签名）.xlsx`);
+					FileSaver.saveAs(blob, `${attendance_ym || attendance_ym_key}月份工资条（含签名）.xlsx`);
 
 					uni.hideLoading();
 

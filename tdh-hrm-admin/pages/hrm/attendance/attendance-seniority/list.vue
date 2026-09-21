@@ -99,6 +99,12 @@
 							formatter: (val) => val ? '是' : '否'
 						},
 						{
+							key: "carry_forward_months",
+							title: "顺延有效月数",
+							type: "text",
+							width: colWidth - 80
+						},						
+						{
 							key: "status",
 							title: "启用",
 							type: "switch",
@@ -165,7 +171,7 @@
 						carry_forward: false,
 						carry_forward_months: 3,
 						max_accumulate_days: 0,
-						status: 1,
+						status: true,
 						remark: ''
 					},
 					props: {
@@ -192,15 +198,50 @@
 							{
 								key: "rule_details",
 								title: "分段规则",
-								type: "array",
-								width: colWidth * 3,
+								type: "array<object>",
+								width: 630,
+								oneLine: true,
 								required: true,
-								show: ["form"],
-								// 使用动态表格输入
-								formatter: (val, row, column, index) => {
-									// 在表单中自定义渲染为可编辑表格，此处展示简略
-									return vk.pubfn.isNotNull(val) ? JSON.stringify(val) : '';
-								}
+								showAdd: true,
+								showClear: true,
+								showSort: true,
+								itemWidth: 600,
+								columnIndexWidth: 50,
+								defaultValue: {
+									year_min: 0,
+									year_max: null,
+									annual_days: 0
+								},
+								rightBtns: ['copy', 'delete'],
+								columns: [
+									{
+										key: "year_min",
+										title: "最小工龄(年)",
+										type: "number",
+										width: 160,
+										required: true,
+										rules: [
+											{ required: true, message: "不能为空", trigger: ["change", "blur"] }
+										]
+									},
+									{
+										key: "year_max",
+										title: "最大工龄(年)",
+										type: "number",
+										width: 160,
+										tips: "留空表示无上限"
+									},
+									{
+										key: "annual_days",
+										title: "年假天数",
+										type: "number",
+										width: 140,
+										required: true,
+										rules: [
+											{ required: true, message: "不能为空", trigger: ["change", "blur"] }
+										]
+									}
+								]
 							},
 							{
 								key: "probational_provide",
@@ -255,21 +296,21 @@
 								key: "remark",
 								title: "备注",
 								type: "textarea",
-								maxlength: 500,
-								width: colWidth * 3
+								maxlength: 500								
 							}
 						],
 						rules: {
 							rule_name: [{ required: true, message: "规则名称不能为空", trigger: "blur" }],
 							seniority_type: [{ required: true, message: "工龄类型不能为空", trigger: "change" }],
 							rule_details: [{
-								required: true,
-								message: "至少添加一条分段规则",
-								trigger: "blur",
 								validator: (rule, value, callback) => {
-									if (!value || value.length === 0) callback(new Error('至少添加一条分段规则'));
-									else callback();
-								}
+									if (!value || value.length === 0) {
+										callback(new Error('至少添加一条分段规则'));
+									} else {
+										callback();
+									}
+								},
+								trigger: 'change'
 							}]
 						},
 						formType: "",

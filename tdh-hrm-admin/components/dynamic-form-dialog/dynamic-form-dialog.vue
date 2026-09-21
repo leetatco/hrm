@@ -1,4 +1,3 @@
-```vue
 <template>
 	<view>
 		<vk-data-dialog v-model="form.props.show" :title="form.props.title" width="930px" mode="form"
@@ -12,7 +11,6 @@
 				:form-type="form.props.formType" :columns="form.props.columns" label-width="130px" :inline="true"
 				:columnsNumber="2" :border="true" @success="handleSuccess">
 				<template v-slot:file_attachments>
-					<!-- 文件上传 -->
 					<div v-if="getFieldType('file_attachments') === 'file'" class="file-upload-container">
 						<vk-data-upload ref="fileUploadRef" :accept="getFieldAccept('file_attachments')"
 							:file-list="form.data.form_data['file_attachments'] || []" :action="uploadConfig.action"
@@ -29,7 +27,6 @@
 								{{ getFileDescription('file_attachments') }}
 							</div>
 						</vk-data-upload>
-						<!-- 文件列表展示 -->
 						<div v-if="form.data.form_data['file_attachments'] && form.data.form_data['file_attachments'].length > 0"
 							class="file-list">
 							<div v-for="(file, index) in form.data.form_data['file_attachments']" :key="index"
@@ -55,7 +52,6 @@
 						</div>
 					</div>
 				</template>
-				<!-- 自定义按钮区域 -->
 				<template v-slot:footer>
 					<el-button @click="handleCancel">取消</el-button>
 					<el-button v-if="!butVisible" type="primary" :loading="saveLoadingLocal"
@@ -190,7 +186,6 @@
 			}
 		},
 		watch: {
-			// 新增：监听 form_data 变化，自动计算合计字段
 			'form.data': {
 				handler(newVal) {
 					if (!newVal || !this.formSchema) return;
@@ -250,154 +245,120 @@
 			}
 		},
 		methods: {
-			// 提取原有逻辑为独立方法（保持代码整洁）
-			computeTotalHoursByRange(leaveItems, toMinutes) {
-				let totalMinutes = 0;
-				for (const item of leaveItems) {
-					if (item.morning_range && Array.isArray(item.morning_range) && item.morning_range.length === 2) {
-						const startMins = toMinutes(item.morning_range[0]);
-						const endMins = toMinutes(item.morning_range[1]);
-						if (endMins > startMins) totalMinutes += (endMins - startMins);
-					}
-					if (item.afternoon_range && Array.isArray(item.afternoon_range) && item.afternoon_range.length === 2) {
-						const startMins = toMinutes(item.afternoon_range[0]);
-						const endMins = toMinutes(item.afternoon_range[1]);
-						if (endMins > startMins) totalMinutes += (endMins - startMins);
-					}
+			// ================= 计算总分钟数 =================
+			_calcRangeMinutes(range, toMinutes) {
+				if (Array.isArray(range) && range.length === 2) {
+					const startMins = toMinutes(range[0]);
+					const endMins = toMinutes(range[1]);
+					if (endMins > startMins) return endMins - startMins;
 				}
-				const totalHours = (totalMinutes / 60).toFixed(1);
-				return totalHours.endsWith('.0') ? totalHours.slice(0, -2) : totalHours;
+				return 0;
 			},
-			// 计算总请假时数（单位：小时，保留一位小数）
-			computeTotalHours(leaveItems) {
-				if (!leaveItems || !Array.isArray(leaveItems) || leaveItems.length === 0) {
-					return '0';
-				}
-
-				// 辅助函数：将 "HH:mm" 字符串转为分钟数
+			computeTotalMinutes(items) {
+				if (!Array.isArray(items) || items.length === 0) return 0;
 				const toMinutes = (timeStr) => {
 					if (!timeStr) return 0;
 					const parts = timeStr.split(':');
-					const hours = parseInt(parts[0], 10);
-					const minutes = parseInt(parts[1], 10);
+					const hours = parseInt(parts[0], 10) || 0;
+					const minutes = parseInt(parts[1], 10) || 0;
 					const seconds = parts[2] ? parseInt(parts[2], 10) : 0;
 					return hours * 60 + minutes + Math.round(seconds / 60);
 				};
 
-				// 检查是否存在批量生成项
-				const hasBatchItems = leaveItems.some(item => item.batchGenerated === true);
-
+				const hasBatchItems = items.some(item => item.batchGenerated === true);
 				if (hasBatchItems) {
-					// 1. 获取批量项的最小日期和最大日期
-					const batchItems = leaveItems.filter(item => item.batchGenerated === true);
+					const batchItems = items.filter(item => item.batchGenerated === true);
 					const dates = batchItems
 						.map(item => item.leave_date)
 						.filter(date => date)
 						.map(date => new Date(date.replace(/-/g, '/')));
-
 					if (dates.length === 0) {
-						// 如果没有有效的日期（理论上不应发生），回退原逻辑
-						return this.computeTotalHoursByRange(leaveItems, toMinutes);
+						let totalMinutes = 0;
+						for (const item of items) {
+							totalMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+							totalMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+						}
+						return Math.max(0, totalMinutes);
 					}
-
 					const minDate = new Date(Math.min(...dates));
 					const maxDate = new Date(Math.max(...dates));
 					const diffDays = Math.round((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
-					const baseHours = diffDays * 8; // 每天8小时
+					const baseMinutes = diffDays * 8 * 60;
 
-					// 2. 计算非批量项的时段小时数
 					let extraMinutes = 0;
-					leaveItems.forEach(item => {
+					items.forEach(item => {
 						if (!item.batchGenerated) {
-							if (item.morning_range && Array.isArray(item.morning_range) && item.morning_range
-								.length === 2) {
-								const startMins = toMinutes(item.morning_range[0]);
-								const endMins = toMinutes(item.morning_range[1]);
-								if (endMins > startMins) extraMinutes += (endMins - startMins);
-							}
-							if (item.afternoon_range && Array.isArray(item.afternoon_range) && item.afternoon_range
-								.length === 2) {
-								const startMins = toMinutes(item.afternoon_range[0]);
-								const endMins = toMinutes(item.afternoon_range[1]);
-								if (endMins > startMins) extraMinutes += (endMins - startMins);
-							}
+							extraMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+							extraMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
 						}
 					});
-
-					const totalHours = baseHours + extraMinutes / 60;
-					const formatted = totalHours.toFixed(1);
-					return formatted.endsWith('.0') ? formatted.slice(0, -2) : formatted;
+					return Math.max(0, baseMinutes + extraMinutes);
 				}
 
-				// 3. 无批量生成项：原有逻辑（保留原方法功能）
-				return this.computeTotalHoursByRange(leaveItems, toMinutes);
+				let totalMinutes = 0;
+				for (const item of items) {
+					totalMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+					totalMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+				}
+				return Math.max(0, totalMinutes);
 			},
-			// ========== 自动计算数 ==========
+			// ========== 自动计算总时长 ==========
 			calcAutoTotal() {
 				const type = this.formTypeCode;
 				const formData = this.form.data;
-				let itemsField, totalField;
-				itemsField = 'items';
-				if (type === 'LEAVE_APPLICATION') {
-					totalField = 'total_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items) || items.length === 0) return;
-					let total = 0;
-					total = this.computeTotalHours(items);
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-					return;
-				} else if (type === 'OVERTIME_APPLICATION') {
-					totalField = 'overtime_total_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const calc = (range) => {
-							if (Array.isArray(range) && range[0] && range[1]) {
-								const [s, e] = range;
-								const [sh, sm] = s.split(':').map(Number);
-								const [eh, em] = e.split(':').map(Number);
-								return ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+				const itemsField = 'items';
+				const totalField = 'total_minutes';
+
+				if (['LEAVE_APPLICATION', 'OVERTIME_APPLICATION', 'COMPENSATORY_APPLICATION',
+						'BUSINESS_TRIP_APPLICATION', 'OUTING_APPLICATION'
+					].includes(type)) {
+					let totalMinutes = 0;
+
+					if (type === 'LEAVE_APPLICATION' || type === 'OVERTIME_APPLICATION') {
+						const items = formData[itemsField];
+						if (!Array.isArray(items)) return;
+						totalMinutes = this.computeTotalMinutes(items);
+
+					} else if (type === 'COMPENSATORY_APPLICATION') {
+						// 调休：直接累加 deduct_minutes（单位已是分钟）
+						const items = formData[itemsField];
+						if (!Array.isArray(items)) return;
+						items.forEach(item => {
+							const minutes = parseFloat(item.deduct_minutes) || 0;
+							totalMinutes += minutes;
+						});
+
+					} else if (type === 'BUSINESS_TRIP_APPLICATION') {
+						const items = formData[itemsField];
+						if (!Array.isArray(items)) return;
+						items.forEach(item => {
+							const start = item.start_time;
+							const end = item.end_time;
+							if (start && end) {
+								const startDate = new Date(start.replace(/-/g, '/'));
+								const endDate = new Date(end.replace(/-/g, '/'));
+								if (!isNaN(startDate) && !isNaN(endDate)) {
+									totalMinutes += Math.max(0, (endDate - startDate) / 60000);
+								}
 							}
-							return 0;
-						};
-						total += calc(item.morning_range);
-						total += calc(item.afternoon_range);
-					});
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-					return;
-				} else if (type === 'COMPENSATORY_APPLICATION') {
-					totalField = 'total_compensatory_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const hours = parseFloat(item.deduct_hours) || 0;
-						total += hours;
-					});
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-					return;
-				} else if (type === 'BUSINESS_TRIP_APPLICATION') {
-					totalField = 'total_trip_hours';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const start = item.start_time;
-						const end = item.end_time;
+						});
+
+					} else if (type === 'OUTING_APPLICATION') {
+						const start = formData.start_time;
+						const end = formData.end_time;
 						if (start && end) {
-							const startDate = new Date(start.replace(/-/g, '/'));
-							const endDate = new Date(end.replace(/-/g, '/'));
-							if (!isNaN(startDate) && !isNaN(endDate)) {
-								const hours = (endDate - startDate) / 3600000;
-								total += Math.max(0, hours);
-							}
+							const [sh, sm] = start.split(':').map(Number);
+							const [eh, em] = end.split(':').map(Number);
+							totalMinutes = (eh * 60 + em) - (sh * 60 + sm);
 						}
-					});
-					this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
+					}
+
+					this.$set(formData, totalField, Math.max(0, Math.round(totalMinutes)).toString());
 					return;
-				} else if (type === 'REIMBURSEMENT_APPLICATION') {
-					totalField = 'total_detail_amount';
+				}
+
+				// 报销金额
+				if (type === 'REIMBURSEMENT_APPLICATION') {
 					const items = formData[itemsField];
 					if (!Array.isArray(items)) return;
 					let total = 0;
@@ -405,42 +366,19 @@
 						const val = parseFloat(item.expense_amount);
 						if (!isNaN(val)) total += val;
 					});
-					this.$set(formData, totalField, (Math.round(total * 100) / 100).toString());
+					this.$set(formData, 'total_detail_amount', (Math.round(total * 100) / 100).toString());
 					return;
-				} else if (type === 'WORK_CLOTHES_APPLICATION') {
-					totalField = 'total_quantity';
+				}
+
+				// 件数类
+				if (type === 'WORK_CLOTHES_APPLICATION' || type === 'RECRUITMENT_APPLICATION') {
 					const items = formData[itemsField];
 					if (!Array.isArray(items)) return;
 					let total = 0;
 					items.forEach(item => {
-						const qty = parseInt(item.quantity) || 0;
-						total += qty;
+						total += parseInt(item.quantity) || 0;
 					});
-					this.$set(formData, totalField, total.toString());
-					return;
-				} else if (type === 'RECRUITMENT_APPLICATION') {
-					totalField = 'total_quantity';
-					const items = formData[itemsField];
-					if (!Array.isArray(items)) return;
-					let total = 0;
-					items.forEach(item => {
-						const qty = parseInt(item.quantity) || 0;
-						total += qty;
-					});
-					this.$set(formData, totalField, total.toString());
-					return;
-				} else if (type === 'OUTING_APPLICATION') {
-					totalField = 'total_duration';
-					const start = formData.start_time;
-					const end = formData.end_time;
-					let total = 0;
-					if (start && end) {
-						const [sh, sm] = start.split(':').map(Number);
-						const [eh, em] = end.split(':').map(Number);
-						total = ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-					}
-					const result = total.toFixed(1);
-					this.$set(formData, totalField, result.endsWith('.0') ? result.slice(0, -2) : result);
+					this.$set(formData, 'total_quantity', total.toString());
 					return;
 				}
 			},
@@ -485,9 +423,10 @@
 				};
 				this.$set(this.form.data, 'items', [startItem, endItem]);
 				const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-				this.$set(this.form.data, 'total_hours', String(diffDays * 8));
+				const totalMinutes = diffDays * 8 * 60;
+				this.$set(this.form.data, 'total_minutes', String(totalMinutes));
 				this.showBatchDatePicker = false;
-				this.$message.success(`已生成首尾明细，共 ${diffDays * 8} 小时`);
+				this.$message.success(`已生成首尾明细，共 ${vk.myfn.formatMinutes(totalMinutes)}`);
 			},
 			// ================= 时间工具 =================
 			timeToMinutes(timeStr) {
@@ -533,23 +472,19 @@
 				index,
 				option
 			}) {
-				console.log('[DynamicFormDialog] onOvertimeSelected', {
-					value,
-					index,
-					option
-				});
 				if (!value) return;
 				if (formData && typeof formData === 'object') {
-					let remaining = '0';
+					let remaining = 0;
 					let title = '';
 					if (option && typeof option === 'object') {
-						remaining = option.remaining_hours || '0';
+						remaining = option.remaining_minutes || 0;
 						title = option.title || '';
 					}
-					this.$set(formData, 'remaining_hours', remaining);
+					// 单位：分钟
+					this.$set(formData, 'remaining_minutes', remaining);
 					this.$set(formData, 'overtime_title', title);
 					this.$nextTick(() => {
-						this.$refs.formRef?.validateField(`items.${index}.deduct_hours`);
+						this.$refs.formRef?.validateField(`items.${index}.deduct_minutes`);
 					});
 				}
 			},
@@ -597,13 +532,11 @@
 			}) {
 				if (option) {
 					formData.handover_person_name = option.employee_name || '';
-
 				} else {
 					formData.handover_person_name = '';
 				}
 				this.$forceUpdate();
 			},
-			// 验证外出日期不能早于今天
 			validateOutingDateAfterToday(rule, value, callback) {
 				if (value && new Date(value) < new Date(new Date().toDateString())) {
 					callback(new Error('外出日期不能早于今天'));
@@ -611,10 +544,7 @@
 					callback();
 				}
 			},
-
-			// 验证结束时间必须晚于开始时间
 			validateEndTimeAfterStart(rule, value, callback) {
-				// 获取当前表单数据中的开始时间
 				const formData = this.form.data.form_data || this.form.data;
 				const startTime = formData.start_time;
 				if (value && startTime) {
@@ -625,7 +555,6 @@
 				}
 				callback();
 			},
-
 			handleCascaderChange({
 				value,
 				formData,
@@ -693,7 +622,6 @@
 			},
 			// ================= 初始数据处理 =================
 			handleInitialData(initialData) {
-				console.log('处理初始数据:', initialData);
 				if (!initialData._id) {
 					this.form.data = initialData;
 				} else {
@@ -710,7 +638,6 @@
 							...this.form.data.form_data,
 							...form_data
 						};
-						// 将 form_data 中的字段展开到顶层，供 vk-data-form 绑定
 						Object.keys(this.form.data.form_data).forEach(key => {
 							this.$set(this.form.data, key, this.form.data.form_data[key]);
 						});
@@ -723,7 +650,6 @@
 						this.form.data.form_data.supporting_documents = [];
 					}
 				}
-				console.log('处理后的表单数据:', this.form.data);
 			},
 			// ================= 初始化 =================
 			initForm() {
@@ -731,14 +657,12 @@
 					console.warn('表单配置为空');
 					return;
 				}
-				console.log('开始初始化表单，fields:', this.formSchema.fields);
 				this.initFormData();
 				this.form.props.columns = this.convertFieldsToColumns();
 				this.initFormRules();
 				this.$nextTick(() => {
 					this.loadRemoteDefaultLabels();
 				});
-				console.log('初始化后的form:', this.form);
 			},
 			initFormData() {
 				if (!this.formSchema || !this.formSchema.fields) return;
@@ -749,7 +673,6 @@
 					} else {
 						formData[field.name] = field.defaultValue !== undefined ? field.defaultValue : '';
 					}
-					// 如果有 displayNameKey，初始化对应的显示字段
 					if (field.displayNameKey) {
 						formData[field.displayNameKey] = '';
 					}
@@ -767,7 +690,6 @@
 				Object.keys(formData).forEach(key => {
 					this.$set(this.form.data, key, formData[key]);
 				});
-				// 如果存在 form_data 顶层对象，同步展开
 				if (this.form.data.form_data) {
 					Object.keys(this.form.data.form_data).forEach(key => {
 						if (!(key in this.form.data)) {
@@ -783,7 +705,6 @@
 					const fieldKey = field.name;
 					const fieldRules = [];
 
-					// 1. 自动生成的基础规则（required、min/max、文件校验等）
 					if (field.required) {
 						if (field.type === 'file' || field.type === 'table') {
 							fieldRules.push({
@@ -876,7 +797,6 @@
 						rules[fieldKey] = fieldRules;
 					}
 
-					// 2. 合并字段自定义 rules（支持字符串 validator 引用）
 					if (field.rules && Array.isArray(field.rules)) {
 						const customRules = field.rules.map(rule => {
 							if (rule.validator && typeof rule.validator === 'string') {
@@ -890,7 +810,6 @@
 							return rule;
 						});
 						if (rules[fieldKey]) {
-							// 避免重复添加完全相同的规则
 							customRules.forEach(cr => {
 								const exists = rules[fieldKey].some(r =>
 									r.validator === cr.validator ||
@@ -995,6 +914,20 @@
 										column.valueFormat = 'yyyy-MM-dd';
 										column.pickerOptions = {
 											disabledDate: (time) => {
+												// 仅当月可选
+												if (field.pickerOptions?.disabledDate ===
+													'currentMonthOnly') {
+													const now = new Date();
+													const year = now.getFullYear();
+													const month = now.getMonth();
+													const startOfMonth = new Date(year, month, 1)
+														.getTime();
+													const endOfMonth = new Date(year, month + 1, 0,
+														23, 59, 59, 999).getTime();
+													return time.getTime() < startOfMonth || time
+														.getTime() > endOfMonth;
+												}
+
 												if (vk.pubfn.isNotNull(field.day)) {
 													let nowTime = new Date();
 													let beforeTime = vk.pubfn.getOffsetTime(
@@ -1061,7 +994,6 @@
 										if (field.props) column.props = field.props;
 										if (field.actionData) column.actionData = field.actionData;
 										if (field.showAll !== undefined) column.showAll = field.showAll;
-										// 支持 displayNameKey
 										if (field.displayNameKey) {
 											column.watch = ({
 												value,
@@ -1281,11 +1213,9 @@
 																subCol.defaultValue = subColumn
 																.defaultValue;
 
-															// ---------- 构建自定义数字验证器（避免 async-validator 类型警告） ----------
 															const numberValidator = {
 																validator: (rule, value,
 																	callback) => {
-																	// 空值不处理，交给 required 规则
 																	if (value === undefined ||
 																		value === null ||
 																		value === '') {
@@ -1320,32 +1250,23 @@
 																trigger: ['change', 'blur']
 															};
 
-															// 处理原有的 rules：保留 required 和自定义 validator，过滤掉 type/min/max
 															const existingRules = subColumn.rules ||
 														[];
 															const finalRules = [];
 															existingRules.forEach(rule => {
 																if (rule.required === true) {
-																	// 保留 required 规则
 																	finalRules.push(rule);
 																} else if (rule.validator) {
-																	// 保留自定义 validator（如业务验证）
 																	finalRules.push(rule);
 																} else if (rule.type ===
 																	'number' || rule.min !==
 																	undefined || rule.max !==
-																	undefined) {
-																	// 忽略这些内置校验规则，由自定义验证器替代
-																} else {
-																	// 其他规则保留（如自定义 message 等）
+																	undefined) {} else {
 																	finalRules.push(rule);
 																}
 															});
-
-															// 添加自定义数字验证器
 															finalRules.push(numberValidator);
 															subCol.rules = finalRules;
-
 															break;
 														case 'date':
 															subCol.type = subColumn.type;
@@ -1494,6 +1415,10 @@
 										}
 										break;
 								}
+								if (field.name === 'total_minutes') {
+									column.type = 'html';
+									column.formatter = (val) => vk.myfn.formatMinutes(val);
+								}
 								columns.push(column);
 							}
 						});
@@ -1578,7 +1503,6 @@
 						if (status) {
 							formData.status = status;
 						}
-						console.log('保存的数据:', formData);
 						this.$emit('save', formData);
 					} catch (error) {
 						console.error('保存失败:', error);
@@ -1602,7 +1526,6 @@
 							...processedData,
 							status: 'pending'
 						};
-						console.log('提交的数据:', formData);
 						this.$emit('submit', formData);
 					} catch (error) {
 						console.error('提交失败:', error);
@@ -1625,7 +1548,6 @@
 						const formData = {
 							...processedData
 						};
-						console.log('试算的数据:', formData);
 						this.$emit('simulate', formData);
 					} catch (error) {
 						console.error('试算失败:', error);
@@ -1654,7 +1576,6 @@
 					} else if (this.form.data.form_data && this.form.data.form_data[fieldName] !== undefined) {
 						result.form_data[fieldName] = this.form.data.form_data[fieldName];
 					}
-					// 如果字段有 displayNameKey，也确保它被包含在 form_data 中
 					if (field.displayNameKey) {
 						const displayKey = field.displayNameKey;
 						if (this.form.data[displayKey] !== undefined) {
@@ -1787,11 +1708,9 @@
 </script>
 
 <style lang="scss" scoped>
-	// 文件上传样式 - 调整宽度与 textarea 一致
 	.file-upload-container {
-		width: 630px; // 设置与 textarea 相同的宽度
+		width: 630px;
 
-		// 上传按钮左对齐
 		::v-deep .el-upload {
 			width: auto;
 			text-align: left;
@@ -1835,7 +1754,7 @@
 					display: flex;
 					align-items: center;
 					flex: 1;
-					min-width: 0; // 防止内容溢出
+					min-width: 0;
 
 					.file-icon {
 						color: #409eff;
@@ -1883,12 +1802,11 @@
 		padding: 30rpx;
 	}
 
-	// 确保表单布局正确
 	::v-deep .vk-data-form {
 		.form-item {
 			&.one-line {
 				.el-form-item__content {
-					width: 630px; // 确保全宽字段的宽度一致
+					width: 630px;
 				}
 			}
 		}

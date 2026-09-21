@@ -85,33 +85,33 @@
 									value: 2,
 									label: "固定日期段"
 								}
-							],
-							formatter: (val) => val == 1 ? '自然月' : '固定日期段'
+							]
 						},
 						{
 							key: "period_start_day",
 							title: "周期起始日",
 							type: "number",
 							width: colWidth - 60
-						},
+						},											
 						{
-							key: "remedy_limit_per_month",
-							title: "月补卡次数",
-							type: "number",
-							width: colWidth - 60
-						},
-						{
-							key: "overtime_min_unit",
-							title: "加班最小单位(分)",
+							key: "probation_months",
+							title: "默认试用期(月)",
 							type: "number",
 							width: colWidth
-						},
+						}, 
 						{
 							key: "allow_overtime_application",
-							title: "允许加班申请",
+							title: "允许加班申请计入",
 							type: "switch",
 							width: colWidth - 40,
 							formatter: (val) => val ? '是' : '否'
+						},
+						{
+							key: "status",
+							title: "启用",
+							type: "switch",
+							width: colWidth - 100,
+							formatter: (val) => val ? '启用' : '停用'
 						},
 						{
 							key: "remark",
@@ -153,11 +153,20 @@
 							"min": 0,
 							"mode": "="
 						},
+						{
+							key: "status",
+							title: "启用状态",
+							type: "select",
+							width: colWidth - 100,
+							data: [
+								{ value: true, label: "启用" },
+								{ value: false, label: "停用" }
+							],
+							mode: "="
+						}
 						//{"key":"absent_threshold_minutes","title":"旷工阈值(分钟)","type":"text","width":200,"min":0,"mode":"="},
 						//{"key":"monthly_period_type","title":"月统计周期","type":"text","width":200,"data":[{},{}],"mode":"="},
-						//{"key":"period_start_day","title":"周期起始日","type":"text","width":200,"min":1,"max":31,"mode":"="},
-						//{"key":"remedy_limit_per_month","title":"每月补卡次数","type":"text","width":200,"min":0,"mode":"="},
-						//{"key":"overtime_min_unit","title":"加班最小计算单位(分钟)","type":"text","width":200,"min":0,"mode":"="},
+						//{"key":"period_start_day","title":"周期起始日","type":"text","width":200,"min":1,"max":31,"mode":"="},							
 						//{"key":"allow_overtime_application","title":"是否允许申请加班","type":"text","width":200,"mode":"="},
 						//{"key":"remark","title":"备注","type":"text","width":200,"mode":"="},
 						//{"key":"update_date","title":"更新时间","type":"text","width":200,"mode":"="},
@@ -170,9 +179,9 @@
 						early_threshold_minutes: 1,
 						absent_threshold_minutes: 30,
 						monthly_period_type: 1,
-						period_start_day: 1,
-						remedy_limit_per_month: 3,
-						overtime_min_unit: 30,
+						period_start_day: 1,												
+						probation_months:3,
+						status: true,
 						allow_overtime_application: true
 					},
 					props: {
@@ -222,26 +231,26 @@
 								hidden: false,
 								required: true,
 								description: "当统计周期为固定日期段时生效，如26表示上月26-本月25"
-							},
+							},														
 							{
-								key: "remedy_limit_per_month",
-								title: "每月补卡次数",
+								key: "probation_months",
+								title: "默认试用期(月)",
 								type: "number",
 								width: colWidth,
 								required: true
-							},
-							{
-								key: "overtime_min_unit",
-								title: "加班最小单位(分)",
-								type: "number",
-								width: colWidth,
-								required: true
-							},
+							}, 
 							{
 								key: "allow_overtime_application",
 								title: "允许加班申请",
 								type: "switch",
 								width: colWidth
+							},
+							{
+								key: "status",
+								title: "启用状态",
+								type: "switch",
+								width: colWidth - 100,
+								defaultValue: true
 							},
 							{
 								key: "remark",
@@ -276,15 +285,10 @@
 								required: true,
 								message: "周期起始日不能为空",
 								trigger: "blur"
-							}],
-							remedy_limit_per_month: [{
+							}],													
+							probation_months: [{
 								required: true,
-								message: "补卡次数不能为空",
-								trigger: "blur"
-							}],
-							overtime_min_unit: [{
-								required: true,
-								message: "加班最小单位不能为空",
+								message: "默认试用期(月)",
 								trigger: "blur"
 							}]
 						},

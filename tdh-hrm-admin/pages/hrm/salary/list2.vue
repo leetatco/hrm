@@ -18,7 +18,7 @@
 					:split-button="false" trigger="click" @command="batchBtn">
 					<el-button type="danger" size="small" style="margin-left: 20rpx;"
 						:disabled="table1.multipleSelection.length === 0">
-						批量审核<i class="el-icon-arrow-down el-icon--right"></i>
+						批量处理<i class="el-icon-arrow-down el-icon--right"></i>
 					</el-button>
 					<el-dropdown-menu slot="dropdown">
 						<el-dropdown-item :command="1">通过</el-dropdown-item>

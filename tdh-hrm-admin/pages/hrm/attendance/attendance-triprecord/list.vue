@@ -47,7 +47,7 @@
 							label="开始时间">{{ formatDate(detailDialog.data.start_time) }}</el-descriptions-item>
 						<el-descriptions-item
 							label="结束时间">{{ formatDate(detailDialog.data.end_time) }}</el-descriptions-item>
-						<el-descriptions-item label="总小时数">{{ detailDialog.data.total_hours }}</el-descriptions-item>
+						<el-descriptions-item label="出差时长">{{ vk.myfn.formatMinutes(detailDialog.data.total_minutes) }}</el-descriptions-item>
 						<el-descriptions-item label="汇入状态">
 							<el-tag :type="getImportStatusType(detailDialog.data.import_status)">
 								{{ getImportStatusText(detailDialog.data.import_status) }}
@@ -68,7 +68,7 @@
 
 <script>
 	let vk = uni.vk;
-	let originalForms = {}; // 表单初始化数据	
+	let originalForms = {};
 	const colWidth = 200;
 
 	export default {
@@ -122,10 +122,11 @@
 							width: colWidth - 60
 						},
 						{
-							key: "total_hours",
-							title: "小时数",
-							type: "number",
-							width: colWidth - 80
+							key: "total_minutes",
+							title: "出差时长",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "trip_type",
@@ -314,9 +315,10 @@
 							valueFormat: "yyyy-MM-dd hh:mm"
 						},
 						{
-							key: "total_hours",
-							title: "小时数",
-							type: "number"
+							key: "total_minutes",
+							title: "出差时长",
+							type: "text",
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "trip_type",

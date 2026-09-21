@@ -193,12 +193,10 @@
 							}
 						},
 						{
-							key: "form_data.total_hours",
-							title: "请假总小时数",
+							key: "form_data.total_minutes",
+							title: "总时长",
 							width: 120,
-							formatter: (val) => {
-								return `${val} 小时`;
-							}
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "applicant_name",
@@ -359,6 +357,29 @@
 				return option ? option.label : value;
 			},
 
+			// 计算请假总分钟数
+			calcTotalMinutes(items) {
+				if (!items || !Array.isArray(items)) return 0;
+				let total = 0;
+				items.forEach(item => {
+					if (item.morning_range && item.morning_range.length === 2) {
+						total += this.calcMinutesBetween(item.morning_range[0], item.morning_range[1]);
+					}
+					if (item.afternoon_range && item.afternoon_range.length === 2) {
+						total += this.calcMinutesBetween(item.afternoon_range[0], item.afternoon_range[1]);
+					}
+				});
+				return total;
+			},
+
+			calcMinutesBetween(start, end) {
+				if (!start || !end) return 0;
+				const [sh, sm] = start.split(':').map(Number);
+				const [eh, em] = end.split(':').map(Number);
+				const diff = (eh * 60 + em) - (sh * 60 + sm);
+				return diff > 0 ? diff : 0;
+			},
+
 			// 打开表单
 			openForm(name, item) {
 				let that = this;
@@ -415,7 +436,6 @@
 					const formType = this.formTypeConfigs[this.formTypeCode];
 					if (formType && formType.form_schema) {
 						this.formSchema = JSON.parse(formType.form_schema);
-						// 同步查询条件中的请假类型选项（从表单配置中动态获取）
 						this.syncQueryOptions();
 					} else {
 						console.error('未找到表单配置，请检查 formTypeCode 是否正确或后台是否配置了该表单');
@@ -427,7 +447,6 @@
 				}
 			},
 
-			// 同步查询条件中的选项（如请假类型）
 			syncQueryOptions() {
 				if (!this.formSchema || !this.formSchema.fields) return;
 				const leaveTypeField = this.formSchema.fields.find(f => f.name === 'leave_type');
@@ -460,7 +479,7 @@
 					data: {
 						form_type_code: this.formTypeCode,
 						form_data: {
-							items:[{}]
+							items: [{}]
 						}
 					}
 				};
@@ -474,7 +493,6 @@
 					this.$message.warning('表单配置加载中，请稍后重试');
 					return;
 				}
-				console.log('编辑数据:', item);
 				const formData = {
 					...item
 				};
@@ -483,7 +501,6 @@
 						formData[key] = item.form_data[key];
 					});
 				}
-				console.log('重组后的数据:', formData);
 				this.formDialog = {
 					show: true,
 					title: '编辑请假申请',
@@ -494,9 +511,9 @@
 
 			async handleFormSave(formData) {
 				this.saveFormLoading = true;
-				try {					
+				try {
 					if (!formData.calculated_values) formData.calculated_values = {};
-					formData.calculated_values.total_hours = formData.form_data.total_hours;
+					formData.calculated_values.total_minutes = formData.form_data.total_minutes;
 					let url = "admin/bpmn/application-form/sys/add";
 					if (formData._id) {
 						url = "admin/bpmn/application-form/sys/update";
@@ -525,8 +542,34 @@
 				this.submitFormLoading = true;
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
+
+					// 计算请假总分钟数
+					const totalMinutes = this.calcTotalMinutes(formData.form_data.items);
+					if (totalMinutes <= 0) {
+						this.$message.error('请假时长必须大于0');
+						this.submitFormLoading = false;
+						return;
+					}
+
+					// ===== 提交前校验额度 =====
+					const checkRes = await vk.callFunction({
+						url: 'admin/hrm/attendance/pub/checkLeaveBalance',
+						data: {
+							employee_id: userInfo.employee_id || userInfo.username,
+							leave_type: formData.form_data.leave_type,
+							total_minutes: totalMinutes
+						}
+					});
+
+					if (checkRes.code !== 0) {
+						this.$message.error(checkRes.msg || '额度不足，无法提交');
+						this.submitFormLoading = false;
+						return;
+					}
+					// =========================
+
 					const calculatedValues = {
-						total_hours: formData.form_data.total_hours,
+						total_minutes: totalMinutes,
 						leave_type: formData.form_data.leave_type
 					};
 
@@ -539,10 +582,8 @@
 						title: title
 					};
 
-					// 同时也可以将 total_hours 存入 form_data 备用（视需求）
-					if (!submitData.form_data.total_hours) {
-						submitData.form_data.total_hours = totalHours;
-					}
+					// 同时将 total_minutes 存入 form_data 备用
+					submitData.form_data.total_minutes = totalMinutes;
 
 					if (formData._id) {
 						submitData._id = formData._id;
@@ -574,13 +615,10 @@
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
 
-					let totalDays = 0;
-					if (formData.form_data.items && Array.isArray(formData.form_data.items)) {
-						totalDays = formData.form_data.items.length;
-					}
+					const totalMinutes = this.calcTotalMinutes(formData.form_data.items);
 
 					const calculatedValues = {
-						total_days: totalDays,
+						total_minutes: totalMinutes,
 						leave_type: formData.form_data.leave_type
 					};
 
@@ -642,11 +680,10 @@
 			},
 
 			async showDetail(item) {
-				console.log("detail:", item);
 				this.detailDialog.data = item;
 				await Promise.all([
 					this.loadProcessFlow(item),
-					this.loadStatusHistory
+					this.loadStatusHistory(item)
 				])
 				this.detailDialog.show = true;
 			},
@@ -761,7 +798,6 @@
 							}
 						});
 
-						// 删除附件
 						item.form_data?.file_attachments.forEach((e) => {
 							vk.myfn.deleteFile(e);
 						});

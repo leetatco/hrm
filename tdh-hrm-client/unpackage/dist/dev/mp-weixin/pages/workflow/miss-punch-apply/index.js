@@ -719,16 +719,30 @@ const _sfc_main = {
       }
     },
     async handleFormSubmit(formData) {
-      var _a, _b, _c;
+      var _a, _b, _c, _d, _e;
       formData._id = formData._id ? formData._id : this.formDialog.data._id;
       this.submitFormLoading = true;
       try {
         const userInfo = vk.getVuex("$user.userInfo");
+        const checkRes = await vk.callFunction({
+          url: "admin/hrm/attendance/pub/checkRemedyLimit",
+          data: {
+            employee_id: userInfo.username,
+            // 假设工号与用户名一致，请根据实际调整
+            date: (_a = formData.form_data) == null ? void 0 : _a.miss_date,
+            fileLength: (_b = formData.form_data) == null ? void 0 : _b.file_attachments.length
+          }
+        });
+        if (checkRes.code !== 0) {
+          this.$message.error(checkRes.msg || "补卡次数校验失败");
+          this.submitFormLoading = false;
+          return;
+        }
         const calculatedValues = {
-          miss_date: (_a = formData.form_data) == null ? void 0 : _a.miss_date,
-          miss_reason_label: this.getMissReasonLabel((_b = formData.form_data) == null ? void 0 : _b.miss_reason)
+          miss_date: (_c = formData.form_data) == null ? void 0 : _c.miss_date,
+          miss_reason_label: this.getMissReasonLabel((_d = formData.form_data) == null ? void 0 : _d.miss_reason)
         };
-        const title = `${(userInfo == null ? void 0 : userInfo.username) || "用户"}的签卡申请（${((_c = formData.form_data) == null ? void 0 : _c.miss_date) || "未知日期"}）`;
+        const title = `${(userInfo == null ? void 0 : userInfo.username) || "用户"}的签卡申请（${((_e = formData.form_data) == null ? void 0 : _e.miss_date) || "未知日期"}）`;
         const submitData = {
           ...formData,
           calculated_values: calculatedValues,
@@ -757,7 +771,7 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:944", "提交失败:", error);
+        common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:961", "提交失败:", error);
         common_vendor.index.showToast({
           title: "提交失败",
           icon: "none"
@@ -797,7 +811,7 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:982", "试算失败:", error);
+        common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:999", "试算失败:", error);
         common_vendor.index.showToast({
           title: "试算失败",
           icon: "none"
@@ -876,7 +890,7 @@ const _sfc_main = {
                 });
               },
               fail: (err) => {
-                common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:1057", "保存文件失败", err);
+                common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:1074", "保存文件失败", err);
                 common_vendor.index.showToast({
                   title: "保存失败: " + err.errMsg,
                   icon: "none"
@@ -891,7 +905,7 @@ const _sfc_main = {
           }
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:1072", "下载失败", err);
+          common_vendor.index.__f__("error", "at pages/workflow/miss-punch-apply/index.vue:1089", "下载失败", err);
           common_vendor.index.showToast({
             title: "下载失败",
             icon: "none"

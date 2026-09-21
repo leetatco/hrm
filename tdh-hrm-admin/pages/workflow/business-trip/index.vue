@@ -194,11 +194,11 @@
 							}
 						},
 						{
-							key: "form_data.total_trip_hours",
-							title: "总小时数",
+							key: "form_data.total_minutes",
+							title: "总时长",
 							type: "text",
-							width: 100,
-							formatter: (val) => val ? `${val}小时` : '-'
+							width: 120,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "applicant_name",
@@ -352,7 +352,7 @@
 			formatDateTime(timestamp) {
 				if (!timestamp) return '';
 				return vk.pubfn.timeFormat(new Date(timestamp), 'yyyy-MM-dd hh:mm');
-			},			
+			},
 
 			// 打开表单
 			openForm(name, item) {
@@ -483,8 +483,7 @@
 			// 保存草稿
 			async handleFormSave(formData) {
 				this.saveFormLoading = true;
-				try {					
-					//验证数据
+				try {
 					if (!this.validateTripItems(formData.form_data.items)) {
 						return;
 					}
@@ -514,13 +513,12 @@
 			async handleFormSubmit(formData) {
 				this.submitFormLoading = true;
 				try {
-					const userInfo = vk.getVuex('$user.userInfo');					
+					const userInfo = vk.getVuex('$user.userInfo');
 					const calculatedValues = {
-						total_trip_hours: formData.form_data.total_trip_hours,
+						total_minutes: formData.form_data.total_minutes,
 						business_trip_type: formData.form_data.business_trip_type
 					};
 
-					//验证数据
 					if (!this.validateTripItems(formData.form_data.items)) {
 						return;
 					}
@@ -559,9 +557,9 @@
 			async handleSimulate(formData) {
 				this.simulateFormLoading = true;
 				try {
-					const userInfo = vk.getVuex('$user.userInfo');					
+					const userInfo = vk.getVuex('$user.userInfo');
 					const calculatedValues = {
-						total_trip_hours: formData.form_data.total_trip_hours,
+						total_minutes: formData.form_data.total_minutes,
 						business_trip_type: formData.form_data.business_trip_type
 					};
 					const simulateData = {
@@ -707,7 +705,6 @@
 								id: item._id
 							}
 						});
-						// 删除附件
 						item.form_data?.file_attachments.forEach((e) => {
 							vk.myfn.deleteFile(e);
 						});

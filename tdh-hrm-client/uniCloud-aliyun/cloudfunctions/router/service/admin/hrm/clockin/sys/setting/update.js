@@ -38,6 +38,8 @@ module.exports = {
 			bssid,
 			ssid,
 			signalStrength,
+			company_id,
+			department_id,
 			update_date,
 			updat_id
 		} = data;
@@ -61,6 +63,8 @@ module.exports = {
 				bssid,
 				ssid,
 				signalStrength,
+				company_id,
+				department_id,
 				update_id: uid,
 				update_date: new Date().getTime()
 			},

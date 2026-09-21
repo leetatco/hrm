@@ -420,28 +420,32 @@
 					return '-';
 				}
 
+				// ========== 特殊处理：total_minutes 统一以“X小时Y分钟”显示 ==========
+				if (field.name === 'total_minutes') {
+					if (typeof vk !== 'undefined' && vk.myfn && typeof vk.myfn.formatMinutes === 'function') {
+						return vk.myfn.formatMinutes(value);
+					}					
+				}
+				// =====================================================================
+
 				// 1. 如果字段有 displayNameKey，优先使用 displayNameKey 对应的值作为显示文本
 				if (field.displayNameKey) {
 					const displayValue = this.getFieldValue(field.displayNameKey);
 					if (displayValue != null && displayValue !== '') {
 						return displayValue;
 					}
-					// 如果 displayNameKey 对应的值为空，继续往下走（可能想用 options 匹配或直接显示 value）
 				}
 
 				// 2. 处理选择框字段（包括 select、remote-select、table-select、cascader）
 				const selectTypes = ['select', 'remote-select', 'table-select', 'cascader'];
 				if (selectTypes.includes(field.type)) {
-					// 如果有静态 options 配置，匹配 label
 					if (field.options && Array.isArray(field.options)) {
 						const option = field.options.find(opt => opt.value === value);
 						if (option) return option.label;
 					}
-					// 尝试从 form_data 中取 _label 备用（兼容旧数据）
 					const labelKey = field.name + '_label';
 					const labelValue = this.getFieldValue(labelKey);
 					if (labelValue != null && labelValue !== '') return labelValue;
-					// 否则直接返回值
 					return value;
 				}
 
@@ -450,39 +454,32 @@
 					return this.formatDate(value, field.type === 'date' ? 'yyyy-MM-dd' : 'yyyy-MM-dd hh:mm:ss');
 				}
 
-				// 4.处理array<object>
+				// 4. 处理 array<object>
 				if (field.type === 'array<object>') {
 					return vk.myfn.formatArrayObjectField(field, value);
 				}
 
 				// 默认返回原值
 				return value;
-			},			
+			},
 
 			// 使用字段列表格式化
 			formatWithFieldList(item, fieldList) {
 				const parts = fieldList.map(fieldConfig => {
 					let fieldName, label;
 
-					// 支持两种格式：字符串或对象
 					if (typeof fieldConfig === 'string') {
-						fieldName
-							= fieldConfig;
-						label
-							= this.getFieldLabel(fieldName);
+						fieldName = fieldConfig;
+						label = this.getFieldLabel(fieldName);
 					} else if (fieldConfig && typeof fieldConfig === 'object') {
-						fieldName
-							= fieldConfig.name || fieldConfig.field;
-						label
-							= fieldConfig.label || this.getFieldLabel(fieldName);
+						fieldName = fieldConfig.name || fieldConfig.field;
+						label = fieldConfig.label || this.getFieldLabel(fieldName);
 					} else {
 						return '';
 					}
 
-					// 获取字段值
 					const value = this.getNestedProperty(item, fieldName);
 
-					// 如果有转换函数，应用转换
 					if (fieldConfig.transform && typeof fieldConfig.transform === 'function') {
 						return `${label}: ${fieldConfig.transform(value)}`;
 					}
@@ -500,8 +497,7 @@
 
 				for (const part of parts) {
 					if (value && typeof value === 'object' && part in value) {
-						value
-							= value[part];
+						value = value[part];
 					} else {
 						return undefined;
 					}

@@ -1,70 +1,167 @@
 {
-  "bsonType": "object",
-  "required": ["calendar_date", "date_type"],
-  "permission": {
-    "read": false,
-    "create": false,
-    "update": false,
-    "delete": false
-  },
-  "properties": {
-    "_id": {
-      "description": "存储文档 ID，系统自动生成"
-    },
-    "calendar_date": {
-      "title": "日期",
-      "bsonType": "string",
-      "description": "具体日期，格式 YYYY-MM-DD，如 2026-07-01。唯一标识，不允许重复。",
-      "trim": "none",
-      "unique": true
-    },
-    "date_type": {
-      "title": "日期类型",
-      "bsonType": "int",
-      "description": "1=工作日，2=周末/常规休息日，3=法定节假日，4=调休工作日",
-      "enum": [1, 2, 3, 4]
-    },
-    "year": {
-      "title": "所属年份",
-      "bsonType": "int",
-      "description": "年份，如 2026，便于按年度查询和维护"
-    },
-    "name": {
-      "title": "节日说明",
-      "bsonType": "string",
-      "description": "节假日名称或调休说明，如“国庆节”、“春节调休上班日”",
-      "trim": "both"
-    },
-    "is_default": {
-      "title": "是否默认生成",
-      "bsonType": "bool",
-      "description": "0=人工单独指定，1=按周末默认批量生成",
-      "defaultValue": false
-    },
-    "remark": {
-      "title": "备注",
-      "bsonType": "string",
-      "description": "备注信息",
-      "trim": "both"
-    },
-    "update_date": {
-      "title": "更新时间",
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updat_id": {
-      "title": "更新人",
-      "bsonType": "string",
-      "description": "更新人ID",
-      "trim": "both",
-      "foreignKey": "uni-id-users._id",
-      "forceDefaultValue": {
-        "$env": "uid"
-      }
-    }
-  },
-  "version": "0.0.1"
+	"bsonType": "object",
+	"required": ["calendar_name", "year", "calendar_date", "date_type"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"calendar_name": {
+			"title": "工作日历名称",
+			"bsonType": "string",
+			"description": "工作日历名称，用于区分不同部门的工作日历，如：研发部工作日历、财务部工作日历",
+			"trim": "both",
+			"minLength": 1,
+			"maxLength": 50
+		},
+		"calendar_code": {
+			"title": "工作日历编码",
+			"bsonType": "string",
+			"description": "工作日历唯一编码，建议格式：calendar_name + '_' + year，如：研发部工作日历_2026。用于唯一标识一个日历，方便关联查询",
+			"trim": "both",
+			"minLength": 1,
+			"maxLength": 80
+		},
+		"year": {
+			"title": "所属年份",
+			"bsonType": "int",
+			"description": "年份，如 2026，与 calendar_name 一起唯一标识一个工作日历"
+		},
+		"calendar_date": {
+			"title": "日期",
+			"bsonType": "string",
+			"description": "具体日期，格式 YYYY-MM-DD，如 2026-07-01。同一日历下不允许重复。",
+			"trim": "none"
+		},
+		"date_type": {
+			"title": "日期类型",
+			"bsonType": "int",
+			"description": "1=工作日，2=周末/常规休息日，3=法定节假日，4=调休工作日",
+			"enum": [1, 2, 3, 4]
+		},
+		"name": {
+			"title": "节日说明",
+			"bsonType": "string",
+			"description": "节假日名称或调休说明，如“国庆节”、“春节调休上班日”",
+			"trim": "both"
+		},
+		"is_default": {
+			"title": "是否默认生成",
+			"bsonType": "bool",
+			"description": "false=人工单独指定，true=按周末默认批量生成",
+			"defaultValue": false
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注信息",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"index": [
+		{
+			"IndexName": "uk_calendar_code_date",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{
+						"Name": "calendar_code",
+						"Direction": "1"
+					},
+					{
+						"Name": "calendar_date",
+						"Direction": "1"
+					}
+				],
+				"MgoIsUnique": true
+			}
+		},
+		{
+			"IndexName": "uk_calendar_name_year_date",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{
+						"Name": "calendar_name",
+						"Direction": "1"
+					},
+					{
+						"Name": "year",
+						"Direction": "1"
+					},
+					{
+						"Name": "calendar_date",
+						"Direction": "1"
+					}
+				],
+				"MgoIsUnique": true
+			}
+		},
+		{
+			"IndexName": "idx_calendar_name_year",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{
+						"Name": "calendar_name",
+						"Direction": "1"
+					},
+					{
+						"Name": "year",
+						"Direction": "1"
+					}
+				],
+				"MgoIsUnique": false
+			}
+		},
+		{
+			"IndexName": "idx_calendar_date",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{
+						"Name": "calendar_date",
+						"Direction": "1"
+					}
+				],
+				"MgoIsUnique": false
+			}
+		},
+		{
+			"IndexName": "idx_year_date_type",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{
+						"Name": "year",
+						"Direction": "1"
+					},
+					{
+						"Name": "date_type",
+						"Direction": "1"
+					}
+				],
+				"MgoIsUnique": false
+			}
+		}
+	],
+	"version": "0.0.1"
 }

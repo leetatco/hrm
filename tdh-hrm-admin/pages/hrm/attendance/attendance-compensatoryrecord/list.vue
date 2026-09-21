@@ -38,8 +38,8 @@
 						<el-descriptions-item
 							label="员工姓名">{{ detailDialog.data.employee_name || '-' }}</el-descriptions-item>
 						<el-descriptions-item
-							label="调休日期">{{ detailDialog.data.compensatory_date }}</el-descriptions-item>
-						<el-descriptions-item label="总小时数">{{ detailDialog.data.total_hours }}</el-descriptions-item>
+							label="调休日期">{{ formatLeaveDate(detailDialog.data.compensatory_date) }}</el-descriptions-item>
+						<el-descriptions-item label="调休时长">{{ vk.myfn.formatMinutes(detailDialog.data.total_minutes) }}</el-descriptions-item>
 						<el-descriptions-item label="汇入状态">
 							<el-tag :type="getImportStatusType(detailDialog.data.import_status)">
 								{{ getImportStatusText(detailDialog.data.import_status) }}
@@ -56,7 +56,11 @@
 					<div slot="header"><span>关联加班单</span></div>
 					<el-table :data="detailDialog.data.items" border size="small">
 						<el-table-column prop="overtime_title" label="加班标题"></el-table-column>
-						<el-table-column prop="deduct_hours" label="调休小时数" width="120"></el-table-column>
+						<el-table-column label="调休时长" width="140">
+							<template slot-scope="scope">
+								{{ vk.myfn.formatMinutes(scope.row.deduct_minutes) }}
+							</template>
+						</el-table-column>
 						<el-table-column prop="overtime_id" label="加班单ID" show-overflow-tooltip></el-table-column>
 					</el-table>
 				</el-card>
@@ -70,7 +74,7 @@
 
 <script>
 	let vk = uni.vk;
-	let originalForms = {}; // 表单初始化数据	
+	let originalForms = {};
 	const colWidth = 200;
 
 	export default {
@@ -108,13 +112,15 @@
 							type: "date",
 							dateType: "date",
 							valueFormat: "yyyy-MM-dd",
-							width: colWidth - 60
+							width: colWidth - 60,
+							formatter: (val) => val ? vk.pubfn.timeFormat(new Date(val), 'yyyy-MM-dd') : ''
 						},
 						{
-							key: "total_hours",
-							title: "小时数",
-							type: "number",
-							width: colWidth - 80
+							key: "total_minutes",
+							title: "调休时长",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "import_status",
@@ -226,23 +232,18 @@
 			};
 		},
 		methods: {
-			// 页面数据初始化函数
 			init(options) {
 				originalForms["form1"] = vk.pubfn.copyObject(this.form1);
 			},
-			// 页面跳转
 			pageTo(path) {
 				vk.navigateTo(path);
 			},
-			// 表单重置
 			resetForm() {
 				vk.pubfn.resetForm(originalForms, this);
 			},
-			// 搜索
 			search() {
 				this.$refs.table1.search();
 			},
-			// 刷新
 			refresh() {
 				this.$refs.table1.refresh();
 			},
@@ -266,12 +267,14 @@
 							title: "调休日期",
 							type: "date",
 							dateType: "date",
-							valueFormat: "yyyy-MM-dd"
+							valueFormat: "yyyy-MM-dd",
+							formatter: (val) => val ? vk.pubfn.timeFormat(new Date(val), 'yyyy-MM-dd') : ''
 						},
 						{
-							key: "total_hours",
-							title: "小时数",
-							type: "number"
+							key: "total_minutes",
+							title: "调休时长",
+							type: "text",
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "import_status",
@@ -316,6 +319,9 @@
 					2: '失败'
 				};
 				return map[status] || status;
+			},
+			formatLeaveDate(timestamp) {
+				return timestamp ? vk.pubfn.timeFormat(new Date(timestamp), 'yyyy-MM-dd') : '-';
 			},
 			formatDate(timestamp) {
 				return timestamp ? vk.pubfn.timeFormat(timestamp, 'yyyy-MM-dd hh:mm:ss') : '-';

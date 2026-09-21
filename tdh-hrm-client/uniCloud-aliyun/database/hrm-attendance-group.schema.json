@@ -1,97 +1,146 @@
 {
-  "bsonType": "object",
-  "required": ["group_name", "company_id", "shift_id"],
-  "permission": {
-    "read": false,
-    "create": false,
-    "update": false,
-    "delete": false
-  },
-  "properties": {
-    "_id": {
-      "description": "存储文档 ID，系统自动生成"
-    },
-    "group_name": {
-      "title": "考勤组名称",
-      "bsonType": "string",
-      "description": "如‘总部行政组’、‘车间早班组’",
-      "trim": "both"
-    },
-    "company_id": {
-      "title": "所属公司",
-      "bsonType": "string",
-      "description": "关联公司表 company_id",
-      "trim": "both"
-    },
-    "department_ids": {
-      "title": "包含部门",
-      "bsonType": "array",
-      "description": "部门ID列表，该部门下所有在职员工自动归入本考勤组",
-      "items": {
-        "bsonType": "string"
-      }
-    },
-    "shift_id": {
-      "title": "默认班次",
-      "bsonType": "string",
-      "description": "关联班次表 _id",
-      "trim": "both"
-    },
-    "overtime_rule_id": {
-      "title": "加班规则",
-      "bsonType": "string",
-      "description": "关联加班规则表 _id",
-      "trim": "both"
-    },
-    "punch_rule_id": {
-      "title": "打卡规则",
-      "bsonType": "string",
-      "description": "关联打卡匹配规则表 _id",
-      "trim": "both"
-    },
-    "calendar_id": {
-      "title": "工作日历年份",
-      "bsonType": "int",
-      "description": "关联的日历年份，如 2026"
-    },
-    "employee_ids": {
-      "title": "额外员工",
-      "bsonType": "array",
-      "description": "在部门覆盖范围之外，单独指定的员工工号列表",
-      "items": {
-        "bsonType": "string"
-      }
-    },
-    "status": {
-      "title": "启用状态",
-      "bsonType": "bool",
-      "description": "true=启用，false=停用",
-      "defaultValue": true
-    },
-    "remark": {
-      "title": "备注",
-      "bsonType": "string",
-      "description": "备注信息",
-      "trim": "both"
-    },
-    "update_date": {
-      "title": "更新时间",
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updat_id": {
-      "title": "更新人",
-      "bsonType": "string",
-      "description": "更新人ID",
-      "trim": "both",
-      "foreignKey": "uni-id-users._id",
-      "forceDefaultValue": {
-        "$env": "uid"
-      }
-    }
-  },
-  "version": "0.0.1"
+	"bsonType": "object",
+	"required": ["group_name", "company_id", "shift_id", "calendar_code"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"group_name": {
+			"title": "考勤组名称",
+			"bsonType": "string",
+			"description": "如‘总部行政组’、‘车间早班组’",
+			"trim": "both"
+		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"description": "关联公司表 company_id",
+			"trim": "both"
+		},
+		"department_ids": {
+			"title": "包含部门",
+			"bsonType": "array",
+			"description": "部门ID列表，该部门下所有在职员工自动归入本考勤组",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"shift_id": {
+			"title": "默认班次",
+			"bsonType": "string",
+			"description": "关联班次表 _id",
+			"trim": "both"
+		},
+		"overtime_rule_id": {
+			"title": "加班规则",
+			"bsonType": "string",
+			"description": "关联加班规则表 _id",
+			"trim": "both"
+		},
+		"punch_rule_id": {
+			"title": "打卡规则",
+			"bsonType": "string",
+			"description": "关联打卡匹配规则表 _id",
+			"trim": "both"
+		},
+		"punch_location_id": {
+			"title": "允许打卡地点",
+			"bsonType": "string",
+			"description": "关联打卡数据源配置表 _id",
+			"trim": "both"
+		},
+		"calendar_code": {
+			"title": "工作日历编码",
+			"bsonType": "string",
+			"description": "关联工作日历的唯一编码，格式：日历名称_年份，如 研发部工作日历_2026",
+			"trim": "both"
+		},
+		"calendar_name": {
+			"title": "工作日历名称",
+			"bsonType": "string",
+			"description": "冗余字段，工作日历名称，便于列表展示",
+			"trim": "both"
+		},
+		"calendar_year": {
+			"title": "工作日历年份",
+			"bsonType": "int",
+			"description": "冗余字段，工作日历所属年份",
+			"trim": "none"
+		},
+		"employee_ids": {
+			"title": "额外员工",
+			"bsonType": "array",
+			"description": "在部门覆盖范围之外，单独指定的员工工号列表",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"status": {
+			"title": "启用状态",
+			"bsonType": "bool",
+			"description": "true=启用，false=停用",
+			"defaultValue": true
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注信息",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"index": [
+		{
+			"IndexName": "idx_calendar_code",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{
+						"Name": "calendar_code",
+						"Direction": "1"
+					}
+				],
+				"MgoIsUnique": false
+			}
+		},
+		{
+			"IndexName": "idx_company_status",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{
+						"Name": "company_id",
+						"Direction": "1"
+					},
+					{
+						"Name": "status",
+						"Direction": "1"
+					}
+				],
+				"MgoIsUnique": false
+			}
+		}
+	],
+	"version": "0.0.2"
 }

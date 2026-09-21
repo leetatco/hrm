@@ -473,12 +473,16 @@
 				}
 				// 空值处理
 				if (value == null || value === '') return '-';
-
 				// 2. 优先使用 displayNameKey
 				if (field.displayNameKey) {
 					const displayValue = this.getFieldValue(field.displayNameKey);
 					if (displayValue != null && displayValue !== '') return displayValue;
 					// 如果 displayNameKey 对应的值为空，继续往下走（可能想用 options 匹配或直接显示 value）
+				}
+				
+				// 特殊处理：total_minutes 统一以“X小时Y分钟”显示
+				if (field.name === 'total_minutes') {
+				    return vk.myfn.formatMinutes(value);
 				}
 
 				// 3. 选择型字段：select / remote-select / table-select / cascader

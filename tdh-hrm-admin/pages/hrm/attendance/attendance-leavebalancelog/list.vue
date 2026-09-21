@@ -28,7 +28,7 @@
 		data() {
 			return {
 				table1: {
-					action: "admin/hrm/attendance/sys/leaveBalanceLog/getList",
+					action: "admin/hrm/attendance/sys/leavebalancelog/getList",
 					rightBtns: [{
 						mode: 'detail_auto',
 						title: '详细',
@@ -38,61 +38,67 @@
 							key: "employee_id",
 							title: "员工工号",
 							type: "text",
-							width: colWidth - 40,
-							fixed: true
+							width: 120
 						},
 						{
 							key: "employee_name",
 							title: "员工姓名",
 							type: "text",
-							width: colWidth - 40,
+							width: 100,
 							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
 						},
 						{
 							key: "leave_type_id",
 							title: "假期类型",
 							type: "text",
-							width: colWidth - 40,
+							width: 100,
 							formatter: (val, row) => row.leaveTypeInfo ? row.leaveTypeInfo.leave_name : val
 						},
 						{
 							key: "year",
 							title: "年度",
 							type: "number",
-							width: colWidth - 80
+							width: 80
 						},
 						{
 							key: "change_type",
 							title: "变动类型",
-							type: "select",
-							width: colWidth - 40,
+							type: "tag",
+							width: 100,
 							data: [{
 									value: 1,
-									label: "初始化"
+									label: "初始化",
+									tagType: "info"
 								},
 								{
 									value: 2,
-									label: "自动发放"
+									label: "自动发放",
+									tagType: "success"
 								},
 								{
 									value: 3,
-									label: "手工增加"
+									label: "手工增加",
+									tagType: "success"
 								},
 								{
 									value: 4,
-									label: "请假扣减"
+									label: "请假扣减",
+									tagType: "warning"
 								},
 								{
 									value: 5,
-									label: "手工扣减"
+									label: "手工扣减",
+									tagType: "danger"
 								},
 								{
 									value: 6,
-									label: "过期清零"
+									label: "过期清零",
+									tagType: "danger"
 								},
 								{
 									value: 7,
-									label: "其他调整"
+									label: "其他调整",
+									tagType: "info"
 								}
 							],
 							formatter: (val) => {
@@ -110,45 +116,52 @@
 						},
 						{
 							key: "change_amount",
-							title: "变动额度(时)",
-							type: "number",
-							width: colWidth - 60
+							title: "变动额度",
+							type: "text",
+							width: 140,
+							formatter: (val) => {
+								if (!val) return '0分钟';
+								const prefix = val > 0 ? '+' : '';
+								return prefix + vk.myfn.formatMinutes(Math.abs(val)) * (val > 0 ? 1 : -1);
+							}
 						},
 						{
 							key: "before_balance",
 							title: "变动前",
-							type: "number",
-							width: colWidth - 80
+							type: "text",
+							width: 120,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "after_balance",
 							title: "变动后",
-							type: "number",
-							width: colWidth - 80
+							type: "text",
+							width: 120,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "ref_id",
 							title: "关联单号",
 							type: "text",
-							width: colWidth
-						},
-						{
-							key: "update_date",
-							title: "操作时间",
-							type: "time",
-							width: colWidth
-						},
-						{
-							key: "users.nickname",
-							title: "操作人",
-							type: "text",
-							width: colWidth - 60
+							width: 200
 						},
 						{
 							key: "remark",
 							title: "备注",
 							type: "text",
-							width: colWidth
+							width: 200
+						},
+						{
+							key: "update_date",
+							title: "操作时间",
+							type: "time",
+							width: 160
+						},
+						{
+							key: "users.nickname",
+							title: "操作人",
+							type: "text",
+							width: 100
 						}
 					]
 				},

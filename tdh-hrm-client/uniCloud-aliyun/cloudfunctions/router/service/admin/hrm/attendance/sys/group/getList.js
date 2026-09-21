@@ -34,9 +34,26 @@ module.exports = {
 		};
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = 'hrm-attendance-group'; // 表名
+
+		// ============ 新增：处理部门筛选（考勤组存的是 department_ids 数组） ============
+		let {
+			formData = {}
+		} = data;
+		
+		if (formData.department_id) {
+			// 数组字段用单值匹配，MongoDB 会自动匹配数组包含
+			data.formData = {
+				...formData,
+				department_ids: formData.department_id
+			};
+			// 删除临时的 department_id，避免被当成表字段查询
+			delete data.formData.department_id;
+		}
+		// ============================================================================
+
 		res = await vk.baseDao.getTableData({
 			dbName,
-			data,
+			data,			
 			// 副表
 			foreignDB: [{
 					dbName: "hrm-companys",
@@ -44,7 +61,22 @@ module.exports = {
 					foreignKey: "company_id",
 					as: "companyInfo",
 					limit: 1
-				},{
+				},
+				{
+					dbName: "hrm-departments",
+					localKey: "department_ids",
+					localKeyType: "array",
+					foreignKey: "department_id",
+					as: "departmentInfo"
+				},
+				{
+					dbName: "hrm-employees",
+					localKey: "employee_ids",
+					localKeyType: "array",
+					foreignKey: "employee_id",
+					as: "employeeInfo"
+				},
+				{
 					dbName: "uni-id-users",
 					localKey: "update_id",
 					foreignKey: "_id",
@@ -59,10 +91,17 @@ module.exports = {
 					limit: 1
 				},
 				{
-					dbName: "hrm-attendance-sign",
+					dbName: "hrm-attendance-punchrule",
 					localKey: "punch_rule_id",
 					foreignKey: "_id",
 					as: "punchRuleInfo",
+					limit: 1
+				},
+				{
+					dbName: "hrm-clockin-set",
+					localKey: "punch_location_id",
+					foreignKey: "_id",
+					as: "punchLocationInfo",
 					limit: 1
 				},
 				{

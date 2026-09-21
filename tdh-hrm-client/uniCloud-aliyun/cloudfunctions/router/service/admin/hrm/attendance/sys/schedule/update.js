@@ -32,8 +32,7 @@ module.exports = {
 		let {
 			_id,
 			employee_id,
-			schedule_date,
-			shift_id,
+			schedule_date,			
 			attendance_group_id,
 			status,
 			remark,
@@ -54,8 +53,7 @@ module.exports = {
 			id: _id,
 			dataJson: {
 				employee_id,
-				schedule_date,
-				shift_id,
+				schedule_date,				
 				attendance_group_id,
 				status,
 				remark,

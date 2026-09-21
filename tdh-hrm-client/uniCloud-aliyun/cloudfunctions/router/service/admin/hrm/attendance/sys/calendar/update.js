@@ -1,21 +1,13 @@
 module.exports = {
 	/**
-	 * 修改数据
-	 * @url admin/hrm/attendance/sys/calendar/update 前端调用的url参数地址
-	 * data 请求参数 说明
-	 * res 返回参数说明
-	 * @params {Number} code 错误码，0表示成功
-	 * @params {String} msg 详细信息
+	 * 修改工作日历数据
+	 * @url admin/hrm/attendance/sys/calendar/update
 	 */
 	main: async (event) => {
 		let {
-			data = {}, userInfo, util, filterResponse, originalParam
+			data = {}, userInfo, util
 		} = event;
 		let {
-			customUtil,
-			uniID,
-			config,
-			pubFun,
 			vk,
 			db,
 			_
@@ -27,32 +19,82 @@ module.exports = {
 			code: 0,
 			msg: 'ok'
 		};
-		// 业务逻辑开始-----------------------------------------------------------
-		// 获取前端传过来的参数
+
+		// 获取参数
 		let {
 			_id,
+			calendar_code,
+			calendar_name,
 			calendar_date,
 			date_type,
 			year,
 			name,
 			is_default,
-			remark,
-			update_date,
-			updat_id
+			remark
 		} = data;
-		// 参数验证开始
-		if (vk.pubfn.isNull(_id)) return {
-			code: -1,
-			msg: 'id不能为空'
-		};
 
-		// 参数验证结束
-		let dbName = 'hrm-attendance-calendar'; // 表名
-		// 执行 数据库 updateById 命令
+		// 参数验证
+		if (vk.pubfn.isNull(_id)) {
+			return {
+				code: -1,
+				msg: 'id不能为空'
+			};
+		}
+		if (!calendar_name) {
+			return {
+				code: -1,
+				msg: '工作日历名称不能为空'
+			};
+		}
+		if (!calendar_date) {
+			return {
+				code: -1,
+				msg: '日期不能为空'
+			};
+		}
+		if (!date_type) {
+			return {
+				code: -1,
+				msg: '日期类型不能为空'
+			};
+		}
+		if (!year && calendar_date) {
+			year = new Date(calendar_date).getFullYear();
+		}
+		if (!year) {
+			return {
+				code: -1,
+				msg: '年份不能为空'
+			};
+		}
+
+		const dbName = 'hrm-attendance-calendar';
+		const calendar_code = calendar_code || `${calendar_name}_${year}`;
+
+		// 重复校验：同一日历（calendar_name + year）下同一天不允许重复（排除自身）
+		let repeatCount = await vk.baseDao.count({
+			dbName,
+			whereJson: {
+				_id: _.neq(_id),
+				calendar_name,
+				year,
+				calendar_date
+			}
+		});
+		if (repeatCount > 0) {
+			return {
+				code: -1,
+				msg: `该工作日历【${calendar_name}（${year}）】中，日期【${calendar_date}】已存在，请勿重复修改`
+			};
+		}
+
+		// 更新数据
 		await vk.baseDao.updateById({
 			dbName,
 			id: _id,
 			dataJson: {
+				calendar_name,
+				calendar_code,
 				calendar_date,
 				date_type,
 				year,
@@ -61,9 +103,9 @@ module.exports = {
 				remark,
 				update_id: uid,
 				update_date: new Date().getTime()
-			},
+			}
 		});
-		// 业务逻辑结束-----------------------------------------------------------
+
 		return res;
-	},
+	}
 };

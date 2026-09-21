@@ -58,7 +58,7 @@ module.exports = {
 				type,
 				remark,
 				img,
-				clockintime: new Date().getTime(),
+				clockintime:new Date(clockintime).getTime(),
 				update_id: uid,
 				update_date: new Date().getTime()
 			},

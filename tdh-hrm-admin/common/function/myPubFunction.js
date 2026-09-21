@@ -446,4 +446,18 @@ myfn.getItemFormat = (fieldName, formSchema) => {
 	return obj;
 }
 
+/**
+ * 获取表单字段的 formatMinutes
+ * @param {String} fieldName - 字段名称，如 'min' 
+ * @returns {String} formatMinutes 模板字符串
+ */
+myfn.formatMinutes = (min) => {
+	if (!min || min <= 0) return '0';
+	const h = Math.floor(min / 60);
+	const m = min % 60;
+	if (h > 0 && m > 0) return `${h}小时${m}分钟`;
+	if (h > 0) return `${h}小时`;
+	return `${m}分钟`;
+}
+
 export default myfn;

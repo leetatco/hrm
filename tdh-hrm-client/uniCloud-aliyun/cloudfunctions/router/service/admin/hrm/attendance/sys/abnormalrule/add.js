@@ -31,15 +31,15 @@ module.exports = {
 		// 获取前端传过来的参数
 		let {
 			single_punch_rule = 1,
-				late_early_coexist_rule = 1,
-				out_office_cancel_absence = true,
-				overtime_cancel_early = false,
-				late_forgive_minutes = 0,
-				early_forgive_minutes = 0,
-				status = true,
-				remark,
-				update_date,
-				updat_id
+			late_early_coexist_rule = 1,
+			out_office_cancel_absence = true,
+			out_office_cancel_late = false,
+			out_office_cancel_early = false,
+			overtime_cancel_early = false,			
+			status = true,
+			remark,
+			update_date,
+			updat_id
 		} = data;
 		// 参数验证开始
 
@@ -52,9 +52,9 @@ module.exports = {
 				single_punch_rule,
 				late_early_coexist_rule,
 				out_office_cancel_absence,
-				overtime_cancel_early,
-				late_forgive_minutes,
-				early_forgive_minutes,
+				out_office_cancel_late,
+				out_office_cancel_early,
+				overtime_cancel_early,				
 				status,
 				remark,
 				update_id: uid,

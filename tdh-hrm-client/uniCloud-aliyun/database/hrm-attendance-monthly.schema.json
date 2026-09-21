@@ -1,0 +1,130 @@
+{
+	"bsonType": "object",
+	"required": ["employee_id", "year", "month"],
+	"properties": {
+		"_id": {
+			"description": "ID"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string"
+		},
+		"year": {
+			"title": "年度",
+			"bsonType": "int"
+		},
+		"month": {
+			"title": "月份",
+			"bsonType": "int"
+		},
+		"period_start": {
+			"title": "统计周期开始日期",
+			"bsonType": "string",
+			"description": "yyyy-MM-dd"
+		},
+		"period_end": {
+			"title": "统计周期结束日期",
+			"bsonType": "string"
+		},
+		"should_days": {
+			"title": "应出勤天数",
+			"bsonType": "double",
+			"defaultValue": 0
+		},
+		"actual_days": {
+			"title": "实际出勤天数",
+			"bsonType": "double",
+			"defaultValue": 0
+		},
+		"rest_days": {
+			"title": "休息天数",
+			"bsonType": "double",
+			"defaultValue": 0
+		},
+		"late_count": {
+			"title": "迟到次数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"late_minutes": {
+			"title": "迟到总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"early_count": {
+			"title": "早退次数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"early_minutes": {
+			"title": "早退总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"absent_count": {
+			"title": "旷工次数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"absent_minutes": {
+			"title": "旷工总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"overtime_minutes": {
+			"title": "加班总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"leave_minutes": {
+			"title": "请假总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"trip_minutes": {
+			"title": "出差总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"outing_minutes": {
+			"title": "外出总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"compensatory_minutes": {
+			"title": "调休总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"remedy_count": {
+			"title": "补卡次数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"full_attendance": {
+			"title": "是否全勤",
+			"bsonType": "bool",
+			"defaultValue": false
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string"
+		}
+	},
+	"indexes": [{
+		"name": "uk_employee_month",
+		"type": "unique",
+		"key": {
+			"employee_id": 1,
+			"year": 1,
+			"month": 1
+		}
+	}]
+}

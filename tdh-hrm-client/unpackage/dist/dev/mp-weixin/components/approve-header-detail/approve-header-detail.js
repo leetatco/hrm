@@ -255,6 +255,9 @@ const _sfc_main = {
         if (displayValue != null && displayValue !== "")
           return displayValue;
       }
+      if (field.name === "total_minutes") {
+        return vk.myfn.formatMinutes(value);
+      }
       const selectTypes = ["select", "remote-select", "table-select", "cascader"];
       if (selectTypes.includes(field.type)) {
         if (field.options && Array.isArray(field.options)) {
@@ -361,8 +364,8 @@ const _sfc_main = {
     formatDate(timestamp, formatStr) {
       if (!timestamp)
         return "-";
-      const vk = common_vendor.index.vk;
-      return vk.pubfn.timeFormat(timestamp, formatStr || "yyyy-MM-dd hh:mm:ss");
+      const vk2 = common_vendor.index.vk;
+      return vk2.pubfn.timeFormat(timestamp, formatStr || "yyyy-MM-dd hh:mm:ss");
     }
   }
 };

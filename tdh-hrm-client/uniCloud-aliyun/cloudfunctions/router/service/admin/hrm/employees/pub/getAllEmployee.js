@@ -19,7 +19,8 @@ module.exports = {
 		let {
 			uid,
 			otherWhereJson,
-			filterWhereJson
+			filterWhereJson,
+			employee_ids = [],
 		} = data;
 		let res = {
 			code: 0,
@@ -28,11 +29,20 @@ module.exports = {
 
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = "hrm-employees"; // 表名
-		
-		const whereJson = {
+
+		let whereJson = {
 			...(filterWhereJson || {}),
 			...(otherWhereJson || {})
 		};
+
+		if (employee_ids.length > 0) {
+			whereJson = {
+				...(filterWhereJson || {}),
+				...(otherWhereJson || {}),
+				employee_id: _.in(employee_ids)
+			}
+		}
+
 
 		let sortArr = [{
 			name: "_id",

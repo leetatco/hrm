@@ -182,7 +182,7 @@ const _sfc_main = {
           this.useDefaultFormSchema();
         await this.loadListData();
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/compensatory/index.vue:367", "初始化失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/compensatory/index.vue:366", "初始化失败:", e);
         this.useDefaultFormSchema();
       } finally {
         this.loading = false;
@@ -302,8 +302,8 @@ const _sfc_main = {
             ]
           },
           {
-            name: "total_compensatory_hours",
-            label: "总计调休小时数",
+            name: "total_minutes",
+            label: "总时数",
             type: "text",
             disabled: true,
             defaultValue: "0"
@@ -343,7 +343,7 @@ const _sfc_main = {
             },
             {
               title: "调休统计",
-              fields: ["total_compensatory_hours"]
+              fields: ["total_minutes"]
             },
             {
               title: "备注与附件",
@@ -525,21 +525,15 @@ const _sfc_main = {
       }
     },
     async handleFormSubmit(formData) {
-      var _a, _b;
+      var _a;
       formData._id = formData._id || this.formDialog.data._id;
       this.submitFormLoading = true;
       try {
         const userInfo = vk.getVuex("$user.userInfo");
-        const overtimeList = ((_a = formData.form_data) == null ? void 0 : _a.items) || [];
-        const totalHours = formData.form_data.total_compensatory_hours;
         const submitData = {
           ...formData,
-          calculated_values: {
-            total_compensatory_hours: totalHours,
-            overtime_count: overtimeList.length
-          },
           userInfo,
-          title: ((_b = formData.form_data) == null ? void 0 : _b.compensatory_title) || "调休申请"
+          title: ((_a = formData.form_data) == null ? void 0 : _a.compensatory_title) || "调休申请"
         };
         if (formData._id) {
           submitData._id = formData._id;
@@ -572,19 +566,12 @@ const _sfc_main = {
       }
     },
     async handleSimulate(formData) {
-      var _a;
       this.simulateFormLoading = true;
       try {
         const userInfo = vk.getVuex("$user.userInfo");
-        const overtimeList = ((_a = formData.form_data) == null ? void 0 : _a.items) || [];
-        const totalHours = formData.form_data.total_compensatory_hours;
         const simulateData = {
           form_type_code: this.formTypeCode,
           form_data: formData.form_data,
-          calculated_values: {
-            total_compensatory_hours: totalHours,
-            overtime_count: overtimeList.length
-          },
           process_definition_key: "COMPENSATORY_APPLICATION",
           userInfo
         };
@@ -884,7 +871,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
           border: false
         }),
         f: common_vendor.t(((_b = item.form_data) == null ? void 0 : _b.compensatory_date) || "未指定"),
-        g: common_vendor.t(((_c = item.form_data) == null ? void 0 : _c.total_compensatory_hours) || "0"),
+        g: common_vendor.t(_ctx.vk.myfn.formatMinutes(((_c = item.form_data) == null ? void 0 : _c.total_minutes) || "0")),
         h: common_vendor.t(item.applicant_name || "未知"),
         i: common_vendor.t($options.formatDate(item._add_time, "yyyy-MM-dd")),
         j: $options.canEdit(item)
@@ -927,7 +914,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     t: !$data.loading && $data.tableData.length === 0
   }, !$data.loading && $data.tableData.length === 0 ? {
-    v: common_vendor.o($options.addBtn, "78"),
+    v: common_vendor.o($options.addBtn, "b7"),
     w: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -959,12 +946,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    G: common_vendor.o($options.handleFormSave, "d3"),
-    H: common_vendor.o($options.handleFormSubmit, "99"),
-    I: common_vendor.o($options.handleSimulate, "75"),
-    J: common_vendor.o($options.previewFile, "d3"),
-    K: common_vendor.o($options.closeFormDialog, "68"),
-    L: common_vendor.o($options.downloadFile, "38"),
+    G: common_vendor.o($options.handleFormSave, "e0"),
+    H: common_vendor.o($options.handleFormSubmit, "89"),
+    I: common_vendor.o($options.handleSimulate, "4c"),
+    J: common_vendor.o($options.previewFile, "70"),
+    K: common_vendor.o($options.closeFormDialog, "e8"),
+    L: common_vendor.o($options.downloadFile, "d3"),
     M: common_vendor.p({
       ["form-schema"]: $data.formSchema,
       ["form-type-code"]: $data.formTypeCode,
@@ -976,7 +963,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       simulateLoading: $data.simulateFormLoading
     })
   }, {
-    N: common_vendor.o(($event) => $data.formDialog.show = $event, "d8"),
+    N: common_vendor.o(($event) => $data.formDialog.show = $event, "be"),
     O: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -987,7 +974,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     P: common_vendor.p({
       ["simulate-data"]: $data.simulateDialog.data
     }),
-    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "12"),
+    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "64"),
     R: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1003,8 +990,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    U: common_vendor.o($options.previewFile, "68"),
-    V: common_vendor.o($options.downloadFile, "8f"),
+    U: common_vendor.o($options.previewFile, "9a"),
+    V: common_vendor.o($options.downloadFile, "a8"),
     W: common_vendor.p({
       ["detail-data"]: $data.detailDialog.data,
       ["form-schema"]: $data.formSchema,
@@ -1019,7 +1006,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["form-type-configs"]: $data.formTypeConfigs
     })
   }, {
-    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "59"),
+    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "15"),
     Y: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1027,9 +1014,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       height: $data.popupStyle.height,
       modelValue: $data.detailDialog.show
     }),
-    Z: common_vendor.o($options.confirmDelete, "72"),
-    aa: common_vendor.o($options.cancelDelete, "0e"),
-    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "13"),
+    Z: common_vendor.o($options.confirmDelete, "0b"),
+    aa: common_vendor.o($options.cancelDelete, "3d"),
+    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "89"),
     ac: common_vendor.p({
       ["show-cancel-button"]: true,
       ["show-confirm-button"]: true,
@@ -1037,8 +1024,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       content: $data.deleteDialog.content,
       modelValue: $data.deleteDialog.show
     }),
-    ad: common_vendor.o($options.filePreviewClose, "e7"),
-    ae: common_vendor.o($options.downloadFile, "23"),
+    ad: common_vendor.o($options.filePreviewClose, "f0"),
+    ae: common_vendor.o($options.downloadFile, "5f"),
     af: common_vendor.p({
       value: $data.filePreview.show,
       ["file-data"]: $data.filePreview.data

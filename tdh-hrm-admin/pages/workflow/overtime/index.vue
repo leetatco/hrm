@@ -62,7 +62,6 @@
 </template>
 
 <script>
-	// 引入公共组件
 	import DynamicFormDialog from '@/components/dynamic-form-dialog/dynamic-form-dialog.vue';
 	import SimulateHandleDialog from '@/components/simulate-handle-dialog/simulate-handle-dialog.vue';
 	import FilePreviewDialog from '@/components/file-preview-dialog/file-preview-dialog.vue';
@@ -80,7 +79,6 @@
 			return {
 				formDatas: {},
 				loading: true,
-				// 按钮加载状态
 				addLoading: false,
 				refreshLoading: false,
 				saveFormLoading: false,
@@ -89,24 +87,18 @@
 				deleteLoading: false,
 
 				formSchema: null,
-				formTypeCode: 'OVERTIME_APPLICATION', // 加班申请表类型代码
-				// 表单类型配置缓存
+				formTypeCode: 'OVERTIME_APPLICATION',
 				formTypeConfigs: {},
 
-				// 表单弹窗相关
 				formDialog: {
 					show: false,
 					title: '',
 					data: null
 				},
-
-				// 试算结果弹窗
 				simulateDialog: {
 					show: false,
 					data: null
 				},
-
-				// 文件预览相关
 				filePreview: {
 					show: false,
 					data: {
@@ -115,55 +107,40 @@
 						type: ''
 					}
 				},
-
-				// 审批流程
 				processInfo: {
 					tasks: [],
 					instance: null
 				},
 
-				// 表格配置
 				table1: {
 					action: "admin/bpmn/application-form/sys/getList",
 					customRightBtns: [{
 							title: '详细',
 							icon: 'el-icon-tickets',
-							show: (item) => {
-								return (this.$hasRole('admin') || this.$hasRole('group-common'));
-							},
-							onClick: (item) => {
-								this.showDetail(item);
-							}
+							show: () => this.$hasRole('admin') || this.$hasRole('group-common'),
+							onClick: (item) => this.showDetail(item)
 						},
 						{
 							title: '编辑',
 							type: 'primary',
 							icon: 'el-icon-edit',
-							show: (item) => {
-								return (this.$hasRole('admin') || this.$hasRole('group-common')) &&
-									item.status === 'draft' &&
-									item.applicant_id === vk.getVuex('$user.userInfo.username');
-							},
-							onClick: (item) => {
-								this.updateBtn({
-									item
-								});
-							}
+							show: (item) => (this.$hasRole('admin') || this.$hasRole('group-common')) &&
+								item.status === 'draft' &&
+								item.applicant_id === vk.getVuex('$user.userInfo.username'),
+							onClick: (item) => this.updateBtn({
+								item
+							})
 						},
 						{
 							title: '删除',
 							type: 'danger',
 							icon: 'el-icon-delete',
-							show: (item) => {
-								return (this.$hasRole('admin') || this.$hasRole('group-common')) &&
-									item.status === 'draft' &&
-									item.applicant_id === vk.getVuex('$user.userInfo.username');
-							},
-							onClick: (item) => {
-								this.deleteBtn({
-									item
-								});
-							}
+							show: (item) => (this.$hasRole('admin') || this.$hasRole('group-common')) &&
+								item.status === 'draft' &&
+								item.applicant_id === vk.getVuex('$user.userInfo.username'),
+							onClick: (item) => this.deleteBtn({
+								item
+							})
 						}
 					],
 					columns: [{
@@ -183,21 +160,21 @@
 							}
 						},
 						{
-							key: "form_data.overtime_items",
+							key: "form_data.items",
 							title: "加班明细",
 							type: "html",
 							width: 400,
 							formatter: (val) => {
-								const field = vk.myfn.getItemFormat("overtime_items", this.formSchema);
+								const field = vk.myfn.getItemFormat("items", this.formSchema);
 								return vk.myfn.formatArrayObjectField(field, val);
 							}
 						},
 						{
-							key: "form_data.overtime_total_hours",
-							title: "总小时数",
+							key: "form_data.total_minutes",
+							title: "总时长",
 							type: "text",
-							width: 100,
-							formatter: (val) => val ? `${val}小时` : '-'
+							width: 150,
+							formatter: (val) => val ? vk.myfn.formatMinutes(val) : '-'
 						},
 						{
 							key: "applicant_name",
@@ -246,7 +223,6 @@
 					]
 				},
 
-				// 查询表单配置
 				queryForm1: {
 					formData: {
 						form_type_code: "OVERTIME_APPLICATION",
@@ -318,7 +294,6 @@
 					]
 				},
 
-				// 详情弹窗
 				detailDialog: {
 					show: false,
 					title: '加班申请详情',
@@ -333,7 +308,6 @@
 		},
 		watch: {},
 		methods: {
-			// 获取字段选项标签
 			getFieldOptionLabel(fieldName, value) {
 				if (!this.formSchema || !this.formSchema.fields) return value;
 				const field = this.formSchema.fields.find(f => f.name === fieldName);
@@ -342,13 +316,8 @@
 				return option ? option.label : value;
 			},
 
-			// 打开表单
 			openForm(name, item) {
-				let that = this;
-				let {
-					vk
-				} = that;
-				that.$set(that.formDatas, name, item);
+				this.$set(this.formDatas, name, item);
 			},
 
 			async init(options) {
@@ -441,7 +410,7 @@
 					data: {
 						form_type_code: this.formTypeCode,
 						form_data: {
-							items:[{}]
+							items: [{}]
 						}
 					}
 				};
@@ -455,7 +424,6 @@
 					this.$message.warning('表单配置加载中，请稍后重试');
 					return;
 				}
-				console.log('编辑数据:', item);
 				const formData = {
 					...item
 				};
@@ -464,7 +432,6 @@
 						formData[key] = item.form_data[key];
 					});
 				}
-				console.log('重组后的数据:', formData);
 				this.formDialog = {
 					show: true,
 					title: '编辑加班申请',
@@ -473,11 +440,50 @@
 				this.openForm("formDialog", this.formDialog);
 			},
 
+			/**
+			 * 检查是否允许申请加班
+			 * 返回 true 表示允许，false 表示禁止
+			 */
+			async checkAllowOvertime() {
+				try {
+					const paramsRes = await this.vk.callFunction({
+						url: 'admin/hrm/attendance/pub/getParams',
+						data: {}
+					});
+					if (paramsRes.code === 0) {
+						const allowOvertime = paramsRes.rows?.allow_overtime_application;
+						if (allowOvertime === false) {
+							uni.showModal({
+								title: '提示',
+								content: '当前系统已关闭加班申请功能，请联系管理员',
+								showCancel: false,
+								confirmText: '知道了'
+							});
+							return false;
+						}
+					}
+					return true;
+				} catch (e) {
+					console.error('读取加班申请开关失败:', e);
+					// 读取失败时默认允许提交（不阻断用户）
+					return true;
+				}
+			},
+
 			async handleFormSave(formData) {
 				this.saveFormLoading = true;
 				try {
 					let url = "admin/bpmn/application-form/sys/add";
 					if (formData._id) url = "admin/bpmn/application-form/sys/update";
+
+					// ===== 判断是否允许申请加班 =====
+					const allowRes = await this.checkAllowOvertime();
+					if (!allowRes) {
+						this.submitFormLoading = false;
+						return;
+					}
+					// ===== 判断结束 =====
+
 					const res = await vk.callFunction({
 						url,
 						data: formData
@@ -501,13 +507,19 @@
 				this.submitFormLoading = true;
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
+
+					// ===== 判断是否允许申请加班 =====
+					const allowRes = await this.checkAllowOvertime();
+					if (!allowRes) {
+						this.submitFormLoading = false;
+						return;
+					}
+					// ===== 判断结束 =====
+
 					const calculatedValues = {
-						total_hours: formData.form_data.overtime_total_hours,
+						total_minutes: formData.form_data.total_minutes,
 						overtime_type: formData.form_data.overtime_type
 					};
-					// 同步到 form_data 供列表显示
-					formData.form_data.overtime_total_hours = totalHours;
-
 					const title = formData.form_data.overtime_title || `${userInfo.username}的加班申请`;
 					const submitData = {
 						...formData,
@@ -543,7 +555,7 @@
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
 					const calculatedValues = {
-						total_hours: formData.form_data.overtime_total_hours,
+						total_minutes: formData.form_data.total_minutes,
 						overtime_type: formData.form_data.overtime_type
 					};
 					const simulateData = {
@@ -602,7 +614,6 @@
 			},
 
 			async showDetail(item) {
-				console.log("detail:", item);
 				this.detailDialog.data = item;
 				await Promise.all([this.loadProcessFlow(item), this.loadStatusHistory(item)]);
 				this.detailDialog.show = true;
@@ -696,7 +707,6 @@
 							}
 						});
 
-						// 删除附件
 						item.form_data?.file_attachments.forEach((e) => {
 							vk.myfn.deleteFile(e);
 						});

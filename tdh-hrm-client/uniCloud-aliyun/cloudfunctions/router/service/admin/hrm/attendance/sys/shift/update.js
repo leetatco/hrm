@@ -15,12 +15,16 @@ module.exports = {
 			code: 0,
 			msg: 'ok'
 		};
-
+		let {
+			uid
+		} = data;
 		let {
 			_id,
 			shift_name,
 			shift_type,
 			segments,
+			company_id,
+			department_id,
 			status = true,
 			remark
 		} = data;
@@ -50,9 +54,11 @@ module.exports = {
 				shift_name,
 				shift_type,
 				segments,
+				company_id,
+				department_id,
 				status,
 				remark,
-				update_id: userInfo.uid,
+				update_id: uid,
 				update_date: new Date().getTime()
 			}
 		});

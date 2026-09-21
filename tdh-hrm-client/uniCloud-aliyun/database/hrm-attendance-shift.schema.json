@@ -54,6 +54,20 @@
         }
       }
     },
+	"department_id": {
+		"title": "所属部门",
+		"bsonType": "string",
+		"foreignKey": "hrm-departments.department_id",
+		"description": "所属部门",
+		"trim": "both"
+	},
+	"company_id": {
+		"title": "所属公司",
+		"bsonType": "string",
+		"foreignKey": "hrm-companys.company_id",
+		"description": "所属公司",
+		"trim": "both"
+	},
     "status": {
       "title": "启用状态",
       "bsonType": "bool",

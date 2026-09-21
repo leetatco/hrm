@@ -50,13 +50,11 @@ const _sfc_main = {
   },
   data() {
     return {
-      // 批量生成日期相关
       showBatchDatePicker: false,
       batchStartDate: "",
       batchEndDate: "",
       batchPickerShow: false,
       batchPickerType: "start",
-      // 'start' 或 'end'
       batchDatePickerParams: {
         year: true,
         month: true,
@@ -67,7 +65,6 @@ const _sfc_main = {
       formLayoutGroups: [],
       formFields: [],
       selectShow: {},
-      // 子字段远程选择（同时用于顶层）
       subRemoteSelectVisible: false,
       subRemote: {
         keyword: "",
@@ -82,14 +79,12 @@ const _sfc_main = {
         total: 0,
         mode: "single",
         isTopLevel: false,
-        // 标识是否为顶层字段
         cascaderData: {
           companies: [],
           selectedCompany: null,
           selectedDept: null
         }
       },
-      // 顶层日期/时间
       datePickerShow: false,
       datePickerParams: {
         year: true,
@@ -105,7 +100,6 @@ const _sfc_main = {
         second: false
       },
       currentTimeField: null,
-      // 子字段日期选择
       subDatePickerShow: {},
       subDatePickerParams: {
         year: true,
@@ -117,7 +111,6 @@ const _sfc_main = {
         itemIndex: -1,
         subField: null
       },
-      //子字段日期和时间选择
       subDateTimePickerShow: {},
       subDateTimePickerParams: {
         year: true,
@@ -132,7 +125,6 @@ const _sfc_main = {
         itemIndex: -1,
         subField: null
       },
-      // 子字段时间选择
       subTimePickerShow: {},
       subTimePickerParams: {
         hour: true,
@@ -145,11 +137,9 @@ const _sfc_main = {
         subField: null,
         range: ""
       },
-      // 按钮加载状态
       saveLoadingLocal: false,
       submitLoadingLocal: false,
       simulateLoadingLocal: false,
-      // 附件目录
       fileDir: "oa"
     };
   },
@@ -166,14 +156,14 @@ const _sfc_main = {
           this.$set(arrayItem, "current_position_id", emp.positions && emp.positions.position_id || "");
           this.$set(arrayItem, "current_position_name", emp.positions && emp.positions.position_name || "");
         },
-        //交接人姓名
         watchHandoverEmployeeChange: (arrayItem, empData) => {
           const emp = empData.raw || empData;
           this.$set(arrayItem, "handover_person_name", emp.employee_name || "");
         },
+        // 加班单选择回调（改为分钟）
         onOvertimeSelected: (arrayItem, overtimeData) => {
           const over = overtimeData.raw || overtimeData;
-          this.$set(arrayItem, "remaining_hours", over && over.remaining_hours || "");
+          this.$set(arrayItem, "remaining_minutes", over && over.remaining_minutes || 0);
         }
       };
     }
@@ -230,11 +220,10 @@ const _sfc_main = {
             }
           }
         } catch (e) {
-          common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:617", `加载字段 ${field.name} 默认标签失败`, e);
+          common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:606", `加载字段 ${field.name} 默认标签失败`, e);
         }
       }
     },
-    // ========== 字段类型判断（顶层/子级通用） ==========
     isSelectField(field) {
       const types = ["select", "remote-select", "table-select", "cascader"];
       return types.includes(field.type) || !!field.displayNameKey;
@@ -243,19 +232,15 @@ const _sfc_main = {
       const types = ["select", "remote-select", "table-select", "cascader"];
       return types.includes(subField.type) || !!subField.displayNameKey;
     },
-    // ========== 顶层选择弹窗显示 ==========
     showTopSelectPicker(field) {
-      const currentValue = this.formData[field.name] || "";
-      this.getDisplayKeyForField(field);
       this.subRemote = {
         keyword: "",
         currentField: field,
-        selectedValue: currentValue,
+        selectedValue: this.formData[field.name] || "",
         arrayFieldName: "",
         itemIndex: -1,
         options: [],
         loading: false,
-        selectedValue: this.formData[field.name] || "",
         pageIndex: 1,
         pageSize: 20,
         total: 0,
@@ -289,7 +274,6 @@ const _sfc_main = {
         });
       }
     },
-    // ========== 子级选择弹窗（原有） ==========
     showSubRemoteSelect(subField, arrayFieldName, itemIndex) {
       const isCascader = subField.type === "cascader";
       const arrayItem = this.formData[arrayFieldName][itemIndex];
@@ -319,7 +303,6 @@ const _sfc_main = {
         this.fetchSubRemoteOptions();
       }
     },
-    // ========== 远程加载选项（顶层/子级共用） ==========
     async fetchSubRemoteOptions() {
       const {
         currentField
@@ -353,7 +336,7 @@ const _sfc_main = {
           this.subRemote.total = res.total || 0;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:758", "获取远程选项失败", e);
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:736", "获取远程选项失败", e);
       } finally {
         this.subRemote.loading = false;
       }
@@ -380,7 +363,7 @@ const _sfc_main = {
           this.subRemote.cascaderData.companies = companies;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:785", "获取级联数据失败", e);
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:763", "获取级联数据失败", e);
       } finally {
         this.subRemote.loading = false;
       }
@@ -420,7 +403,6 @@ const _sfc_main = {
       this.subRemote.pageIndex = 1;
       this.fetchSubRemoteOptions();
     },
-    // ========== 选择确认（顶层/子级共用） ==========
     selectSubRemoteItem(item) {
       const {
         arrayFieldName,
@@ -447,15 +429,12 @@ const _sfc_main = {
       }
       this.subRemoteSelectVisible = false;
     },
-    // ========== 工具方法 ==========
     isItemBatchDisabled(item, subFieldKey) {
       return this.formTypeCode === "LEAVE_APPLICATION" && item.batchGenerated === true;
     },
-    // 顶级显示
     getDisplayKeyForField(field) {
       return field.displayNameKey || field.name + "_label";
     },
-    //子级显示
     getDisplayKey(field) {
       return field.displayNameKey || field.key + "_label";
     },
@@ -511,11 +490,11 @@ const _sfc_main = {
       this.formData.items.push(startItem, endItem);
       const diffTime = Math.abs(end - start);
       const diffDays = Math.ceil(diffTime / (1e3 * 60 * 60 * 24)) + 1;
-      const totalHours = diffDays * 8;
-      this.$set(this.formData, "total_hours", String(totalHours));
+      const totalMinutes = diffDays * 8 * 60;
+      this.$set(this.formData, "total_minutes", String(totalMinutes));
       this.showBatchDatePicker = false;
       common_vendor.index.showToast({
-        title: `已生成首尾明细，共 ${totalHours} 小时`,
+        title: `已生成首尾明细，共 ${vk.myfn.formatMinutes(totalMinutes)}`,
         icon: "success"
       });
     },
@@ -749,7 +728,6 @@ const _sfc_main = {
       }
       return true;
     },
-    // ========== 初始化 ==========
     initForm() {
       if (!this.formSchema || !this.formSchema.fields)
         return;
@@ -899,7 +877,6 @@ const _sfc_main = {
         this.$nextTick(() => this.calcAutoTotal());
       }
     },
-    // ========== 顶层日期/时间 ==========
     showDatePicker(field) {
       this.currentDateField = field.name;
       this.dateRange = field.day || 0;
@@ -941,7 +918,6 @@ const _sfc_main = {
       }
       this.timePickerShow = false;
     },
-    // ========== 子字段日期/时间 ==========
     showSubDatePicker(fieldName, itemIndex, subField) {
       this.currentSubDateInfo = {
         fieldName,
@@ -986,6 +962,7 @@ const _sfc_main = {
       const dateStr = `${e.year}-${e.month}-${e.day} ${e.hour}:${e.minute}`;
       this.$set(item, subField.key, dateStr);
       this.subDateTimePickerShow[`${fieldName}_${itemIndex}_${subField.key}`] = false;
+      this.calcAutoTotal();
     },
     showSubTimePicker(fieldName, itemIndex, subField, range) {
       this.currentSubTimeInfo = {
@@ -1016,116 +993,61 @@ const _sfc_main = {
       this.subTimePickerShow[`${fieldName}_${itemIndex}_${subField.key}_${range}`] = false;
       this.calcAutoTotal();
     },
-    // ========== 自动计算数 ==========
+    // ========== 自动计算总时长（统一为分钟） ==========
     calcAutoTotal() {
       const type = this.formTypeCode;
       const formData = this.formData;
-      let itemsField, totalField;
-      itemsField = "items";
-      if (type === "LEAVE_APPLICATION") {
-        totalField = "total_hours";
-        const items = formData[itemsField];
-        if (!Array.isArray(items) || items.length === 0)
-          return;
-        const hasBatchItems = items.some((item) => item.batchGenerated === true);
-        if (hasBatchItems) {
-          const batchItems = items.filter((item) => item.batchGenerated === true);
-          const dates = batchItems.map((item) => new Date(item.leave_date.replace(/-/g, "/")));
-          const minDate = new Date(Math.min(...dates));
-          const maxDate = new Date(Math.max(...dates));
-          const diffDays = Math.round((maxDate - minDate) / (1e3 * 60 * 60 * 24)) + 1;
-          const baseHours = diffDays * 8;
-          let extraHours = 0;
+      const itemsField = "items";
+      const totalField = "total_minutes";
+      if ([
+        "LEAVE_APPLICATION",
+        "OVERTIME_APPLICATION",
+        "COMPENSATORY_APPLICATION",
+        "BUSINESS_TRIP_APPLICATION",
+        "OUTING_APPLICATION"
+      ].includes(type)) {
+        let totalMinutes = 0;
+        if (type === "LEAVE_APPLICATION" || type === "OVERTIME_APPLICATION") {
+          const items = formData[itemsField];
+          if (!Array.isArray(items))
+            return;
+          totalMinutes = this.computeTotalMinutes(items);
+        } else if (type === "COMPENSATORY_APPLICATION") {
+          const items = formData[itemsField];
+          if (!Array.isArray(items))
+            return;
           items.forEach((item) => {
-            if (!item.batchGenerated) {
-              const calc = (range) => {
-                if (Array.isArray(range) && range[0] && range[1]) {
-                  const [s, e] = range;
-                  const [sh, sm] = s.split(":").map(Number);
-                  const [eh, em] = e.split(":").map(Number);
-                  return (eh * 60 + em - (sh * 60 + sm)) / 60;
-                }
-                return 0;
-              };
-              extraHours += calc(item.morning_range);
-              extraHours += calc(item.afternoon_range);
+            const minutes = parseFloat(item.deduct_minutes) || 0;
+            totalMinutes += minutes;
+          });
+        } else if (type === "BUSINESS_TRIP_APPLICATION") {
+          const items = formData[itemsField];
+          if (!Array.isArray(items))
+            return;
+          items.forEach((item) => {
+            const start = item.start_time;
+            const end = item.end_time;
+            if (start && end) {
+              const startDate = new Date(start.replace(/-/g, "/"));
+              const endDate = new Date(end.replace(/-/g, "/"));
+              if (!isNaN(startDate) && !isNaN(endDate)) {
+                totalMinutes += Math.max(0, (endDate - startDate) / 6e4);
+              }
             }
           });
-          const total2 = baseHours + extraHours;
-          this.$set(formData, totalField, (Math.round(total2 * 10) / 10).toString());
-          return;
-        }
-        let total = 0;
-        items.forEach((item) => {
-          const calc = (range) => {
-            if (Array.isArray(range) && range[0] && range[1]) {
-              const [s, e] = range;
-              const [sh, sm] = s.split(":").map(Number);
-              const [eh, em] = e.split(":").map(Number);
-              return (eh * 60 + em - (sh * 60 + sm)) / 60;
-            }
-            return 0;
-          };
-          total += calc(item.morning_range);
-          total += calc(item.afternoon_range);
-        });
-        this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-        return;
-      } else if (type === "OVERTIME_APPLICATION") {
-        totalField = "overtime_total_hours";
-        const items = formData[itemsField];
-        if (!Array.isArray(items))
-          return;
-        let total = 0;
-        items.forEach((item) => {
-          const calc = (range) => {
-            if (Array.isArray(range) && range[0] && range[1]) {
-              const [s, e] = range;
-              const [sh, sm] = s.split(":").map(Number);
-              const [eh, em] = e.split(":").map(Number);
-              return (eh * 60 + em - (sh * 60 + sm)) / 60;
-            }
-            return 0;
-          };
-          total += calc(item.morning_range);
-          total += calc(item.afternoon_range);
-        });
-        this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-        return;
-      } else if (type === "COMPENSATORY_APPLICATION") {
-        totalField = "total_compensatory_hours";
-        const items = formData[itemsField];
-        if (!Array.isArray(items))
-          return;
-        let total = 0;
-        items.forEach((item) => {
-          const hours = parseFloat(item.deduct_hours) || 0;
-          total += hours;
-        });
-        this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
-        return;
-      } else if (type === "BUSINESS_TRIP_APPLICATION") {
-        totalField = "total_trip_hours";
-        const items = formData[itemsField];
-        if (!Array.isArray(items))
-          return;
-        let total = 0;
-        items.forEach((item) => {
-          const start = item.start_time;
-          const end = item.end_time;
+        } else if (type === "OUTING_APPLICATION") {
+          const start = formData.start_time;
+          const end = formData.end_time;
           if (start && end) {
-            const startDate = new Date(start.replace(/-/g, "/"));
-            const endDate = new Date(end.replace(/-/g, "/"));
-            if (!isNaN(startDate) && !isNaN(endDate)) {
-              const hours = (endDate - startDate) / 36e5;
-              total += Math.max(0, hours);
-            }
+            const [sh, sm] = start.split(":").map(Number);
+            const [eh, em] = end.split(":").map(Number);
+            totalMinutes = eh * 60 + em - (sh * 60 + sm);
           }
-        });
-        this.$set(formData, totalField, (Math.round(total * 10) / 10).toString());
+        }
+        this.$set(formData, totalField, Math.max(0, Math.round(totalMinutes)).toString());
         return;
-      } else if (type === "REIMBURSEMENT_APPLICATION") {
-        totalField = "total_detail_amount";
+      }
+      if (type === "REIMBURSEMENT_APPLICATION") {
         const items = formData[itemsField];
         if (!Array.isArray(items))
           return;
@@ -1135,48 +1057,74 @@ const _sfc_main = {
           if (!isNaN(val))
             total += val;
         });
-        this.$set(formData, totalField, (Math.round(total * 100) / 100).toString());
+        this.$set(formData, "total_detail_amount", (Math.round(total * 100) / 100).toString());
         return;
-      } else if (type === "WORK_CLOTHES_APPLICATION") {
-        totalField = "total_quantity";
+      }
+      if (type === "WORK_CLOTHES_APPLICATION" || type === "RECRUITMENT_APPLICATION") {
         const items = formData[itemsField];
         if (!Array.isArray(items))
           return;
         let total = 0;
         items.forEach((item) => {
-          const qty = parseInt(item.quantity) || 0;
-          total += qty;
+          total += parseInt(item.quantity) || 0;
         });
-        this.$set(formData, totalField, total.toString());
-        return;
-      } else if (type === "RECRUITMENT_APPLICATION") {
-        totalField = "total_quantity";
-        const items = formData[itemsField];
-        if (!Array.isArray(items))
-          return;
-        let total = 0;
-        items.forEach((item) => {
-          const qty = parseInt(item.quantity) || 0;
-          total += qty;
-        });
-        this.$set(formData, totalField, total.toString());
-        return;
-      } else if (type === "OUTING_APPLICATION") {
-        totalField = "total_duration";
-        const start = formData.start_time;
-        const end = formData.end_time;
-        let total = 0;
-        if (start && end) {
-          const [sh, sm] = start.split(":").map(Number);
-          const [eh, em] = end.split(":").map(Number);
-          total = (eh * 60 + em - (sh * 60 + sm)) / 60;
-        }
-        const result = total.toFixed(1);
-        this.$set(formData, totalField, result.endsWith(".0") ? result.slice(0, -2) : result);
+        this.$set(formData, "total_quantity", total.toString());
         return;
       }
     },
-    // ========== 文件处理 ==========
+    _calcRangeMinutes(range, toMinutes) {
+      if (Array.isArray(range) && range.length === 2) {
+        const startMins = toMinutes(range[0]);
+        const endMins = toMinutes(range[1]);
+        if (endMins > startMins)
+          return endMins - startMins;
+      }
+      return 0;
+    },
+    computeTotalMinutes(items) {
+      if (!Array.isArray(items) || items.length === 0)
+        return 0;
+      const toMinutes = (timeStr) => {
+        if (!timeStr)
+          return 0;
+        const parts = timeStr.split(":");
+        const hours = parseInt(parts[0], 10) || 0;
+        const minutes = parseInt(parts[1], 10) || 0;
+        const seconds = parts[2] ? parseInt(parts[2], 10) : 0;
+        return hours * 60 + minutes + Math.round(seconds / 60);
+      };
+      const hasBatchItems = items.some((item) => item.batchGenerated === true);
+      if (hasBatchItems) {
+        const batchItems = items.filter((item) => item.batchGenerated === true);
+        const dates = batchItems.map((item) => item.leave_date).filter((date) => date).map((date) => new Date(date.replace(/-/g, "/")));
+        if (dates.length === 0) {
+          let totalMinutes2 = 0;
+          for (const item of items) {
+            totalMinutes2 += this._calcRangeMinutes(item.morning_range, toMinutes);
+            totalMinutes2 += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+          }
+          return Math.max(0, totalMinutes2);
+        }
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...dates));
+        const diffDays = Math.round((maxDate - minDate) / (1e3 * 60 * 60 * 24)) + 1;
+        const baseMinutes = diffDays * 8 * 60;
+        let extraMinutes = 0;
+        items.forEach((item) => {
+          if (!item.batchGenerated) {
+            extraMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+            extraMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+          }
+        });
+        return Math.max(0, baseMinutes + extraMinutes);
+      }
+      let totalMinutes = 0;
+      for (const item of items) {
+        totalMinutes += this._calcRangeMinutes(item.morning_range, toMinutes);
+        totalMinutes += this._calcRangeMinutes(item.afternoon_range, toMinutes);
+      }
+      return Math.max(0, totalMinutes);
+    },
     getFileMediaType(accept) {
       if (!accept)
         return "all";
@@ -1187,10 +1135,8 @@ const _sfc_main = {
       return "all";
     },
     async onFileSelect(e, fieldName) {
-      common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1566", "文件选择事件:", e);
-      if (!e.tempFilePaths || e.tempFilePaths.length === 0) {
+      if (!e.tempFilePaths || e.tempFilePaths.length === 0)
         return;
-      }
       try {
         common_vendor.index.showLoading({
           title: "上传中...",
@@ -1215,17 +1161,16 @@ const _sfc_main = {
             throw new Error(uploadOptionsRes.msg || "获取上传参数失败");
           }
           const uploadOptions = uploadOptionsRes.rows;
-          const uploadResult = await new Promise((resolve, reject) => {
+          await new Promise((resolve, reject) => {
             common_vendor.index.uploadFile({
               ...uploadOptions.uploadFileOptions,
               filePath: tempFilePath,
               name: "file",
               success: (res) => {
-                if (res.statusCode === 200) {
+                if (res.statusCode === 200)
                   resolve(res);
-                } else {
+                else
                   reject(new Error(`上传失败: ${res.statusCode}`));
-                }
               },
               fail: reject
             });
@@ -1234,7 +1179,7 @@ const _sfc_main = {
           if (!this.formData[fieldName]) {
             this.$set(this.formData, fieldName, []);
           }
-          const fileItem = {
+          this.formData[fieldName].push({
             name: fileName,
             size: fileSize,
             url: fileUrl,
@@ -1242,8 +1187,7 @@ const _sfc_main = {
             path: fileUrl,
             cloudPath,
             ext
-          };
-          this.formData[fieldName].push(fileItem);
+          });
         }
         common_vendor.index.hideLoading();
         common_vendor.index.showToast({
@@ -1252,7 +1196,7 @@ const _sfc_main = {
         });
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1653", "文件上传失败:", error);
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1586", "文件上传失败:", error);
         common_vendor.index.showToast({
           title: "上传失败: " + (error.message || "未知错误"),
           icon: "none"
@@ -1266,10 +1210,10 @@ const _sfc_main = {
       return parts[parts.length - 1];
     },
     onFileUploadSuccess(e, fieldName) {
-      common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1669", "文件上传成功回调:", e);
+      common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1600", "文件上传成功回调:", e);
     },
     onFileUploadFail(err) {
-      common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1673", "文件上传失败:", err);
+      common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1603", "文件上传失败:", err);
       common_vendor.index.showToast({
         title: "上传失败",
         icon: "none"
@@ -1280,10 +1224,8 @@ const _sfc_main = {
         const hasTempPath = val.some(
           (file) => file.url && file.url.startsWith("http://tmp/")
         );
-        if (hasTempPath) {
-          common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1687", "忽略临时路径更新");
+        if (hasTempPath)
           return;
-        }
       }
       this.$set(this.formData, fieldName, val);
     },
@@ -1293,7 +1235,6 @@ const _sfc_main = {
         if (fileInfo.cloudPath || fileInfo.fileID) {
           const cloudPath = fileInfo.cloudPath || fileInfo.fileID;
           await vk.myfn.deleteFile(fileInfo);
-          common_vendor.index.__f__("log", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1704", "删除云文件:", cloudPath);
         }
         this.formData[fieldName].splice(e.index, 1);
         common_vendor.index.showToast({
@@ -1301,7 +1242,7 @@ const _sfc_main = {
           icon: "success"
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1714", "删除文件失败:", error);
+        common_vendor.index.__f__("error", "at components/dynamic-form-dialog/dynamic-form-dialog.vue:1631", "删除文件失败:", error);
         common_vendor.index.showToast({
           title: "删除失败",
           icon: "none"
@@ -1349,7 +1290,6 @@ const _sfc_main = {
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     },
-    // ========== array<object> 操作 ==========
     addArrayItem(field) {
       if (!this.formData[field.name])
         this.$set(this.formData, field.name, []);
@@ -1399,7 +1339,6 @@ const _sfc_main = {
       this.formData[fieldName] = [];
       this.calcAutoTotal();
     },
-    // ========== 提交相关 ==========
     async handleSave(status) {
       try {
         this.saveLoadingLocal = true;
@@ -1582,67 +1521,72 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         c: common_vendor.f($options.getGroupFields(group), (field, k1, i1) => {
           return common_vendor.e({
             a: field.type === "text"
-          }, field.type === "text" ? {
-            b: "2b16f33b-2-" + i0 + "-" + i1 + "," + ("2b16f33b-1-" + i0 + "-" + i1),
-            c: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
-            d: common_vendor.p({
+          }, field.type === "text" ? common_vendor.e({
+            b: field.name === "total_minutes"
+          }, field.name === "total_minutes" ? {
+            c: common_vendor.t(_ctx.vk.myfn.formatMinutes($data.formData[field.name]))
+          } : {
+            d: "2b16f33b-2-" + i0 + "-" + i1 + "," + ("2b16f33b-1-" + i0 + "-" + i1),
+            e: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
+            f: common_vendor.p({
               placeholder: field.placeholder || "请输入",
               disabled: field.disabled,
               type: field.inputType || "text",
               maxlength: field.maxLength,
               clearable: true,
               modelValue: $data.formData[field.name]
-            }),
-            e: "2b16f33b-1-" + i0 + "-" + i1 + ",2b16f33b-0",
-            f: common_vendor.p({
+            })
+          }, {
+            g: "2b16f33b-1-" + i0 + "-" + i1 + ",2b16f33b-0",
+            h: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
-          } : field.type === "number" ? {
-            h: common_vendor.o((e) => $options.onNumberInput(field.name, e), field.name),
-            i: "2b16f33b-4-" + i0 + "-" + i1 + "," + ("2b16f33b-3-" + i0 + "-" + i1),
-            j: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
-            k: common_vendor.p({
+          }) : field.type === "number" ? {
+            j: common_vendor.o((e) => $options.onNumberInput(field.name, e), field.name),
+            k: "2b16f33b-4-" + i0 + "-" + i1 + "," + ("2b16f33b-3-" + i0 + "-" + i1),
+            l: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
+            m: common_vendor.p({
               placeholder: field.placeholder || "请输入数字",
               disabled: field.disabled,
               type: "number",
               clearable: true,
               modelValue: $data.formData[field.name]
             }),
-            l: "2b16f33b-3-" + i0 + "-" + i1 + ",2b16f33b-0",
-            m: common_vendor.p({
+            n: "2b16f33b-3-" + i0 + "-" + i1 + ",2b16f33b-0",
+            o: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
           } : $options.isSelectField(field) ? {
-            o: common_vendor.o(($event) => $options.showTopSelectPicker(field), field.name),
-            p: "2b16f33b-6-" + i0 + "-" + i1 + "," + ("2b16f33b-5-" + i0 + "-" + i1),
-            q: common_vendor.o(($event) => $data.formData[$options.getDisplayKeyForField(field)] = $event, field.name),
-            r: common_vendor.p({
+            q: common_vendor.o(($event) => $options.showTopSelectPicker(field), field.name),
+            r: "2b16f33b-6-" + i0 + "-" + i1 + "," + ("2b16f33b-5-" + i0 + "-" + i1),
+            s: common_vendor.o(($event) => $data.formData[$options.getDisplayKeyForField(field)] = $event, field.name),
+            t: common_vendor.p({
               type: "select",
               placeholder: field.placeholder || "请选择",
               disabled: field.disabled,
               clearable: true,
               modelValue: $data.formData[$options.getDisplayKeyForField(field)]
             }),
-            s: "2b16f33b-7-" + i0 + "-" + i1 + "," + ("2b16f33b-5-" + i0 + "-" + i1),
-            t: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
-            v: common_vendor.p({
+            v: "2b16f33b-7-" + i0 + "-" + i1 + "," + ("2b16f33b-5-" + i0 + "-" + i1),
+            w: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
+            x: common_vendor.p({
               type: "text",
               modelValue: $data.formData[field.name]
             }),
-            w: "2b16f33b-5-" + i0 + "-" + i1 + ",2b16f33b-0",
-            x: common_vendor.p({
+            y: "2b16f33b-5-" + i0 + "-" + i1 + ",2b16f33b-0",
+            z: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
           } : field.type === "textarea" ? {
-            z: "2b16f33b-9-" + i0 + "-" + i1 + "," + ("2b16f33b-8-" + i0 + "-" + i1),
-            A: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
-            B: common_vendor.p({
+            B: "2b16f33b-9-" + i0 + "-" + i1 + "," + ("2b16f33b-8-" + i0 + "-" + i1),
+            C: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
+            D: common_vendor.p({
               placeholder: field.placeholder || "请输入",
               disabled: field.disabled,
               type: field.type,
@@ -1650,57 +1594,57 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
               maxlength: field.maxLength,
               modelValue: $data.formData[field.name]
             }),
-            C: "2b16f33b-8-" + i0 + "-" + i1 + ",2b16f33b-0",
-            D: common_vendor.p({
+            E: "2b16f33b-8-" + i0 + "-" + i1 + ",2b16f33b-0",
+            F: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
           } : field.type === "date" ? {
-            F: common_vendor.o(($event) => $options.showDatePicker(field), field.name),
-            G: "2b16f33b-11-" + i0 + "-" + i1 + "," + ("2b16f33b-10-" + i0 + "-" + i1),
-            H: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
-            I: common_vendor.p({
+            H: common_vendor.o(($event) => $options.showDatePicker(field), field.name),
+            I: "2b16f33b-11-" + i0 + "-" + i1 + "," + ("2b16f33b-10-" + i0 + "-" + i1),
+            J: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
+            K: common_vendor.p({
               type: "select",
               placeholder: field.placeholder || "请选择日期",
               disabled: field.disabled,
               clearable: true,
               modelValue: $data.formData[field.name]
             }),
-            J: "2b16f33b-10-" + i0 + "-" + i1 + ",2b16f33b-0",
-            K: common_vendor.p({
+            L: "2b16f33b-10-" + i0 + "-" + i1 + ",2b16f33b-0",
+            M: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
           } : field.type === "time" ? {
-            M: common_vendor.o(($event) => $options.showTimePicker(field.name), field.name),
-            N: "2b16f33b-13-" + i0 + "-" + i1 + "," + ("2b16f33b-12-" + i0 + "-" + i1),
-            O: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
-            P: common_vendor.p({
+            O: common_vendor.o(($event) => $options.showTimePicker(field.name), field.name),
+            P: "2b16f33b-13-" + i0 + "-" + i1 + "," + ("2b16f33b-12-" + i0 + "-" + i1),
+            Q: common_vendor.o(($event) => $data.formData[field.name] = $event, field.name),
+            R: common_vendor.p({
               type: "select",
               placeholder: field.placeholder || "请选择时间",
               disabled: field.disabled,
               clearable: true,
               modelValue: $data.formData[field.name]
             }),
-            Q: "2b16f33b-12-" + i0 + "-" + i1 + ",2b16f33b-0",
-            R: common_vendor.p({
+            S: "2b16f33b-12-" + i0 + "-" + i1 + ",2b16f33b-0",
+            T: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
           } : field.type === "file" ? {
-            T: common_vendor.sr("fileUploadRef", "2b16f33b-15-" + i0 + "-" + i1 + "," + ("2b16f33b-14-" + i0 + "-" + i1), {
+            V: common_vendor.sr("fileUploadRef", "2b16f33b-15-" + i0 + "-" + i1 + "," + ("2b16f33b-14-" + i0 + "-" + i1), {
               "f": 1
             }),
-            U: common_vendor.o((val) => $options.onFilePickerInput(val, field.name), field.name),
-            V: common_vendor.o((e) => $options.onFileSelect(e, field.name), field.name),
-            W: common_vendor.o((e) => $options.onFileUploadSuccess(e, field.name), field.name),
-            X: common_vendor.o($options.onFileUploadFail, field.name),
-            Y: common_vendor.o((e) => $options.onFileDelete(e, field.name), field.name),
-            Z: "2b16f33b-15-" + i0 + "-" + i1 + "," + ("2b16f33b-14-" + i0 + "-" + i1),
-            aa: common_vendor.p({
+            W: common_vendor.o((val) => $options.onFilePickerInput(val, field.name), field.name),
+            X: common_vendor.o((e) => $options.onFileSelect(e, field.name), field.name),
+            Y: common_vendor.o((e) => $options.onFileUploadSuccess(e, field.name), field.name),
+            Z: common_vendor.o($options.onFileUploadFail, field.name),
+            aa: common_vendor.o((e) => $options.onFileDelete(e, field.name), field.name),
+            ab: "2b16f33b-15-" + i0 + "-" + i1 + "," + ("2b16f33b-14-" + i0 + "-" + i1),
+            ac: common_vendor.p({
               disabled: field.disabled,
               value: $data.formData[field.name],
               limit: field.maxCount || 10,
@@ -1710,7 +1654,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
               dir: $data.fileDir,
               ["file-mediatype"]: $options.getFileMediaType(field.accept)
             }),
-            ab: common_vendor.f($data.formData[field.name], (file, index, i2) => {
+            ad: common_vendor.f($data.formData[field.name], (file, index, i2) => {
               return common_vendor.e({
                 a: "2b16f33b-16-" + i0 + "-" + i1 + "-" + i2 + "," + ("2b16f33b-14-" + i0 + "-" + i1),
                 b: common_vendor.t($options.getFileName(file)),
@@ -1726,55 +1670,55 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
                 j: index
               });
             }),
-            ac: common_vendor.p({
+            ae: common_vendor.p({
               name: "file-text"
             }),
-            ad: common_vendor.p({
+            af: common_vendor.p({
               type: "primary",
               size: "mini"
             }),
-            ae: common_vendor.p({
+            ag: common_vendor.p({
               type: "text",
               size: "mini",
               plain: true
             }),
-            af: "2b16f33b-14-" + i0 + "-" + i1 + ",2b16f33b-0",
-            ag: common_vendor.p({
+            ah: "2b16f33b-14-" + i0 + "-" + i1 + ",2b16f33b-0",
+            ai: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
           } : field.type === "array<object>" ? common_vendor.e({
-            ai: common_vendor.o(($event) => $options.addArrayItem(field), field.name),
-            aj: "2b16f33b-20-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
-            ak: common_vendor.p({
+            ak: common_vendor.o(($event) => $options.addArrayItem(field), field.name),
+            al: "2b16f33b-20-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
+            am: common_vendor.p({
               type: "primary",
               size: "mini"
             }),
-            al: $props.formTypeCode === "LEAVE_APPLICATION" && field.name === "items"
+            an: $props.formTypeCode === "LEAVE_APPLICATION" && field.name === "items"
           }, $props.formTypeCode === "LEAVE_APPLICATION" && field.name === "items" ? {
-            am: "2b16f33b-22-" + i0 + "-" + i1 + "," + ("2b16f33b-21-" + i0 + "-" + i1),
-            an: common_vendor.p({
+            ao: "2b16f33b-22-" + i0 + "-" + i1 + "," + ("2b16f33b-21-" + i0 + "-" + i1),
+            ap: common_vendor.p({
               name: "calendar",
               size: "25"
             }),
-            ao: common_vendor.o(($event) => $options.openBatchDatePicker(field), field.name),
-            ap: "2b16f33b-21-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
-            aq: common_vendor.p({
+            aq: common_vendor.o(($event) => $options.openBatchDatePicker(field), field.name),
+            ar: "2b16f33b-21-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
+            as: common_vendor.p({
               type: "primary",
               size: "mini"
             })
           } : {}, {
-            ar: field.showClear !== false
+            at: field.showClear !== false
           }, field.showClear !== false ? {
-            as: common_vendor.o(($event) => $options.clearArray(field.name), field.name),
-            at: "2b16f33b-23-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
-            av: common_vendor.p({
+            av: common_vendor.o(($event) => $options.clearArray(field.name), field.name),
+            aw: "2b16f33b-23-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
+            ax: common_vendor.p({
               type: "error",
               size: "mini"
             })
           } : {}, {
-            aw: common_vendor.f($data.formData[field.name], (item, index, i2) => {
+            ay: common_vendor.f($data.formData[field.name], (item, index, i2) => {
               return common_vendor.e({
                 a: common_vendor.t(index + 1),
                 b: field.showSort !== false && index > 0 && !item.batchGenerated && !$data.formData[field.name][index - 1].batchGenerated
@@ -1933,29 +1877,29 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
                 q: index
               });
             }),
-            ax: !$data.formData[field.name] || $data.formData[field.name].length === 0
+            az: !$data.formData[field.name] || $data.formData[field.name].length === 0
           }, !$data.formData[field.name] || $data.formData[field.name].length === 0 ? {
-            ay: "2b16f33b-35-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
-            az: common_vendor.p({
+            aA: "2b16f33b-35-" + i0 + "-" + i1 + "," + ("2b16f33b-19-" + i0 + "-" + i1),
+            aB: common_vendor.p({
               text: "暂无数据",
               mode: "list"
             })
           } : {}, {
-            aA: "2b16f33b-19-" + i0 + "-" + i1 + ",2b16f33b-0",
-            aB: common_vendor.p({
+            aC: "2b16f33b-19-" + i0 + "-" + i1 + ",2b16f33b-0",
+            aD: common_vendor.p({
               label: field.label,
               prop: field.name,
               required: field.required
             })
           }) : {}, {
-            g: field.type === "number",
-            n: $options.isSelectField(field),
-            y: field.type === "textarea",
-            E: field.type === "date",
-            L: field.type === "time",
-            S: field.type === "file",
-            ah: field.type === "array<object>",
-            aC: field.name
+            i: field.type === "number",
+            p: $options.isSelectField(field),
+            A: field.type === "textarea",
+            G: field.type === "date",
+            N: field.type === "time",
+            U: field.type === "file",
+            aj: field.type === "array<object>",
+            aE: field.name
           });
         }),
         d: groupIndex
@@ -1972,10 +1916,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       },
       ["error-type"]: ["toast"]
     }),
-    d: common_vendor.o($options.handleCancel, "e5"),
+    d: common_vendor.o($options.handleCancel, "46"),
     e: !$props.butVisible
   }, !$props.butVisible ? {
-    f: common_vendor.o(($event) => $options.handleSave(), "e0"),
+    f: common_vendor.o(($event) => $options.handleSave(), "36"),
     g: common_vendor.p({
       type: "primary",
       loading: $data.saveLoadingLocal
@@ -1983,7 +1927,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     h: $props.butVisible
   }, $props.butVisible ? {
-    i: common_vendor.o($options.handleSimulate, "0a"),
+    i: common_vendor.o($options.handleSimulate, "61"),
     j: common_vendor.p({
       type: "info",
       loading: $data.simulateLoadingLocal
@@ -1991,7 +1935,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     k: $props.butVisible
   }, $props.butVisible ? {
-    l: common_vendor.o(($event) => $options.handleSave("draft"), "bd"),
+    l: common_vendor.o(($event) => $options.handleSave("draft"), "14"),
     m: common_vendor.p({
       type: "primary",
       loading: $data.saveLoadingLocal
@@ -1999,35 +1943,35 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     n: $props.butVisible
   }, $props.butVisible ? {
-    o: common_vendor.o($options.handleSubmit, "8a"),
+    o: common_vendor.o($options.handleSubmit, "fa"),
     p: common_vendor.p({
       type: "success",
       loading: $data.submitLoadingLocal
     })
   } : {}, {
-    q: common_vendor.o($options.onDateConfirm, "67"),
-    r: common_vendor.o(($event) => $data.datePickerShow = $event, "df"),
+    q: common_vendor.o($options.onDateConfirm, "e9"),
+    r: common_vendor.o(($event) => $data.datePickerShow = $event, "06"),
     s: common_vendor.p({
       mode: "time",
       params: $data.datePickerParams,
       modelValue: $data.datePickerShow
     }),
-    t: common_vendor.o($options.onTimeConfirm, "44"),
-    v: common_vendor.o(($event) => $data.timePickerShow = $event, "be"),
+    t: common_vendor.o($options.onTimeConfirm, "e7"),
+    v: common_vendor.o(($event) => $data.timePickerShow = $event, "c8"),
     w: common_vendor.p({
       mode: "time",
       params: $data.timePickerParams,
       modelValue: $data.timePickerShow
     }),
     x: common_vendor.t($data.subRemote.currentField && $data.subRemote.currentField.label || "请选择"),
-    y: common_vendor.o(($event) => $data.subRemoteSelectVisible = false, "e8"),
+    y: common_vendor.o(($event) => $data.subRemoteSelectVisible = false, "8e"),
     z: common_vendor.p({
       type: "text"
     }),
     A: $data.subRemote.mode === "single"
   }, $data.subRemote.mode === "single" ? common_vendor.e({
-    B: common_vendor.o($options.onSubRemoteSearch, "ff"),
-    C: common_vendor.o(($event) => $data.subRemote.keyword = $event, "c4"),
+    B: common_vendor.o($options.onSubRemoteSearch, "cc"),
+    C: common_vendor.o(($event) => $data.subRemote.keyword = $event, "2e"),
     D: common_vendor.p({
       placeholder: "输入关键词搜索",
       ["show-action"]: false,
@@ -2104,62 +2048,62 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     })
   } : {}) : {}, {
     I: $data.subRemote.mode === "cascader",
-    P: common_vendor.o(($event) => $data.subRemoteSelectVisible = $event, "79"),
+    P: common_vendor.o(($event) => $data.subRemoteSelectVisible = $event, "05"),
     Q: common_vendor.p({
       mode: "bottom",
       height: "70%",
       ["border-radius"]: "20",
       modelValue: $data.subRemoteSelectVisible
     }),
-    R: common_vendor.o($options.onSubDateConfirm, "7d"),
-    S: common_vendor.o(($event) => $data.subDatePickerShow[$data.currentSubDateInfo.fieldName + "_" + $data.currentSubDateInfo.itemIndex + "_" + ($data.currentSubDateInfo.subField ? $data.currentSubDateInfo.subField.key : "")] = $event, "af"),
+    R: common_vendor.o($options.onSubDateConfirm, "1a"),
+    S: common_vendor.o(($event) => $data.subDatePickerShow[$data.currentSubDateInfo.fieldName + "_" + $data.currentSubDateInfo.itemIndex + "_" + ($data.currentSubDateInfo.subField ? $data.currentSubDateInfo.subField.key : "")] = $event, "4b"),
     T: common_vendor.p({
       mode: "time",
       params: $data.subDatePickerParams,
       modelValue: $data.subDatePickerShow[$data.currentSubDateInfo.fieldName + "_" + $data.currentSubDateInfo.itemIndex + "_" + ($data.currentSubDateInfo.subField ? $data.currentSubDateInfo.subField.key : "")]
     }),
-    U: common_vendor.o($options.onSubDateTimeConfirm, "25"),
-    V: common_vendor.o(($event) => $data.subDateTimePickerShow[$data.currentSubDateTimeInfo.fieldName + "_" + $data.currentSubDateTimeInfo.itemIndex + "_" + ($data.currentSubDateTimeInfo.subField ? $data.currentSubDateTimeInfo.subField.key : "")] = $event, "1a"),
+    U: common_vendor.o($options.onSubDateTimeConfirm, "ff"),
+    V: common_vendor.o(($event) => $data.subDateTimePickerShow[$data.currentSubDateTimeInfo.fieldName + "_" + $data.currentSubDateTimeInfo.itemIndex + "_" + ($data.currentSubDateTimeInfo.subField ? $data.currentSubDateTimeInfo.subField.key : "")] = $event, "2d"),
     W: common_vendor.p({
       mode: "time",
       params: $data.subDateTimePickerParams,
       modelValue: $data.subDateTimePickerShow[$data.currentSubDateTimeInfo.fieldName + "_" + $data.currentSubDateTimeInfo.itemIndex + "_" + ($data.currentSubDateTimeInfo.subField ? $data.currentSubDateTimeInfo.subField.key : "")]
     }),
-    X: common_vendor.o($options.onSubTimeConfirm, "11"),
-    Y: common_vendor.o(($event) => $data.subTimePickerShow[$data.currentSubTimeInfo.fieldName + "_" + $data.currentSubTimeInfo.itemIndex + "_" + ($data.currentSubTimeInfo.subField ? $data.currentSubTimeInfo.subField.key : "") + "_" + $data.currentSubTimeInfo.range] = $event, "2d"),
+    X: common_vendor.o($options.onSubTimeConfirm, "61"),
+    Y: common_vendor.o(($event) => $data.subTimePickerShow[$data.currentSubTimeInfo.fieldName + "_" + $data.currentSubTimeInfo.itemIndex + "_" + ($data.currentSubTimeInfo.subField ? $data.currentSubTimeInfo.subField.key : "") + "_" + $data.currentSubTimeInfo.range] = $event, "f7"),
     Z: common_vendor.p({
       mode: "time",
       params: $data.subTimePickerParams,
       modelValue: $data.subTimePickerShow[$data.currentSubTimeInfo.fieldName + "_" + $data.currentSubTimeInfo.itemIndex + "_" + ($data.currentSubTimeInfo.subField ? $data.currentSubTimeInfo.subField.key : "") + "_" + $data.currentSubTimeInfo.range]
     }),
-    aa: common_vendor.o(($event) => $options.onBatchDatePickerShow("start"), "20"),
-    ab: common_vendor.o(($event) => $data.batchStartDate = $event, "00"),
+    aa: common_vendor.o(($event) => $options.onBatchDatePickerShow("start"), "c3"),
+    ab: common_vendor.o(($event) => $data.batchStartDate = $event, "2e"),
     ac: common_vendor.p({
       type: "select",
       placeholder: "请选择",
       modelValue: $data.batchStartDate
     }),
-    ad: common_vendor.o(($event) => $options.onBatchDatePickerShow("end"), "ce"),
-    ae: common_vendor.o(($event) => $data.batchEndDate = $event, "ed"),
+    ad: common_vendor.o(($event) => $options.onBatchDatePickerShow("end"), "99"),
+    ae: common_vendor.o(($event) => $data.batchEndDate = $event, "5e"),
     af: common_vendor.p({
       type: "select",
       placeholder: "请选择",
       modelValue: $data.batchEndDate
     }),
-    ag: common_vendor.o(($event) => $data.showBatchDatePicker = false, "f6"),
-    ah: common_vendor.o($options.generateBatchDates, "ed"),
+    ag: common_vendor.o(($event) => $data.showBatchDatePicker = false, "e0"),
+    ah: common_vendor.o($options.generateBatchDates, "aa"),
     ai: common_vendor.p({
       type: "primary"
     }),
-    aj: common_vendor.o(($event) => $data.showBatchDatePicker = $event, "56"),
+    aj: common_vendor.o(($event) => $data.showBatchDatePicker = $event, "e1"),
     ak: common_vendor.p({
       mode: "bottom",
       ["border-radius"]: "20",
       closeable: true,
       modelValue: $data.showBatchDatePicker
     }),
-    al: common_vendor.o($options.onBatchDateConfirm, "ef"),
-    am: common_vendor.o(($event) => $data.batchPickerShow = $event, "46"),
+    al: common_vendor.o($options.onBatchDateConfirm, "55"),
+    am: common_vendor.o(($event) => $data.batchPickerShow = $event, "93"),
     an: common_vendor.p({
       mode: "time",
       params: $data.batchDatePickerParams,

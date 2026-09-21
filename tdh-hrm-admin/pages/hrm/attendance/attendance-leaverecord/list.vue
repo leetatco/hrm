@@ -44,7 +44,7 @@
 								{{ getLeaveTypeText(detailDialog.data.leave_type) }}
 							</el-tag>
 						</el-descriptions-item>
-						<el-descriptions-item label="请假小时数">{{ detailDialog.data.total_hours }}</el-descriptions-item>
+						<el-descriptions-item label="请假时长">{{ vk.myfn.formatMinutes(detailDialog.data.total_minutes) }}</el-descriptions-item>
 						<el-descriptions-item label="汇入状态">
 							<el-tag :type="getImportStatusType(detailDialog.data.import_status)">
 								{{ getImportStatusText(detailDialog.data.import_status) }}
@@ -84,7 +84,7 @@
 
 <script>
 	let vk = uni.vk;
-	let originalForms = {}; // 表单初始化数据	
+	let originalForms = {};
 	const colWidth = 200;
 
 	export default {
@@ -97,8 +97,7 @@
 						title: '详情',
 						icon: 'el-icon-view',
 						type: 'primary',
-						show: () => this.$hasRole('admin') || this.$hasPermission(
-							'attendance-leaverecord-view'),
+						show: () => this.$hasRole('admin') || this.$hasPermission('attendance-leaverecord-view'),
 						onClick: (item) => {
 							this.onDetail(item);
 						}
@@ -126,10 +125,11 @@
 							formatter: (val) => val ? vk.pubfn.timeFormat(new Date(val), 'yyyy-MM-dd') : ''
 						},
 						{
-							key: "total_hours",
-							title: "小时数",
-							type: "number",
-							width: colWidth - 80
+							key: "total_minutes",
+							title: "请假时长",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "leave_type",
@@ -293,23 +293,18 @@
 			};
 		},
 		methods: {
-			// 页面数据初始化函数
 			init(options) {
 				originalForms["form1"] = vk.pubfn.copyObject(this.form1);
 			},
-			// 页面跳转
 			pageTo(path) {
 				vk.navigateTo(path);
 			},
-			// 表单重置
 			resetForm() {
 				vk.pubfn.resetForm(originalForms, this);
 			},
-			// 搜索
 			search() {
 				this.$refs.table1.search();
 			},
-			// 刷新
 			refresh() {
 				this.$refs.table1.refresh();
 			},
@@ -337,9 +332,10 @@
 							formatter: (val) => val ? vk.pubfn.timeFormat(new Date(val), 'yyyy-MM-dd') : ''
 						},
 						{
-							key: "total_hours",
-							title: "小时数",
-							type: "number"
+							key: "total_minutes",
+							title: "请假时长",
+							type: "text",
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "leave_type",

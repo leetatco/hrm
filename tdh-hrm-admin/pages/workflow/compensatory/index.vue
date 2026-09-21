@@ -125,9 +125,7 @@
 							icon: 'el-icon-edit',
 							show: (item) => (this.$hasRole('admin') || this.$hasRole('group-common')) && item
 								.status === 'draft' && item.applicant_id === vk.getVuex('$user.userInfo.username'),
-							onClick: (item) => this.updateBtn({
-								item
-							})
+							onClick: (item) => this.updateBtn({ item })
 						},
 						{
 							title: '删除',
@@ -135,9 +133,7 @@
 							icon: 'el-icon-delete',
 							show: (item) => (this.$hasRole('admin') || this.$hasRole('group-common')) && item
 								.status === 'draft' && item.applicant_id === vk.getVuex('$user.userInfo.username'),
-							onClick: (item) => this.deleteBtn({
-								item
-							})
+							onClick: (item) => this.deleteBtn({ item })
 						}
 					],
 					columns: [{
@@ -158,11 +154,11 @@
 							}
 						},
 						{
-							key: "form_data.total_compensatory_hours",
-							title: "总调休小时",
+							key: "form_data.total_minutes",
+							title: "总调休时长",
 							type: "text",
 							width: 120,
-							formatter: (val) => val ? `${val}小时` : '-'
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "applicant_name",
@@ -325,7 +321,6 @@
 					const formType = this.formTypeConfigs[this.formTypeCode];
 					if (formType && formType.form_schema) {
 						this.formSchema = JSON.parse(formType.form_schema);
-						// 添加自定义验证规则
 						this.addCustomValidation();
 					} else {
 						this.$message.warning('表单配置未加载，请检查系统配置');
@@ -340,10 +335,10 @@
 				if (!this.formSchema || !this.formSchema.fields) return;
 				const overtimeListField = this.formSchema.fields.find(f => f.name === 'items');
 				if (overtimeListField && overtimeListField.columns) {
-					const deductHoursCol = overtimeListField.columns.find(c => c.key === 'deduct_hours');
-					if (deductHoursCol) {
-						if (!deductHoursCol.rules) deductHoursCol.rules = [];
-						deductHoursCol.rules.push({
+					const deductMinutesCol = overtimeListField.columns.find(c => c.key === 'deduct_minutes');
+					if (deductMinutesCol) {
+						if (!deductMinutesCol.rules) deductMinutesCol.rules = [];
+						deductMinutesCol.rules.push({
 							validator: (rule, value, callback) => {
 								try {
 									const formRef = this.$refs.dynamicFormDialog;
@@ -357,21 +352,19 @@
 									const rowIndex = parts?.length >= 2 ? parseInt(parts[1], 10) : -1;
 									const rowData = overtimeList?.[rowIndex];
 
-									// 基本校验
 									if (value === '' || value === null || value === undefined) {
-										callback(new Error('请输入调休小时数'));
+										callback(new Error('请输入调休时长（分钟）'));
 										return;
 									}
 									if (Number(value) <= 0) {
-										callback(new Error('调休小时数必须大于0'));
+										callback(new Error('调休时长必须大于0'));
 										return;
 									}
 
-									// 如果可以拿到有效的可调休小时数，则做上限校验
-									const remaining = parseFloat(rowData?.remaining_hours);
+									const remaining = parseFloat(rowData?.remaining_minutes);
 									if (!isNaN(remaining) && remaining > 0) {
 										if (Number(value) > remaining) {
-											callback(new Error(`不能超过可调休小时数(${remaining}小时)`));
+											callback(new Error(`不能超过可调休时长(${vk.myfn.formatMinutes(remaining)})`));
 											return;
 										}
 									}
@@ -408,23 +401,19 @@
 					data: {
 						form_type_code: this.formTypeCode,
 						form_data: {
-							items:[{}]
+							items: [{}]
 						}
 					}
 				};
 				this.openForm("formDialog", this.formDialog);
 			},
 
-			updateBtn({
-				item
-			}) {
+			updateBtn({ item }) {
 				if (!this.formSchema) {
 					this.$message.warning('表单配置未加载');
 					return;
 				}
-				const formData = {
-					...item
-				};
+				const formData = { ...item };
 				if (item.form_data) Object.keys(item.form_data).forEach(key => formData[key] = item.form_data[key]);
 				this.formDialog = {
 					show: true,
@@ -439,10 +428,7 @@
 				try {
 					let url = "admin/bpmn/application-form/sys/add";
 					if (formData._id) url = "admin/bpmn/application-form/sys/update";
-					const res = await vk.callFunction({
-						url,
-						data: formData
-					});
+					const res = await vk.callFunction({ url, data: formData });
 					if (res.code === 0) {
 						this.$message.success('保存成功');
 						this.formDialog.show = false;
@@ -460,7 +446,7 @@
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
 					const calculatedValues = {
-						total_compensatory_hours: formData.form_data.total_compensatory_hours,
+						total_minutes: formData.form_data.total_minutes,
 						compensatory_date: formData.form_data.compensatory_date
 					};
 					const submitData = {
@@ -494,7 +480,7 @@
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
 					const calculatedValues = {
-						total_compensatory_hours: formData.form_data.total_compensatory_hours,
+						total_minutes: formData.form_data.total_minutes,
 						compensatory_date: formData.form_data.compensatory_date
 					};
 					const simulateData = {
@@ -566,8 +552,7 @@
 								}
 							}
 						});
-						if (instanceRes.code === 0 && instanceRes.rows?.length) this.processInfo.instance = instanceRes
-							.rows[0];
+						if (instanceRes.code === 0 && instanceRes.rows?.length) this.processInfo.instance = instanceRes.rows[0];
 					}
 				} catch (error) {
 					console.error('加载审批流程失败:', error);
@@ -616,9 +601,7 @@
 				return '任务处理';
 			},
 
-			async deleteBtn({
-				item
-			}) {
+			async deleteBtn({ item }) {
 				this.$confirm('确定删除该调休申请吗？', '提示', {
 					type: 'warning'
 				}).then(async () => {
@@ -626,12 +609,9 @@
 					try {
 						const res = await vk.callFunction({
 							url: 'admin/bpmn/application-form/sys/delete',
-							data: {
-								id: item._id
-							}
+							data: { id: item._id }
 						});
 
-						// 删除附件
 						item.form_data?.file_attachments.forEach((e) => {
 							vk.myfn.deleteFile(e);
 						});

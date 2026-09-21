@@ -111,5 +111,16 @@ myfn.deleteFiles = async (fileList = []) => {
     });
   }
 };
+myfn.formatMinutes = (min) => {
+  if (!min || min <= 0)
+    return "0";
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h > 0 && m > 0)
+    return `${h}小时${m}分钟`;
+  if (h > 0)
+    return `${h}小时`;
+  return `${m}分钟`;
+};
 exports.myfn = myfn;
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/common/function/myPubFunction.js.map

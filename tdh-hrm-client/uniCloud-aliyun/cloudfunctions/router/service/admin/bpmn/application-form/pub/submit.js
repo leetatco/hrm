@@ -70,6 +70,7 @@ module.exports = {
 				form_data,
 				calculated_values: calculated_values || {},
 				status: 'pending',
+				import_status: 0,
 				update_date: Date.now(),
 				updat_id: uid
 			};

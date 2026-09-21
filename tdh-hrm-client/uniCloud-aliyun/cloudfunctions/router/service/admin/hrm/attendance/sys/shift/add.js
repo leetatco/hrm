@@ -18,9 +18,12 @@ module.exports = {
 
 		// 获取前端传参
 		let {
+			uid,
 			shift_name,
 			shift_type,
 			segments,
+			company_id,
+			department_id,
 			status = true,
 			remark
 		} = data;
@@ -55,9 +58,11 @@ module.exports = {
 				shift_name,
 				shift_type,
 				segments,
+				company_id,
+				department_id,
 				status,
 				remark,
-				update_id: userInfo.uid,
+				update_id: uid,
 				update_date: new Date().getTime()
 			}
 		});

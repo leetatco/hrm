@@ -1,91 +1,101 @@
-// cloudfunctions/admin/bpmn/application-form/sys/getListToCompensatory.js
 module.exports = {
 	main: async (event) => {
-		let {
-			data = {}, userInfo, util
-		} = event;
-		let {
-			vk,
-			db,
-			_
-		} = util;
-		let {
-			_id,
-			pageIndex,
-			pageSize
-		} = data;
+		let { data = {}, userInfo, util } = event;
+		let { vk, db, _ } = util;
+		let { _id, pageIndex, pageSize } = data;
 
-		// 基础查询条件
+		// 1. 读取调休规则，判断是否仅限当月
+		const ruleRes = await vk.baseDao.selects({
+			dbName: 'hrm-attendance-comprule',
+			whereJson: { status: true },
+			limit: 1
+		});
+		const rule = ruleRes.rows[0] || {};
+		const sameMonthOnly = rule.same_month_only === true;
+
+		// 2. 基础查询条件
 		let whereJson = {
 			form_type_code: 'OVERTIME_APPLICATION',
 			status: 'approved'
 		};
 		if (_id) whereJson._id = _id;
-
-		// 权限控制：非管理员只能看自己的
-		// const userRole = userInfo.role || [];
-		// if (!userRole.includes('admin') && !userRole.includes('manager')) {
-		// 	whereJson.applicant_id = userInfo.username;
-		// }
 		whereJson.applicant_id = userInfo.username;
 
+		// 3. 若规则要求同月，只查询本月加班单
+		if (sameMonthOnly) {
+			const now = new Date();
+			const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+			const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+
+			// 注意：这里过滤的是加班记录的日期，需要通过关联表或聚合实现
+			// 由于加班日期存在 overtime_record 表，而 application-form 表单存的是 form_data.items
+			// 这里简化处理：先查本月所有加班记录，拿到 overtime_id 列表
+			const overtimeRecordsRes = await vk.baseDao.selects({
+				dbName: 'hrm-attendance-overtimerecord',
+				whereJson: {
+					employee_id: userInfo.username,
+					overtime_type: 'compensatory',
+					import_status: 1,
+					overtime_date: db.command.gte(startOfMonth).and(db.command.lte(endOfMonth))
+				},
+				fieldJson: { oa_instance_id: true }
+			});
+			const validOaIds = overtimeRecordsRes.rows.map(r => r.oa_instance_id);
+
+			if (validOaIds.length === 0) {
+				// 本月没有可调休的加班单
+				return { code: 0, rows: [], total: 0 };
+			}
+			whereJson._id = db.command.in(validOaIds);
+		}
+
+		// 4. 查询符合条件的加班申请
 		let res = await vk.baseDao.getTableData({
 			dbName: 'bpmn-application-form',
-			data: {
-				pageIndex,
-				pageSize
-			},
+			data: { pageIndex, pageSize },
 			whereJson,
-			orderBy: {
-				'_add_time': 'desc'
-			}
+			orderBy: { '_add_time': 'desc' }
 		});
 
-		if (res.code === 0 && res.rows.length > 0) {
+		// 5. 计算剩余可调休时长
+		if (res.code === 0 && res.total > 0) {
 			const overtimeIds = res.rows.map(item => item._id);
-			// 查询所有调休申请单（包括已审批通过和审批中的）
 			const compensatoryList = await db.collection('bpmn-application-form')
 				.where({
 					form_type_code: 'COMPENSATORY_APPLICATION',
-					status: _.in(['approved', 'pending']), // 增加审批中的状态
+					status: _.in(['approved', 'pending']),
 					'form_data.items': db.command.elemMatch({
 						overtime_id: db.command.in(overtimeIds)
 					})
 				})
 				.get();
 
-			// 累加已使用（包括审批中和已通过的）
 			const usedMap = {};
 			compensatoryList.data.forEach(comp => {
 				const items = comp.form_data?.items || [];
 				items.forEach(item => {
 					const oid = item.overtime_id;
-					const deduct = parseFloat(item.deduct_hours) || 0;
+					const deduct = parseFloat(item.deduct_minutes) || 0;
 					usedMap[oid] = (usedMap[oid] || 0) + deduct;
 				});
 			});
 
-			// 过滤出可调休的加班单（overtime_type === 'compensatory' 且剩余时长 > 0）
 			const finalRows = [];
 			for (const item of res.rows) {
-				// 检查加班类型
 				const overtimeType = item.form_data?.overtime_type || item.calculated_values?.overtime_type;
 				if (overtimeType !== 'compensatory') continue;
 
-				// 获取总加班小时数
-				const total = parseFloat(item.form_data?.overtime_total_hours ||
-					item.calculated_values?.total_hours || 0);
+				const total = parseFloat(item.form_data?.total_minutes ||
+					item.calculated_values?.total_minutes || 0);
 				if (total <= 0) continue;
 
 				const used = usedMap[item._id] || 0;
 				const remaining = Math.max(0, total - used);
 				if (remaining <= 0) continue;
 
-				let remainingHours = remaining.toFixed(1);
-				if (remainingHours.endsWith('.0')) remainingHours = remainingHours.slice(0, -2);
 				finalRows.push({
 					...item,
-					remaining_hours: remainingHours
+					remaining_minutes: remaining
 				});
 			}
 			res.rows = finalRows;

@@ -93,15 +93,10 @@
 						{
 							key: "min_unit",
 							title: "最小单位",
-							type: "select",
-							width: colWidth - 60,
-							data: [
-								{ value: 1, label: "天" },
-								{ value: 2, label: "半天" },
-								{ value: 3, label: "小时" }
-							],
+							type: "text",
+							width: colWidth - 60,							
 							formatter: (val) => {
-								const map = { 1: '天', 2: '半天', 3: '小时' };
+								const map = { 1: '天', 2: '半天', 3: '小时', 4: '分钟' };
 								return map[val] || val;
 							}
 						},
@@ -212,7 +207,8 @@
 								data: [
 									{ value: 1, label: "天" },
 									{ value: 2, label: "半天" },
-									{ value: 3, label: "小时" }
+									{ value: 3, label: "小时" },
+									{ value: 4, label: "分钟" },
 								]
 							},
 							{

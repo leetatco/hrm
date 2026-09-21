@@ -1,6 +1,6 @@
 {
 	"bsonType": "object",
-	"required": ["employee_id", "leave_date", "leave_type", "total_hours"],
+	"required": ["employee_id", "leave_date", "leave_type", "total_minutes"],
 	"properties": {
 		"_id": {
 			"description": "ID"
@@ -21,8 +21,12 @@
 			"title": "假期类型代码",
 			"bsonType": "string"
 		},
-		"total_hours": {
-			"title": "请假小时数",
+		"leave_name": {
+			"title": "假期类型名称",
+			"bsonType": "string"
+		},
+		"total_minutes": {
+			"title": "请假时数",
 			"bsonType": "double"
 		},
 		"morning_range": {

@@ -31,8 +31,7 @@ module.exports = {
 		// 获取前端传过来的参数
 		let {
 			employee_id,
-			schedule_date,
-			shift_id,
+			schedule_date,			
 			attendance_group_id,
 			status = true,
 			remark,
@@ -48,8 +47,7 @@ module.exports = {
 			dbName,
 			dataJson: {
 				employee_id,
-				schedule_date,
-				shift_id,
+				schedule_date,				
 				attendance_group_id,
 				status,
 				remark,

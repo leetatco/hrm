@@ -637,16 +637,17 @@
 						action: "",
 						// 表单字段显示规则
 						columns: [{
-								"key": "employee_id",
-								"title": "员工工号",
-								"type": "text",
-								"width": colWidth
+								key: "employee_id",
+								title: "员工工号",
+								type: "text",
+								disabled: true,
+								width: colWidth
 							},
 							{
-								"key": "employee_name",
-								"title": "员工姓名",
-								"type": "text",
-								"width": colWidth
+								key: "employee_name",
+								title: "员工姓名",
+								type: "text",
+								width: colWidth
 							},
 							{
 								key: "center_id",
@@ -831,7 +832,7 @@
 									label: "company_name",
 									children: "children"
 								},
-								watch: ({
+								watch: async ({
 									value,
 									formData,
 									column,
@@ -839,7 +840,20 @@
 									option,
 									$set
 								}) => {
-									// 此处根据选择的值动态改变department_id的actionData的值									
+									// 取最大工号
+									let data = await vk.callFunction({
+										url: 'admin/hrm/employees/sys/getMaxEmp',
+										title: '请求中...',
+										data: {
+											company_id: value
+										},
+									});
+									let itemEmp = vk.pubfn.getListItem(this.form1.props.columns, "key",
+										"employee_id");
+
+									this.$set(this.form1.data, itemEmp.key, data.nextNo || "");
+
+									// 此处根据选择的值动态改变department_id的actionData的值																		
 									let item = vk.pubfn.getListItem(this.form1.props.columns, "key",
 										"department_id");
 									item.actionData.company_id = value;
@@ -1359,52 +1373,52 @@
 								trigger: ['blur', 'change']
 							}],
 							insurance_id: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							stay: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							contract_id: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							contract_date: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							contract_desc: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							registration: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							expiration_date: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							card_location: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							marital_status: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
 							no_crime: [{
-								required: true,
+								required: false,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
@@ -1988,10 +2002,11 @@
 						}
 
 						// 1. 数据验证
-						const errors = [];
-						const validData = [];
+						let errors = [];
+						let validData = [];
 
 						for (const item of rows) {
+							//工号
 							if (vk.pubfn.isNull(item.employee_id)) {
 								errors.push({
 									employee_id: '无工号',
@@ -1999,63 +2014,114 @@
 								});
 								continue;
 							}
-							// 可以添加更多校验（例如身份证格式等）
+							//手机号
+							if (!vk.pubfn.test(item.mobile, 'mobile')) {
+								errors.push({
+									employee_id: item.employee_id,
+									reason: '手机号格式错误'
+								});
+								continue;
+							}
+							//身份证号
+							if (!vk.pubfn.test(item.card, 'card')) {
+								errors.push({
+									employee_id: item.employee_id,
+									reason: '身份证号格式错误'
+								});
+								continue;
+							}
+							//状态
+							if (vk.pubfn.isNull(item.status)) {
+								errors.push({
+									employee_id: item.employee_id,
+									reason: '状态不能为空'
+								});
+								continue;
+							}
+							// 可以添加更多校验（例如身份证格式等）							
 							validData.push(item);
 						}
 
-						if (errors.length > 0) {
-							let msg = errors.slice(0, 5).map(e => `工号:${e.employee_id} - ${e.reason}`)
-								.join('\n');
-							if (errors.length > 5) msg += `\n...还有${errors.length - 5}条错误`;
-							return vk.alert(msg, '数据验证失败');
-						}
-
-						// 2. 批量删除旧数据（按工号）
-						const employeeIds = validData.map(item => item.employee_id);
-						const delRes = await vk.callFunction({
-							url: 'admin/hrm/employees/sys/all/deleteAll',
-							title: '清理旧数据...',
+						// 2. 找到重复的数据（按工号）
+						const employeeIds = validData.filter(item => item.employee_id).map(item => item
+							.employee_id);
+						const dupRes = await vk.callFunction({
+							url: 'admin/hrm/employees/pub/getAllEmployee',
+							title: '查找中...',
 							data: {
 								employee_ids: employeeIds
 							}
 						});
-						if (delRes.code !== 0) {
-							return vk.alert('清理旧数据失败，导入终止');
+						if (dupRes.code !== 0) {
+							return vk.alert('查找重复的数据失败，导入终止');
 						}
+
+						if (dupRes.total > 0) {
+							dupRes.rows.map((item) => {
+								errors.push({
+									employee_id: item.employee_id,
+									reason: '工号重复'
+								})
+							})
+						}
+
+						if (errors.length > 0) {
+							let msg = errors.slice(0, 10).map(e => `工号:${e.employee_id} - ${e.reason}`)
+								.join('\n');
+							if (errors.length > 10) msg += `\n...还有${errors.length - 10}条错误`;
+							return vk.alert(msg, '数据验证失败');
+						}
+
+						// 2. 批量删除旧数据（按工号）
+						// const employeeIds = validData.map(item => item.employee_id);
+						// const delRes = await vk.callFunction({
+						// 	url: 'admin/hrm/employees/sys/all/deleteAll',
+						// 	title: '清理旧数据...',
+						// 	data: {
+						// 		employee_ids: employeeIds
+						// 	}
+						// });
+						// if (delRes.code !== 0) {
+						// 	return vk.alert('清理旧数据失败，导入终止');
+						// }
 
 						// 转换数据（一次性调用）
 						vk.toast('数据转换中...');
 						const empRes = await vk.callFunction({
-						    url: 'admin/hrm/employees/pub/getImportEmployees',
-						    data: { items: validData },
-						    title: '数据转换中...'
+							url: 'admin/hrm/employees/pub/getImportEmployees',
+							data: {
+								items: validData
+							},
+							title: '数据转换中...'
 						});
 						if (empRes.code !== 0) {
-						    return vk.alert(empRes.msg || '数据转换失败');
+							return vk.alert(empRes.msg || '数据转换失败');
 						}
-						
+
 						const transformedItems = empRes.items || [];
 						if (transformedItems.length === 0) {
-						    return vk.alert('没有可导入的有效数据');
+							return vk.alert('没有可导入的有效数据');
 						}
-						
+
 						// 可选：提示部分转换失败
 						if (empRes.errors && empRes.errors.length > 0) {
-						    vk.toast(`有 ${empRes.errors.length} 条数据转换失败，已跳过`);
+							vk.toast(`有 ${empRes.errors.length} 条数据转换失败，已跳过`);
 						}
-						
+
 						// 批量新增
 						const addRes = await vk.callFunction({
-						    url: 'admin/hrm/employees/sys/all/addAll',
-						    data: { items: transformedItems },
-						    title: '批量导入中...'
+							url: 'admin/hrm/employees/sys/all/addAll',
+							data: {
+								items: transformedItems
+							},
+							title: '批量导入中...'
 						});
-						
+
 						if (addRes.code === 0) {
-						    const successCount = addRes.id?.length || transformedItems.length;
-						    vk.alert(`成功导入 ${successCount} 条`, '导入完成', () => this.refresh());
+							const successCount = addRes.id?.length || transformedItems.length;
+							vk.alert(`成功导入 ${successCount} 条`, '导入完成', () => this.refresh());
 						} else {
-						    vk.alert('批量导入失败，请稍后重试');
+							vk.alert('批量导入失败，请稍后重试');
 						}
 					});
 				} catch (error) {

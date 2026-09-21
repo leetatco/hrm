@@ -75,10 +75,9 @@
 									</text>
 								</view>
 								<view class="info-item">
-									<text class="info-label">总计小时</text>
+									<text class="info-label">总时数</text>
 									<text class="info-value">
-										{{ item.form_data?.total_compensatory_hours || '0' }} 小时
-									</text>
+										{{ vk.myfn.formatMinutes(item.form_data?.total_minutes || '0') }}									</text>
 								</view>
 								<view class="info-item">
 									<text class="info-label">申请人</text>
@@ -483,8 +482,8 @@
 							]
 						},
 						{
-							name: "total_compensatory_hours",
-							label: "总计调休小时数",
+							name: "total_minutes",
+							label: "总时数",
 							type: "text",
 							disabled: true,
 							defaultValue: "0"
@@ -523,7 +522,7 @@
 							},
 							{
 								title: "调休统计",
-								fields: ["total_compensatory_hours"]
+								fields: ["total_minutes"]
 							},
 							{
 								title: "备注与附件",
@@ -710,15 +709,9 @@
 				formData._id = formData._id || this.formDialog.data._id;
 				this.submitFormLoading = true;
 				try {
-					const userInfo = vk.getVuex('$user.userInfo');
-					const overtimeList = formData.form_data?.items || [];
-					const totalHours = formData.form_data.total_compensatory_hours;
+					const userInfo = vk.getVuex('$user.userInfo');					
 					const submitData = {
-						...formData,
-						calculated_values: {
-							total_compensatory_hours: totalHours,
-							overtime_count: overtimeList.length
-						},
+						...formData,						
 						userInfo,
 						title: formData.form_data?.compensatory_title || '调休申请',
 					};
@@ -755,16 +748,10 @@
 			async handleSimulate(formData) {
 				this.simulateFormLoading = true;
 				try {
-					const userInfo = vk.getVuex('$user.userInfo');
-					const overtimeList = formData.form_data?.items || [];
-					const totalHours = formData.form_data.total_compensatory_hours;
+					const userInfo = vk.getVuex('$user.userInfo');					
 					const simulateData = {
 						form_type_code: this.formTypeCode,
-						form_data: formData.form_data,
-						calculated_values: {
-							total_compensatory_hours: totalHours,
-							overtime_count: overtimeList.length
-						},
+						form_data: formData.form_data,						
 						process_definition_key: 'COMPENSATORY_APPLICATION',
 						userInfo,
 					};

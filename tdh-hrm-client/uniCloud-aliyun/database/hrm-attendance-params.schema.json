@@ -1,96 +1,101 @@
 {
-  "bsonType": "object",
-  "required": [],
-  "permission": {
-    "read": false,
-    "create": false,
-    "update": false,
-    "delete": false
-  },
-  "properties": {
-    "_id": {
-      "description": "存储文档 ID，系统自动生成"
-    },
-    "late_threshold_minutes": {
-      "title": "迟到阈值(分钟)",
-      "bsonType": "int",
-      "description": "晚于上班时间多少分钟算迟到，默认1分钟",
-      "defaultValue": 1,
-      "minimum": 0
-    },
-    "early_threshold_minutes": {
-      "title": "早退阈值(分钟)",
-      "bsonType": "int",
-      "description": "早于下班时间多少分钟算早退，默认1分钟",
-      "defaultValue": 1,
-      "minimum": 0
-    },
-    "absent_threshold_minutes": {
-      "title": "旷工阈值(分钟)",
-      "bsonType": "int",
-      "description": "迟到或早退超过此时间算旷工，或未打卡超过此时间算旷工，默认30分钟",
-      "defaultValue": 30,
-      "minimum": 0
-    },
-    "monthly_period_type": {
-      "title": "月统计周期",
-      "bsonType": "int",
-      "description": "1=自然月(1号-月底)，2=固定日期段(如26日-25日)",
-      "defaultValue": 1,
-      "enum": [1, 2]
-    },
-    "period_start_day": {
-      "title": "周期起始日",
-      "bsonType": "int",
-      "description": "当统计周期为固定日期段时，起始日为几号，如26(表示上月26日-本月25日)",
-      "defaultValue": 1,
-      "minimum": 1,
-      "maximum": 31
-    },
-    "remedy_limit_per_month": {
-      "title": "每月补卡次数",
-      "bsonType": "int",
-      "description": "每月允许的补卡次数上限，0表示不允许补卡",
-      "defaultValue": 3,
-      "minimum": 0
-    },
-    "overtime_min_unit": {
-      "title": "加班最小计算单位(分钟)",
-      "bsonType": "int",
-      "description": "累计加班不足此时长不计入，如30分钟，0表示按实际",
-      "defaultValue": 30,
-      "minimum": 0
-    },
-    "allow_overtime_application": {
-      "title": "是否允许申请加班",
-      "bsonType": "bool",
-      "description": "全局加班申请开关",
-      "defaultValue": true
-    },
-    "remark": {
-      "title": "备注",
-      "bsonType": "string",
-      "description": "备注信息",
-      "trim": "both"
-    },
-    "update_date": {
-      "title": "更新时间",
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updat_id": {
-      "title": "更新人",
-      "bsonType": "string",
-      "description": "更新人ID",
-      "trim": "both",
-      "foreignKey": "uni-id-users._id",
-      "forceDefaultValue": {
-        "$env": "uid"
-      }
-    }
-  },
-  "version": "0.0.1"
+	"bsonType": "object",
+	"required": [],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"late_threshold_minutes": {
+			"title": "迟到阈值(分钟)",
+			"bsonType": "int",
+			"description": "晚于上班时间多少分钟算迟到，默认1分钟",
+			"defaultValue": 1,
+			"minimum": 0
+		},
+		"early_threshold_minutes": {
+			"title": "早退阈值(分钟)",
+			"bsonType": "int",
+			"description": "早于下班时间多少分钟算早退，默认1分钟",
+			"defaultValue": 1,
+			"minimum": 0
+		},
+		"absent_threshold_minutes": {
+			"title": "旷工阈值(分钟)",
+			"bsonType": "int",
+			"description": "迟到或早退超过此时间算旷工，或未打卡超过此时间算旷工，默认30分钟",
+			"defaultValue": 30,
+			"minimum": 0
+		},
+		"monthly_period_type": {
+			"title": "月统计周期",
+			"bsonType": "int",
+			"description": "1=自然月(1号-月底)，2=固定日期段(如26日-25日)",
+			"defaultValue": 1,
+			"enum": [1, 2]
+		},
+		"period_start_day": {
+			"title": "周期起始日",
+			"bsonType": "int",
+			"description": "当统计周期为固定日期段时，起始日为几号，如26(表示上月26日-本月25日)",
+			"defaultValue": 1,
+			"minimum": 1,
+			"maximum": 31
+		},		
+		"overtime_min_unit": {
+			"title": "加班最小计算单位(分钟)",
+			"bsonType": "int",
+			"description": "累计加班不足此时长不计入，如30分钟，0表示按实际",
+			"defaultValue": 30,
+			"minimum": 0
+		},		
+		"allow_overtime_application": {
+			"title": "是否允许申请加班",
+			"bsonType": "bool",
+			"description": "全局加班申请开关",
+			"defaultValue": true
+		},
+		"probation_months": {
+			"title": "默认试用期(月)",
+			"bsonType": "int",
+			"defaultValue": 3,
+			"description": "全局默认试用期月数，员工未单独设置时使用"
+		},
+		"status": {
+		  "title": "启用状态",
+		  "bsonType": "bool",
+		  "description": "true=启用，false=停用",
+		  "defaultValue": true
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注信息",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
 }

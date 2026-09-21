@@ -75,9 +75,9 @@
 									</text>
 								</view>
 								<view class="info-item">
-									<text class="info-label">加班总时长</text>
+									<text class="info-label">总时数</text>
 									<text class="info-value">
-										{{ item.form_data?.overtime_total_hours || '0' }} 小时
+										{{ vk.myfn.formatMinutes(item.form_data?.total_minutes || '0') }}
 									</text>
 								</view>
 								<view class="info-item">
@@ -486,8 +486,8 @@
 							]
 						},
 						{
-							name: "overtime_total_hours",
-							label: "加班总小时数",
+							name: "total_minutes",
+							label: "总时数",
 							type: "text",
 							required: false,
 							disabled: true,
@@ -527,7 +527,7 @@
 							},
 							{
 								title: "统计与说明",
-								fields: ["overtime_total_hours", "remarks", "file_attachments"],
+								fields: ["total_minutes", "remarks", "file_attachments"],
 								fullWidth: true
 							}
 						]
@@ -675,6 +675,15 @@
 				formData._id = formData._id ? formData._id : this.formDialog.data._id;
 				this.saveFormLoading = true;
 				try {
+					
+					// ===== 判断是否允许申请加班 =====
+					const allowRes = await this.checkAllowOvertime();
+					if (!allowRes) {
+						this.submitFormLoading = false;
+						return;
+					}
+					// ===== 判断结束 =====
+					
 					let url = "admin/bpmn/application-form/sys/add";
 					if (formData._id) url = "admin/bpmn/application-form/sys/update";
 					const res = await this.vk.callFunction({
@@ -712,14 +721,17 @@
 				this.submitFormLoading = true;
 				try {
 					const userInfo = this.vk.getVuex('$user.userInfo');
-					const overtimeItems = formData.form_data?.items || [];
-					const totalHours = formData.form_data.overtime_total_hours;
+
+					// ===== 判断是否允许申请加班 =====
+					const allowRes = await this.checkAllowOvertime();
+					if (!allowRes) {
+						this.submitFormLoading = false;
+						return;
+					}
+					// ===== 判断结束 =====
+
 					const submitData = {
 						...formData,
-						calculated_values: {
-							total_hours: totalHours,
-							items_count: overtimeItems.length
-						},
 						userInfo,
 						title: formData.form_data?.overtime_title || '加班申请',
 					};
@@ -758,16 +770,9 @@
 				this.simulateFormLoading = true;
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
-					const overtimeItems = formData.form_data?.items || [];
-					const totalHours = formData.form_data.overtime_total_hours;
-
 					const simulateData = {
 						form_type_code: this.formTypeCode,
 						form_data: formData.form_data,
-						calculated_values: {
-							total_hours: totalHours,
-							items_count: overtimeItems.length
-						},
 						process_definition_key: 'OVERTIME_APPLICATION',
 						userInfo,
 					};
@@ -972,6 +977,35 @@
 				if (type.includes('image') || /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(name)) return 'image';
 				if (type.includes('text') || /\.(txt|md)$/i.test(name)) return 'text';
 				return 'other';
+			},
+			/**
+			 * 检查是否允许申请加班
+			 * 返回 true 表示允许，false 表示禁止
+			 */
+			async checkAllowOvertime() {
+				try {
+					const paramsRes = await this.vk.callFunction({
+						url: 'admin/hrm/attendance/pub/getParams',
+						data: {}
+					});
+					if (paramsRes.code === 0) {
+						const allowOvertime = paramsRes.rows?.allow_overtime_application;
+						if (allowOvertime === false) {
+							uni.showModal({
+								title: '提示',
+								content: '当前系统已关闭加班申请功能，请联系管理员',
+								showCancel: false,
+								confirmText: '知道了'
+							});
+							return false;
+						}
+					}
+					return true;
+				} catch (e) {
+					console.error('读取加班申请开关失败:', e);
+					// 读取失败时默认允许提交（不阻断用户）
+					return true;
+				}
 			},
 		},
 	};

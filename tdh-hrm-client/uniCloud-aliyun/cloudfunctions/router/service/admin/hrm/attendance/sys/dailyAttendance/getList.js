@@ -15,10 +15,10 @@ module.exports = {
 			dbName: 'hrm-attendance-daily',
 			data,
 			sortArr: [{
-				name: 'attendance_date',
-				type: 'desc'
-			}, {
 				name: 'employee_id',
+				type: 'asc'
+			},{
+				name: 'attendance_date',
 				type: 'asc'
 			}],
 			foreignDB: [{

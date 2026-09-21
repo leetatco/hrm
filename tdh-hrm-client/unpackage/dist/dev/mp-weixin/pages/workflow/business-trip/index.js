@@ -313,8 +313,8 @@ const _sfc_main = {
             ]
           },
           {
-            name: "total_trip_hours",
-            label: "出差总小时数",
+            name: "total_minutes",
+            label: "总时数",
             type: "text",
             required: false,
             disabled: true,
@@ -355,7 +355,7 @@ const _sfc_main = {
             },
             {
               title: "统计与说明",
-              fields: ["total_trip_hours", "remarks", "file_attachments"],
+              fields: ["total_minutes", "remarks", "file_attachments"],
               fullWidth: true
             }
           ]
@@ -546,13 +546,8 @@ const _sfc_main = {
         if (!this.validateTripDateRange(tripItems))
           return;
         const userInfo = vk.getVuex("$user.userInfo");
-        const totalHours = formData.form_data.total_trip_hours;
         const submitData = {
           ...formData,
-          calculated_values: {
-            total_hours: totalHours,
-            trip_count: tripItems.length
-          },
           userInfo,
           title: ((_b = formData.form_data) == null ? void 0 : _b.business_trip_title) || "出差申请"
         };
@@ -578,7 +573,7 @@ const _sfc_main = {
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:770", "提交失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:765", "提交失败:", e);
         common_vendor.index.showToast({
           title: "提交失败",
           icon: "none"
@@ -595,14 +590,9 @@ const _sfc_main = {
         if (!this.validateTripDateRange(tripItems))
           return;
         const userInfo = vk.getVuex("$user.userInfo");
-        const totalHours = formData.form_data.total_trip_hours;
         const simulateData = {
           form_type_code: this.formTypeCode,
           form_data: formData.form_data,
-          calculated_values: {
-            total_hours: totalHours,
-            trip_count: tripItems.length
-          },
           process_definition_key: "BUSINESS_TRIP_APPLICATION",
           userInfo
         };
@@ -620,7 +610,7 @@ const _sfc_main = {
           });
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:812", "试算失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:801", "试算失败:", e);
         common_vendor.index.showToast({
           title: "试算失败",
           icon: "none"
@@ -705,7 +695,7 @@ const _sfc_main = {
             this.processInfo.instance = instanceRes.rows[0];
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:895", "加载审批流程失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:884", "加载审批流程失败:", e);
       }
     },
     async loadStatusHistory(item) {
@@ -740,7 +730,7 @@ const _sfc_main = {
         }
         this.statusHistory.sort((a, b) => a.operation_time - b.operation_time);
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:930", "加载状态历史失败:", e);
+        common_vendor.index.__f__("error", "at pages/workflow/business-trip/index.vue:919", "加载状态历史失败:", e);
       }
     },
     getTaskNameFromHistory(history) {
@@ -905,7 +895,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
           border: false
         }),
         f: common_vendor.t($options.getTripTypeText((_b = item.form_data) == null ? void 0 : _b.business_trip_type)),
-        g: common_vendor.t(((_c = item.form_data) == null ? void 0 : _c.total_trip_hours) || "0"),
+        g: common_vendor.t(_ctx.vk.myfn.formatMinutes(((_c = item.form_data) == null ? void 0 : _c.total_minutes) || "0")),
         h: common_vendor.t(item.applicant_name || "未知"),
         i: common_vendor.t($options.formatDate(item._add_time, "yyyy-MM-dd")),
         j: $options.canEdit(item)
@@ -948,7 +938,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     t: !$data.loading && $data.tableData.length === 0
   }, !$data.loading && $data.tableData.length === 0 ? {
-    v: common_vendor.o($options.addBtn, "f7"),
+    v: common_vendor.o($options.addBtn, "2b"),
     w: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -980,12 +970,12 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    G: common_vendor.o($options.handleFormSave, "e3"),
-    H: common_vendor.o($options.handleFormSubmit, "06"),
-    I: common_vendor.o($options.handleSimulate, "56"),
-    J: common_vendor.o($options.previewFile, "c1"),
-    K: common_vendor.o($options.closeFormDialog, "1f"),
-    L: common_vendor.o($options.downloadFile, "0b"),
+    G: common_vendor.o($options.handleFormSave, "f1"),
+    H: common_vendor.o($options.handleFormSubmit, "ba"),
+    I: common_vendor.o($options.handleSimulate, "c6"),
+    J: common_vendor.o($options.previewFile, "27"),
+    K: common_vendor.o($options.closeFormDialog, "2d"),
+    L: common_vendor.o($options.downloadFile, "82"),
     M: common_vendor.p({
       ["form-schema"]: $data.formSchema,
       ["form-type-code"]: $data.formTypeCode,
@@ -997,7 +987,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       simulateLoading: $data.simulateFormLoading
     })
   }, {
-    N: common_vendor.o(($event) => $data.formDialog.show = $event, "13"),
+    N: common_vendor.o(($event) => $data.formDialog.show = $event, "ba"),
     O: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1008,7 +998,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     P: common_vendor.p({
       ["simulate-data"]: $data.simulateDialog.data
     }),
-    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "69"),
+    Q: common_vendor.o(($event) => $data.simulateDialog.show = $event, "d2"),
     R: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1024,8 +1014,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2979ff"
     })
   } : {
-    U: common_vendor.o($options.previewFile, "f8"),
-    V: common_vendor.o($options.downloadFile, "fe"),
+    U: common_vendor.o($options.previewFile, "25"),
+    V: common_vendor.o($options.downloadFile, "64"),
     W: common_vendor.p({
       ["detail-data"]: $data.detailDialog.data,
       ["form-schema"]: $data.formSchema,
@@ -1040,7 +1030,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["form-type-configs"]: $data.formTypeConfigs
     })
   }, {
-    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "93"),
+    X: common_vendor.o(($event) => $data.detailDialog.show = $event, "4e"),
     Y: common_vendor.p({
       mode: $data.popupStyle.mode,
       closeable: true,
@@ -1048,9 +1038,9 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       height: $data.popupStyle.height,
       modelValue: $data.detailDialog.show
     }),
-    Z: common_vendor.o($options.confirmDelete, "86"),
-    aa: common_vendor.o($options.cancelDelete, "bf"),
-    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "af"),
+    Z: common_vendor.o($options.confirmDelete, "f5"),
+    aa: common_vendor.o($options.cancelDelete, "d0"),
+    ab: common_vendor.o(($event) => $data.deleteDialog.show = $event, "50"),
     ac: common_vendor.p({
       ["show-cancel-button"]: true,
       ["show-confirm-button"]: true,
@@ -1058,8 +1048,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       content: $data.deleteDialog.content,
       modelValue: $data.deleteDialog.show
     }),
-    ad: common_vendor.o($options.filePreviewClose, "8c"),
-    ae: common_vendor.o($options.downloadFile, "d6"),
+    ad: common_vendor.o($options.filePreviewClose, "99"),
+    ae: common_vendor.o($options.downloadFile, "4b"),
     af: common_vendor.p({
       value: $data.filePreview.show,
       ["file-data"]: $data.filePreview.data

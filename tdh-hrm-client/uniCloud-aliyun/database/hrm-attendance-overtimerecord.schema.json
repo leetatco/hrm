@@ -1,6 +1,6 @@
 {
 	"bsonType": "object",
-	"required": ["employee_id", "overtime_date", "total_hours", "overtime_type"],
+	"required": ["employee_id", "overtime_date", "total_minutes", "overtime_type"],
 	"properties": {
 		"_id": {
 			"description": "ID"
@@ -17,8 +17,8 @@
 			"title": "加班日期",
 			"bsonType": "string"
 		},
-		"total_hours": {
-			"title": "加班小时数",
+		"total_minutes": {
+			"title": "加班时数",
 			"bsonType": "double"
 		},
 		"overtime_type": {

@@ -77,7 +77,7 @@
 								<view class="info-item">
 									<text class="info-label">总时长</text>
 									<text class="info-value">
-										{{ item.form_data?.total_trip_hours || '0' }} 小时
+										{{ vk.myfn.formatMinutes(item.form_data?.total_minutes || '0') }}
 									</text>
 								</view>
 								<view class="info-item">
@@ -502,8 +502,8 @@
 							]
 						},
 						{
-							name: "total_trip_hours",
-							label: "出差总小时数",
+							name: "total_minutes",
+							label: "总时数",
 							type: "text",
 							required: false,
 							disabled: true,
@@ -543,7 +543,7 @@
 							},
 							{
 								title: "统计与说明",
-								fields: ["total_trip_hours", "remarks", "file_attachments"],
+								fields: ["total_minutes", "remarks", "file_attachments"],
 								fullWidth: true
 							}
 						]
@@ -733,15 +733,10 @@
 					const tripItems = formData.form_data?.items || [];
 					if (!this.validateTripDateRange(tripItems)) return;
 
-					const userInfo = vk.getVuex('$user.userInfo');
-					const totalHours = formData.form_data.total_trip_hours;
+					const userInfo = vk.getVuex('$user.userInfo');					
 
 					const submitData = {
-						...formData,
-						calculated_values: {
-							total_hours: totalHours,
-							trip_count: tripItems.length
-						},
+						...formData,						
 						userInfo,
 						title: formData.form_data?.business_trip_title || '出差申请',
 					};
@@ -781,17 +776,11 @@
 				try {
 					const tripItems = formData.form_data?.items || [];
 					if (!this.validateTripDateRange(tripItems)) return;
-
-					const userInfo = vk.getVuex('$user.userInfo');
-					const totalHours = formData.form_data.total_trip_hours;
+					const userInfo = vk.getVuex('$user.userInfo');					
 
 					const simulateData = {
 						form_type_code: this.formTypeCode,
-						form_data: formData.form_data,
-						calculated_values: {
-							total_hours: totalHours,
-							trip_count: tripItems.length
-						},
+						form_data: formData.form_data,						
 						process_definition_key: 'BUSINESS_TRIP_APPLICATION',
 						userInfo,
 					};

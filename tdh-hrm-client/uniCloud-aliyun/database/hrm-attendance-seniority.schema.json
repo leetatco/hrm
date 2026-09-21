@@ -85,6 +85,16 @@
 			"description": "0表示无上限",
 			"defaultValue": 0
 		},
+		"carry_forward_minutes": {
+			"title": "上年结转额度(分钟)",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"carry_expire_date": {
+			"title": "结转额度过期时间",
+			"bsonType": "timestamp",
+			"description": "超过此时间结转额度自动清零"
+		},
 		"status": {
 			"title": "启用状态",
 			"bsonType": "bool",

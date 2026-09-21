@@ -75,9 +75,9 @@
 									</text>
 								</view>
 								<view class="info-item">
-									<text class="info-label">请假总时长</text>
+									<text class="info-label">总时数</text>
 									<text class="info-value">
-										{{ item.form_data?.total_hours || '0' }} 小时
+										{{ vk.myfn.formatMinutes(item.form_data?.total_minutes || '0') }}
 									</text>
 								</view>
 								<view class="info-item">
@@ -511,8 +511,8 @@
 							]
 						},
 						{
-							name: "total_hours",
-							label: "请假总小时数",
+							name: "total_minutes",
+							label: "总时数",
 							type: "text",
 							required: false,
 							disabled: true,
@@ -552,7 +552,7 @@
 							},
 							{
 								title: "统计与说明",
-								fields: ["remarks", "file_attachments", "total_hours"],
+								fields: ["remarks", "file_attachments", "total_minutes"],
 								fullWidth: true
 							}
 						]
@@ -734,68 +734,98 @@
 				}
 			},
 			async handleFormSubmit(formData) {
-				formData._id = formData._id ? formData._id : this.formDialog.data._id;
-				this.submitFormLoading = true;
-				try {
-					const userInfo = vk.getVuex('$user.userInfo');
-					// 计算请假总小时数并更新表单数据
-					const leaveItems = formData.form_data?.items || [];
-					const totalHours = formData.form_data.total_hours
-
-					const submitData = {
-						...formData,
-						calculated_values: {
-							total_hours: totalHours,
-							items_count: leaveItems.length
-						},
-						userInfo,
-						title: formData.form_data?.leave_title || '请假申请',
-					};
-					if (formData._id) {
-						submitData._id = formData._id;
-						submitData.status = 'pending';
-					}
-					const res = await vk.callFunction({
-						url: 'admin/bpmn/application-form/pub/submit',
-						data: submitData,
-					});
-					if (res.code === 0) {
-						uni.showToast({
-							title: '提交成功',
-							icon: 'success'
-						});
-						this.formDialog.show = false;
-						this.loadListData(true);
-					} else {
-						uni.showToast({
-							title: res.msg || '提交失败',
-							icon: 'none'
-						});
-					}
-				} catch (e) {
-					console.error('提交失败:', e);
-					uni.showToast({
-						title: '提交失败',
-						icon: 'none'
-					});
-				} finally {
-					this.submitFormLoading = false;
-				}
+			    formData._id = formData._id ? formData._id : this.formDialog.data._id;
+			    this.submitFormLoading = true;
+			    try {
+			        const userInfo = vk.getVuex('$user.userInfo');
+			
+			        // ===== 提交前额度校验 =====
+			        const leaveType = formData.form_data?.leave_type;
+			        const totalMinutes = parseFloat(formData.form_data?.total_minutes) || 0;
+			
+			        if (leaveType && totalMinutes > 0) {
+			            const checkRes = await vk.callFunction({
+			                url: 'admin/hrm/attendance/pub/checkLeaveBalance',
+			                data: {
+			                    employee_id: userInfo.employee_id || userInfo.username,
+			                    leave_type: leaveType,
+			                    total_minutes: totalMinutes
+			                }
+			            });
+			
+			            if (checkRes.code !== 0) {
+			                uni.showModal({
+			                    title: '额度校验失败',
+			                    content: checkRes.msg || '额度不足，无法提交',
+			                    showCancel: false,
+			                    confirmText: '知道了'
+			                });
+			                this.submitFormLoading = false;
+			                return;
+			            }
+			
+			            // 取整后与原始不一致时，提示用户确认
+			            const roundedMinutes = checkRes.rounded_minutes;
+			            if (roundedMinutes && Math.round(roundedMinutes) !== Math.round(totalMinutes)) {
+			                const confirmed = await new Promise((resolve) => {
+			                    uni.showModal({
+			                        title: '提示',
+			                        content: `本次请假将按 ${vk.myfn.formatMinutes(roundedMinutes)} 计算，是否继续提交？`,
+			                        success: (res) => resolve(res.confirm)
+			                    });
+			                });
+			                if (!confirmed) {
+			                    this.submitFormLoading = false;
+			                    return;
+			                }
+			                formData.form_data.total_minutes = String(roundedMinutes);
+			            }
+			        }
+			        // ===== 校验结束 =====
+			
+			        const submitData = {
+			            ...formData,
+			            userInfo,
+			            title: formData.form_data?.leave_title || '请假申请',
+			        };
+			        if (formData._id) {
+			            submitData._id = formData._id;
+			            submitData.status = 'pending';
+			        }
+			        const res = await vk.callFunction({
+			            url: 'admin/bpmn/application-form/pub/submit',
+			            data: submitData,
+			        });
+			        if (res.code === 0) {
+			            uni.showToast({
+			                title: '提交成功',
+			                icon: 'success'
+			            });
+			            this.formDialog.show = false;
+			            this.loadListData(true);
+			        } else {
+			            uni.showToast({
+			                title: res.msg || '提交失败',
+			                icon: 'none'
+			            });
+			        }
+			    } catch (e) {
+			        console.error('提交失败:', e);
+			        uni.showToast({
+			            title: '提交失败',
+			            icon: 'none'
+			        });
+			    } finally {
+			        this.submitFormLoading = false;
+			    }
 			},
 			async handleSimulate(formData) {
 				this.simulateFormLoading = true;
 				try {
 					const userInfo = vk.getVuex('$user.userInfo');
-					const leaveItems = formData.form_data?.items || [];
-					const totalHours = formData.form_data.total_hours
-
 					const simulateData = {
 						form_type_code: this.formTypeCode,
-						form_data: formData.form_data,
-						calculated_values: {
-							total_hours: totalHours,
-							items_count: leaveItems.length
-						},
+						form_data: formData.form_data,						
 						process_definition_key: 'LEAVE_APPLICATION',
 						userInfo,
 					};

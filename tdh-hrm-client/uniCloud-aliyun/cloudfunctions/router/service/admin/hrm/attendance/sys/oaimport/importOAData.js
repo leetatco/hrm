@@ -1,51 +1,27 @@
 module.exports = {
 	main: async (event) => {
-		let {
-			data = {}, userInfo, util
-		} = event;
-		let {
-			vk,
-			db
-		} = util;
-		let {
-			_id
-		} = data;
-		if (!_id) return {
-			code: -1,
-			msg: '缺少申请ID'
-		};
+		let { data = {}, userInfo, util } = event;
+		let { vk, db } = util;
+		let { _id, uid } = data;
+		if (!_id) return { code: -1, msg: '缺少申请ID' };
 
 		const dbName = 'bpmn-application-form';
-		let app = await vk.baseDao.findById({
-			dbName,
-			id: _id
-		});
-		if (!app) return {
-			code: -1,
-			msg: '申请不存在'
-		};
+		let app = await vk.baseDao.findById({ dbName, id: _id });
+		if (!app) return { code: -1, msg: '申请不存在' };
 
 		if (app.status !== 'approved' || (app.import_status !== 0 && app.import_status !== 2)) {
-			return {
-				code: -1,
-				msg: '当前状态不允许汇入'
-			};
+			return { code: -1, msg: '当前状态不允许汇入' };
 		}
 
 		const configRes = await vk.baseDao.selects({
 			dbName: 'hrm-attendance-importconfig',
 			whereJson: {},
 			limit: 1,
-			fieldJson: {
-				import_codes: true
-			}
+			fieldJson: { import_codes: true }
 		});
 		let allowedCodes = configRes.rows[0]?.import_codes || [];
 		if (!allowedCodes.includes(app.form_type_code)) {
-			return {
-				code: -1,
-				msg: '该表单类型未配置允许汇入'
-			};
+			return { code: -1, msg: '该表单类型未配置允许汇入' };
 		}
 
 		try {
@@ -62,26 +38,22 @@ module.exports = {
 				case 'COMPENSATORY_APPLICATION':
 					await handleCompensatory(app, util, userInfo);
 					break;
-					// MISS_PUNCH_RECORD 自动处理，可忽略
 				default:
 					throw new Error('未定义的业务处理');
 			}
-			// 更新汇入状态，操作人使用当前用户 uid
+
 			await vk.baseDao.updateById({
 				dbName,
 				id: _id,
 				dataJson: {
 					import_status: 1,
 					import_time: Date.now(),
-					import_operator: userInfo.uid,
-					update_id: userInfo.uid,
+					import_operator: uid,
+					update_id: uid,
 					update_date: Date.now()
 				}
 			});
-			return {
-				code: 0,
-				msg: '汇入成功'
-			};
+			return { code: 0, msg: '汇入成功' };
 		} catch (e) {
 			await vk.baseDao.updateById({
 				dbName,
@@ -89,24 +61,70 @@ module.exports = {
 				dataJson: {
 					import_status: 2,
 					import_msg: e.message,
-					update_id: userInfo.uid,
+					update_id: uid,
 					update_date: Date.now()
 				}
 			});
-			return {
-				code: -1,
-				msg: e.message
-			};
+			return { code: -1, msg: e.message };
 		}
 	}
+};
+
+// ==================== 公共：按最小单位取整 ====================
+function getMinUnitMinutes(minUnit) {
+	if (minUnit === 1) return 480;   // 按天
+	if (minUnit === 2) return 240;   // 按半天
+	return 60;                       // 按小时
 }
 
-//调休单
+function roundByMinUnit(minutes, minUnit) {
+	const unitMinutes = getMinUnitMinutes(minUnit);
+	return Math.ceil(minutes / unitMinutes) * unitMinutes;
+}
+
+// ==================== 公共：获取调休规则 ====================
+async function getCompRule(util) {
+	const { vk } = util;
+	const res = await vk.baseDao.selects({
+		dbName: 'hrm-attendance-comprule',
+		whereJson: { status: true },
+		limit: 1
+	});
+	if (res.rows.length > 0) {
+		return res.rows[0];
+	}
+	return {
+		min_unit: 1,
+		min_unit_minutes: 60,
+		max_accumulate_minutes: 0,
+		overtime_to_comp_ratio: 1.0,
+		valid_period: 3,
+		auto_expire: true
+	};
+}
+
+// ==================== 公共：获取打卡窗口 ====================
+function getPunchWindow(punchRule) {
+	if (punchRule) {
+		return {
+			inBefore: punchRule.sign_in_before_minutes ?? 60,
+			inAfter: punchRule.sign_in_after_minutes ?? 30,
+			outBefore: punchRule.sign_out_before_minutes ?? 30,
+			outAfter: punchRule.sign_out_after_minutes ?? 120
+		};
+	}
+	// 无打卡规则时使用默认值
+	return {
+		inBefore: 60,
+		inAfter: 30,
+		outBefore: 30,
+		outAfter: 120
+	};
+}
+
+// ==================== 调休单 ====================
 async function handleCompensatory(app, util, userInfo) {
-	const {
-		vk,
-		db
-	} = util;
+	const { vk, db } = util;
 	const formData = app.form_data;
 	const employeeId = app.applicant_id;
 
@@ -117,82 +135,74 @@ async function handleCompensatory(app, util, userInfo) {
 	const compensatoryDate = formData.compensatory_date;
 	if (!compensatoryDate) throw new Error('调休日期不能为空');
 
-	// 计算总调休小时数，并整理items
-	let totalHours = 0;
+	const compensatoryDateTimestamp = new Date(compensatoryDate).getTime();
+
+	const rule = await getCompRule(util);
+	const unitMinutes = rule.min_unit_minutes || 60;
+
+	let totalMinutes = 0;
 	const items = [];
 
 	for (const item of formData.items) {
 		if (!item.overtime_id) throw new Error('请选择加班单');
-		const deductHours = parseFloat(item.deduct_hours);
-		if (!deductHours || deductHours <= 0) throw new Error('调休小时数必须大于0');
+		let deductMinutes = parseFloat(item.deduct_minutes);
+		if (!deductMinutes || deductMinutes <= 0) throw new Error('调休时长必须大于0');
 
-		totalHours += deductHours;
+		deductMinutes = Math.ceil(deductMinutes / unitMinutes) * unitMinutes;
+
+		totalMinutes += deductMinutes;
 		items.push({
 			overtime_id: item.overtime_id,
 			overtime_title: item.overtime_title || '',
-			deduct_hours: deductHours
+			deduct_minutes: deductMinutes
 		});
 	}
 
-	if (totalHours <= 0) throw new Error('调休总小时数无效');
+	if (totalMinutes <= 0) throw new Error('调休总时长无效');
 
-	// 获取调休假期额度（leave_type_code = 'compensatory'）
 	const year = new Date().getFullYear();
 	const balanceRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-leavebalance',
-		whereJson: {
-			employee_id: employeeId,
-			leave_type_id: 'compensatory',
-			year: year
-		},
+		whereJson: { employee_id: employeeId, leave_type_id: 'compensatory', year: year },
 		limit: 1
 	});
 
 	if (balanceRes.rows.length === 0) {
-		throw new Error('暂无调休额度，请先通过加班申请积累调休');
+		throw new Error('暂无调休假额度，请先通过加班申请积累调休');
 	}
 
 	const balance = balanceRes.rows[0];
-	const remaining = (balance.total_quota || 0) - (balance.used_quota || 0);
-	if (remaining < totalHours) {
-		throw new Error(`调休额度不足（剩余${remaining}小时，需要${totalHours}小时）`);
+	const remaining = (balance.total_minutes || 0) - (balance.used_minutes || 0);
+	if (remaining < totalMinutes) {
+		throw new Error(`调休假额度不足（剩余${formatMinutes(remaining)}，需要${formatMinutes(totalMinutes)}）`);
 	}
 
-	// 扣减额度
-	const newUsed = (balance.used_quota || 0) + totalHours;
+	const newUsed = (balance.used_minutes || 0) + totalMinutes;
 	await vk.baseDao.updateById({
 		dbName: 'hrm-attendance-leavebalance',
 		id: balance._id,
-		dataJson: {
-			used_quota: newUsed,
-			update_id: userInfo.uid,
-			update_date: Date.now()
-		}
+		dataJson: { used_minutes: newUsed, update_id: uid, update_date: Date.now() }
 	});
 
-	// 插入调休记录
 	await vk.baseDao.add({
 		dbName: 'hrm-attendance-compensatoryrecord',
 		dataJson: {
 			employee_id: employeeId,
 			oa_instance_id: app._id,
-			compensatory_date: compensatoryDate,
-			total_hours: totalHours,
+			compensatory_date: compensatoryDateTimestamp,
+			total_minutes: totalMinutes,
 			items: items,
 			reason: formData.remarks || '',
 			import_status: 1,
-			update_id: userInfo.uid,
+			update_id: uid,
 			update_date: Date.now()
 		}
 	});
 }
 
-//出差单
+// ==================== 出差单（按天拆分） ====================
 async function handleTrip(app, util, userInfo) {
-	const {
-		vk,
-		db
-	} = util;
+	const { vk, db } = util;
 	const formData = app.form_data;
 	const employeeId = app.applicant_id;
 
@@ -205,48 +215,59 @@ async function handleTrip(app, util, userInfo) {
 
 	for (const item of formData.items) {
 		const location = item.trip_location;
-		const startTime = item.start_time; // 应为 "yyyy-MM-dd HH:mm" 格式
-		const endTime = item.end_time;
+		const startTimeStr = item.start_time;
+		const endTimeStr = item.end_time;
 
 		if (!location) throw new Error('出差地点不能为空');
-		if (!startTime || !endTime) throw new Error('出差开始/结束时间不能为空');
+		if (!startTimeStr || !endTimeStr) throw new Error('出差开始/结束时间不能为空');
 
-		const startTimestamp = new Date(startTime).getTime();
-		const endTimestamp = new Date(endTime).getTime();
-		if (isNaN(startTimestamp) || isNaN(endTimestamp) || startTimestamp >= endTimestamp) {
+		const startTs = new Date(startTimeStr).getTime();
+		const endTs = new Date(endTimeStr).getTime();
+		if (isNaN(startTs) || isNaN(endTs) || startTs >= endTs) {
 			throw new Error('出差时间无效');
 		}
 
-		const hours = (endTimestamp - startTimestamp) / (1000 * 60 * 60);
+		let current = new Date(startTs);
+		while (current.getTime() < endTs) {
+			const dayStart = new Date(current.getFullYear(), current.getMonth(), current.getDate()).getTime();
+			const nextDayStart = new Date(current.getFullYear(), current.getMonth(), current.getDate() + 1).getTime();
+			const dayEnd = Math.min(nextDayStart, endTs);
 
-		records.push({
-			employee_id: employeeId,
-			oa_instance_id: app._id,
-			trip_location: location,
-			start_time: startTimestamp,
-			end_time: endTimestamp,
-			total_hours: hours,
-			trip_type: tripType,
-			reason: formData.remarks || '',
-			import_status: 1,
-			update_id: userInfo.uid,
-			update_date: Date.now()
-		});
+			const segStart = Math.max(dayStart, startTs);
+			const segEnd = dayEnd;
+
+			if (segStart < segEnd) {
+				const minutes = Math.round((segEnd - segStart) / (1000 * 60));
+				records.push({
+					employee_id: employeeId,
+					oa_instance_id: app._id,
+					trip_location: location,
+					start_time: segStart,
+					end_time: segEnd,
+					total_minutes: minutes,
+					trip_type: tripType,
+					reason: formData.remarks || '',
+					import_status: 1,
+					update_id: uid,
+					update_date: Date.now()
+				});
+			}
+
+			current = new Date(current.getFullYear(), current.getMonth(), current.getDate() + 1);
+		}
 	}
 
-	// 批量插入出差记录
+	if (records.length === 0) throw new Error('没有有效的出差时段');
+
 	await vk.baseDao.adds({
 		dbName: 'hrm-attendance-triprecord',
 		dataJson: records
 	});
 }
 
-//请假单
+// ==================== 请假单 ====================
 async function handleLeave(app, util, userInfo) {
-	const {
-		vk,
-		db
-	} = util;
+	const { vk, db } = util;
 	const formData = app.form_data;
 	const employeeId = app.applicant_id;
 
@@ -254,85 +275,73 @@ async function handleLeave(app, util, userInfo) {
 		throw new Error('请假明细不能为空');
 	}
 
-	const leaveTypeCode = formData.leave_type; // annual, sick, personal ...
+	const leaveTypeCode = formData.leave_type;
 	if (!leaveTypeCode) throw new Error('请假类型不能为空');
 
-	// 1. 获取假期类型定义，判断是否需要额度
 	const leaveTypeRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-leave',
-		whereJson: {
-			leave_code: leaveTypeCode
-		},
+		whereJson: { leave_code: leaveTypeCode },
 		limit: 1
 	});
 	const leaveTypeDef = leaveTypeRes.rows[0];
-	const hasQuota = leaveTypeDef ? leaveTypeDef.has_quota : false;
+	if (!leaveTypeDef) throw new Error('假期类型不存在');
+	const leaveTypeName = leaveTypeDef.leave_name || leaveTypeCode;
+	const hasQuota = leaveTypeDef.has_quota;
+	const minUnit = leaveTypeDef.min_unit || 3;
 
-	// 2. 计算总时长并构建记录
-	let totalHours = 0;
+	let totalMinutes = 0;
 	const records = [];
+
 	for (const item of formData.items) {
-		const leaveDateStr = item.leave_date; // 原始字符串 "YYYY-MM-DD"
+		const leaveDateStr = item.leave_date;
 		if (!leaveDateStr) continue;
 
-		// 转换为时间戳存储
 		const leaveDateTimestamp = new Date(leaveDateStr).getTime();
 
-		let dayHours = 0;
+		let dayMinutes = 0;
 		if (item.morning_range && Array.isArray(item.morning_range) && item.morning_range.length === 2) {
-			dayHours += calcHoursBetween(item.morning_range[0], item.morning_range[1]);
+			dayMinutes += calcMinutesBetween(item.morning_range[0], item.morning_range[1]);
 		}
 		if (item.afternoon_range && Array.isArray(item.afternoon_range) && item.afternoon_range.length === 2) {
-			dayHours += calcHoursBetween(item.afternoon_range[0], item.afternoon_range[1]);
+			dayMinutes += calcMinutesBetween(item.afternoon_range[0], item.afternoon_range[1]);
 		}
-		if (dayHours <= 0) continue;
+		if (dayMinutes <= 0) continue;
 
-		// 根据最小请假单位向上取整（天/半天/小时）
-		const minUnit = leaveTypeDef ? leaveTypeDef.min_unit : 3; // 默认按小时
-		let unitHours = 1; // 小时
-		if (minUnit === 1) unitHours = 8; // 按天，假设一天8小时
-		else if (minUnit === 2) unitHours = 4; // 按半天
-		// 按小时则 unitHours = 1
-		dayHours = Math.ceil(dayHours / unitHours) * unitHours;
-		totalHours += dayHours;
+		dayMinutes = roundByMinUnit(dayMinutes, minUnit);
+		totalMinutes += dayMinutes;
 
 		records.push({
 			employee_id: employeeId,
 			oa_instance_id: app._id,
-			leave_date: leaveDateTimestamp, // 存储为时间戳
+			leave_date: leaveDateTimestamp,
 			leave_type: leaveTypeCode,
-			total_hours: dayHours,
+			leave_name: leaveTypeDef.leave_name,
+			total_minutes: dayMinutes,
 			morning_range: item.morning_range,
 			afternoon_range: item.afternoon_range,
 			reason: formData.remarks || '',
 			import_status: 1,
-			update_id: userInfo.uid,
+			update_id: uid,	
 			update_date: Date.now()
 		});
 	}
 
 	if (records.length === 0) throw new Error('没有有效的请假时段');
-	if (totalHours <= 0) throw new Error('请假总时长为0');
+	if (totalMinutes <= 0) throw new Error('请假总时长为0');
 
-	// 3. 额度扣减（仅对有额度的假期类型）
-	// console.log("hasQuota:",hasQuota);
 	if (hasQuota) {
-		await deductLeaveBalance(util, employeeId, leaveTypeCode, totalHours, app._id, userInfo);
+		await deductLeaveBalance(util, employeeId, leaveTypeCode, leaveTypeName, totalMinutes, app._id, userInfo);
 	}
 
-	// 4. 批量插入请假记录到 hrm-attendance-leaverecord
 	await vk.baseDao.adds({
-		dbName: 'hrm-attendance-leaverecord', // 修正后的表名
+		dbName: 'hrm-attendance-leaverecord',
 		dataJson: records
 	});
 }
 
-//加班单
+// ==================== 加班单（含缺卡校验，补卡也算有效打卡） ====================
 async function handleOvertime(app, util, userInfo) {
-	const {
-		vk,
-		db
-	} = util;
+	const { vk, db } = util;
 	const formData = app.form_data;
 	const employeeId = app.applicant_id;
 
@@ -340,55 +349,147 @@ async function handleOvertime(app, util, userInfo) {
 		throw new Error('加班明细不能为空');
 	}
 
-	// 获取考勤组及规则（同前）
+	// ========== 1. 获取考勤组及绑定的加班规则、打卡规则 ==========
 	const groupRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-group',
-		whereJson: {
-			employee_ids: employeeId,
-			status: true
-		},
+		whereJson: { employee_ids: employeeId, status: true },
 		limit: 1
 	});
 
 	let overtimeRule = null;
-	if (groupRes.rows.length > 0 && groupRes.rows[0].overtime_rule_id) {
-		const ruleRes = await vk.baseDao.findById({
-			dbName: 'hrm-attendance-overtimerule',
-			id: groupRes.rows[0].overtime_rule_id
-		});
-		if (ruleRes) overtimeRule = ruleRes;
-	}
-	if (!overtimeRule) overtimeRule = getDefaultOvertimeRule();
+	let punchRule = null;
 
+	if (groupRes.rows.length > 0) {
+		const group = groupRes.rows[0];
+
+		if (group.overtime_rule_id) {
+			const ruleRes = await vk.baseDao.findById({
+				dbName: 'hrm-attendance-overtimerule',
+				id: group.overtime_rule_id
+			});
+			if (ruleRes && ruleRes.status) overtimeRule = ruleRes;
+		}
+
+		if (group.punch_rule_id) {
+			const punchRes = await vk.baseDao.findById({
+				dbName: 'hrm-attendance-punchrule',
+				id: group.punch_rule_id
+			});
+			if (punchRes && punchRes.status) punchRule = punchRes;
+		}
+	}
+
+	// 无加班规则时使用默认值
+	if (!overtimeRule) {
+		overtimeRule = {
+			min_calculate_unit: 30,
+			overtime_to_comp_ratio: 1.0
+		};
+	}
+
+	const { inBefore, inAfter, outBefore, outAfter } = getPunchWindow(punchRule);
+
+	// ========== 2. 缺卡校验（含补卡） ==========
+	const missingErrors = [];
+
+	for (const item of formData.items) {
+		const overtimeDate = item.overtime_date;
+		if (!overtimeDate) continue;
+
+		const dayStartTs = new Date(overtimeDate + 'T00:00:00').getTime();
+		const dayEndTs = new Date(overtimeDate + 'T23:59:59.999').getTime();
+
+		const clockRes = await vk.baseDao.selects({
+			dbName: 'hrm-clockin',
+			whereJson: {
+				employee_id: employeeId,
+				type: '公司卡',
+				clockintime: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs))
+			},
+			sortArr: [{ name: 'clockintime', type: 'asc' }]
+		});
+
+		const remedyRes = await vk.baseDao.selects({
+			dbName: 'bpmn-application-form',
+			whereJson: {
+				applicant_id: employeeId,
+				form_type_code: 'MISS_PUNCH_RECORD',
+				status: 'approved',
+				'form_data.miss_date': overtimeDate
+			}
+		});
+
+		const punchTimes = [];
+
+		clockRes.rows.forEach(p => {
+			const hhmm = extractHHmmFromTimestamp(p.clockintime);
+			if (hhmm) punchTimes.push(hhmm);
+		});
+
+		remedyRes.rows.forEach(r => {
+			const fd = r.form_data;
+			if (!fd || !fd.miss_time) return;
+			punchTimes.push(fd.miss_time);
+		});
+
+		const checkSegment = (range, label) => {
+			if (!range || !Array.isArray(range) || range.length !== 2) return;
+
+			const segStartMin = toMinutes(range[0]);
+			const segEndMin = toMinutes(range[1]);
+
+			const hasInPunch = punchTimes.some(hhmm => {
+				const pMin = toMinutes(hhmm);
+				return pMin >= segStartMin - inBefore && pMin <= segStartMin + inAfter;
+			});
+			const hasOutPunch = punchTimes.some(hhmm => {
+				const pMin = toMinutes(hhmm);
+				return pMin >= segEndMin - outBefore && pMin <= segEndMin + outAfter;
+			});
+
+			if (!hasInPunch) missingErrors.push(`${overtimeDate} ${label}缺签到卡`);
+			if (!hasOutPunch) missingErrors.push(`${overtimeDate} ${label}缺签退卡`);
+		};
+
+		checkSegment(item.morning_range, '上午');
+		checkSegment(item.afternoon_range, '下午');
+	}
+
+	if (missingErrors.length > 0) {
+		throw new Error(`加班汇入失败：${missingErrors.join('；')}`);
+	}
+
+	// ========== 3. 计算加班明细 ==========
 	const records = [];
 	for (const item of formData.items) {
 		const overtimeDate = item.overtime_date;
 		if (!overtimeDate) continue;
 
-		let totalHours = 0;
+		const overtimeDateTimestamp = new Date(overtimeDate).getTime();
+
+		let totalMinutes = 0;
 		if (item.morning_range && Array.isArray(item.morning_range) && item.morning_range.length === 2) {
-			totalHours += calcHoursBetween(item.morning_range[0], item.morning_range[1]);
+			totalMinutes += calcMinutesBetween(item.morning_range[0], item.morning_range[1]);
 		}
 		if (item.afternoon_range && Array.isArray(item.afternoon_range) && item.afternoon_range.length === 2) {
-			totalHours += calcHoursBetween(item.afternoon_range[0], item.afternoon_range[1]);
+			totalMinutes += calcMinutesBetween(item.afternoon_range[0], item.afternoon_range[1]);
 		}
 
-		if (totalHours <= 0) continue;
+		if (totalMinutes <= 0) continue;
 
 		const minUnitMinutes = overtimeRule.min_calculate_unit || 30;
-		const unitHours = minUnitMinutes / 60;
-		totalHours = Math.ceil(totalHours / unitHours) * unitHours;
+		totalMinutes = Math.ceil(totalMinutes / minUnitMinutes) * minUnitMinutes;
 
 		records.push({
 			employee_id: employeeId,
 			oa_instance_id: app._id,
-			overtime_date: new Date(overtimeDate).getTime(),
-			total_hours: totalHours,
+			overtime_date: overtimeDateTimestamp,
+			total_minutes: totalMinutes,
 			overtime_type: formData.overtime_type || 'paid',
 			morning_range: item.morning_range,
 			afternoon_range: item.afternoon_range,
 			import_status: 1,
-			update_id: userInfo.uid, // 使用当前用户 uid
+			update_id: uid,	
 			update_date: Date.now()
 		});
 	}
@@ -400,115 +501,181 @@ async function handleOvertime(app, util, userInfo) {
 		});
 	}
 
+	// ========== 4. 调休类型加班 → 增加调休额度 ==========
 	if (formData.overtime_type === 'compensatory') {
-		const totalCompHours = records.reduce((sum, r) => sum + r.total_hours, 0);
-		const ratio = overtimeRule.overtime_to_comp_ratio || 1.0;
-		const addHours = totalCompHours * ratio;
-
-		await addCompLeaveBalance(util, employeeId, addHours, app._id, userInfo);
+		const totalCompMinutes = records.reduce((sum, r) => sum + r.total_minutes, 0);
+		if (totalCompMinutes > 0) {
+			const compRule = await getCompRule(util);
+			const ratio = compRule.overtime_to_comp_ratio || 1.0;
+			const addMinutes = Math.floor(totalCompMinutes * ratio);
+			await addCompLeaveBalance(util, employeeId, addMinutes, app._id, userInfo, compRule);
+		}
 	}
 }
 
-async function addCompLeaveBalance(util, employeeId, hours, refId, userInfo) {
-	const {
-		vk,
-		db
-	} = util;
+// ==================== 辅助函数 ====================
+async function addCompLeaveBalance(util, employeeId, minutes, refId, userInfo, compRule) {
+	const { vk, db } = util;
 	const year = new Date().getFullYear();
 	const leaveTypeCode = 'compensatory';
+	const nowTime = Date.now();
 
 	const balanceRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-leavebalance',
-		whereJson: {
-			employee_id: employeeId,
-			leave_type_id: leaveTypeCode,
-			year: year
-		},
+		whereJson: { employee_id: employeeId, leave_type_id: leaveTypeCode, year: year },
 		limit: 1
 	});
 
+	let oldTotal = 0;
+	let oldRemain = 0;
+	let newTotal = minutes;
+
 	if (balanceRes.rows.length > 0) {
 		const balance = balanceRes.rows[0];
-		const newTotal = (balance.total_quota || 0) + hours;
+		oldTotal = balance.total_minutes || 0;
+		oldRemain = oldTotal - (balance.used_minutes || 0);
+		newTotal = oldTotal + minutes;
+
+		if (compRule && compRule.max_accumulate_minutes > 0) {
+			if (newTotal > compRule.max_accumulate_minutes) {
+				newTotal = compRule.max_accumulate_minutes;
+			}
+		}
+
 		await vk.baseDao.updateById({
 			dbName: 'hrm-attendance-leavebalance',
 			id: balance._id,
-			dataJson: {
-				total_quota: newTotal,
-				update_id: userInfo.uid, // 使用当前用户 uid
-				update_date: Date.now()
-			}
+			dataJson: { total_minutes: newTotal, update_id: uid, update_date: nowTime }
 		});
 	} else {
+		if (compRule && compRule.max_accumulate_minutes > 0) {
+			if (newTotal > compRule.max_accumulate_minutes) {
+				newTotal = compRule.max_accumulate_minutes;
+			}
+		}
+
 		await vk.baseDao.add({
 			dbName: 'hrm-attendance-leavebalance',
 			dataJson: {
 				employee_id: employeeId,
 				leave_type_id: leaveTypeCode,
 				year: year,
-				total_quota: hours,
-				used_quota: 0,
+				total_minutes: newTotal,
+				used_minutes: 0,
 				status: true,
-				update_id: userInfo.uid, // 使用当前用户 uid
-				update_date: Date.now()
+				update_id: uid,
+				update_date: nowTime
+			}
+		});
+	}
+
+	// ========== 写入额度日志 ==========
+	const changeAmount = newTotal - oldTotal;
+	if (changeAmount !== 0) {
+		await vk.baseDao.add({
+			dbName: 'hrm-attendance-balancelog',
+			dataJson: {
+				employee_id: employeeId,
+				leave_type_id: leaveTypeCode,
+				year: year,
+				change_type: 2,
+				change_amount: changeAmount,
+				before_balance: oldRemain,
+				after_balance: newTotal - (balanceRes.rows[0]?.used_minutes || 0),
+				ref_id: refId || '',
+				ref_type: 'overtime',
+				remark: `加班转调休${formatMinutes(changeAmount)}`,
+				update_id: uid,
+				update_date: nowTime
 			}
 		});
 	}
 }
 
-// 额度扣减函数（不变）
-async function deductLeaveBalance(util, employeeId, leaveTypeCode, hours, refId, userInfo) {
-	const {
-		vk,
-		db
-	} = util;
+async function deductLeaveBalance(util, employeeId, leaveTypeCode, leaveTypeName, minutes, refId, userInfo) {
+	const { vk, db } = util;
 	const year = new Date().getFullYear();
+	const nowTime = Date.now();
+
 	const balanceRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-leavebalance',
-		whereJson: {
-			employee_id: employeeId,
-			leave_type_id: leaveTypeCode,
-			year: year
-		},
+		whereJson: { employee_id: employeeId, leave_type_id: leaveTypeCode, year: year },
 		limit: 1
 	});
 
 	if (balanceRes.rows.length === 0) {
-		throw new Error(`员工${employeeId}没有${leaveTypeCode}的额度记录`);
+		throw new Error(`员工${employeeId}没有${leaveTypeName || leaveTypeCode}的额度记录`);
 	}
 
 	const balance = balanceRes.rows[0];
-	const remaining = (balance.total_quota || 0) - (balance.used_quota || 0);
-	if (remaining < hours) {
-		throw new Error(`${leaveTypeCode}剩余额度不足（剩余${remaining}小时，需要${hours}小时）`);
+	const oldUsed = balance.used_minutes || 0;
+	const oldRemain = (balance.total_minutes || 0) - oldUsed;
+
+	if (oldRemain < minutes) {
+		throw new Error(`${leaveTypeName || leaveTypeCode}额度不足（剩余${formatMinutes(oldRemain)}，需要${formatMinutes(minutes)}）`);
 	}
 
-	const newUsed = (balance.used_quota || 0) + hours;
+	const newUsed = oldUsed + minutes;
+	const newRemain = (balance.total_minutes || 0) - newUsed;
+
 	await vk.baseDao.updateById({
 		dbName: 'hrm-attendance-leavebalance',
 		id: balance._id,
+		dataJson: { used_minutes: newUsed, update_id: uid, update_date: nowTime }
+	});
+
+	// ========== 写入额度日志 ==========
+	await vk.baseDao.add({
+		dbName: 'hrm-attendance-balancelog',
 		dataJson: {
-			used_quota: newUsed,
-			update_id: userInfo.uid,
-			update_date: Date.now()
+			employee_id: employeeId,
+			leave_type_id: leaveTypeCode,
+			year: year,
+			change_type: 4,
+			change_amount: -minutes,
+			before_balance: oldRemain,
+			after_balance: newRemain,
+			ref_id: refId || '',
+			ref_type: leaveTypeCode === 'compensatory' ? 'compensatory' : 'leave',
+			remark: `${leaveTypeName || leaveTypeCode}扣减`,
+			update_id: uid,
+			update_date: nowTime
 		}
 	});
 }
 
-/**
- * 计算两个 HH:mm 时间之间的小时差
- */
-function calcHoursBetween(startStr, endStr) {
+function extractHHmmFromTimestamp(timestamp) {
+	if (!timestamp) return null;
+	const date = new Date(timestamp);
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	return `${hours}:${minutes}`;
+}
+
+function toMinutes(hhmm) {
+	if (!hhmm) return 0;
+	const [h, m] = hhmm.split(':').map(Number);
+	return h * 60 + m;
+}
+
+function calcMinutesBetween(startStr, endStr) {
 	if (!startStr || !endStr) return 0;
 	const start = new Date(`2000-01-01T${startStr}:00`);
 	const end = new Date(`2000-01-01T${endStr}:00`);
 	if (end <= start) return 0;
-	return (end - start) / (1000 * 60 * 60);
+	return (end - start) / (1000 * 60);
 }
 
-/**
- * 默认加班规则（当无法获取考勤组或规则时使用）
- */
+function formatMinutes(minutes) {
+	if (!minutes || minutes <= 0) return '0分钟';
+	minutes = Math.round(minutes);
+	const h = Math.floor(minutes / 60);
+	const m = minutes % 60;
+	if (h > 0 && m > 0) return `${h}小时${m}分钟`;
+	if (h > 0) return `${h}小时`;
+	return `${m}分钟`;
+}
+
 function getDefaultOvertimeRule() {
 	return {
 		min_calculate_unit: 30,

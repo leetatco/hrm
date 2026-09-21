@@ -25,9 +25,9 @@
 			"bsonType": "timestamp",
 			"description": "结束时间"
 		},
-		"total_hours": {
+		"total_minutes": {
 			"bsonType": "double",
-			"description": "出差总小时数"
+			"description": "出差时数"
 		},
 		"trip_type": {
 			"bsonType": "string",

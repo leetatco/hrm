@@ -10,6 +10,9 @@
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
 					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-add')"
 					@click="addBtn">添加</el-button>
+				<el-button type="warning" size="small" icon="el-icon-magic-stick"
+					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-generate')"
+					@click="generateByRule">按年假规则生成额度</el-button>
 				<el-upload style="display: inline-block; margin-left: 10px;margin-right: 10px;" accept=".xlsx, .xls"
 					:auto-upload="false" :limit="1" :show-file-list="false"
 					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-import')"
@@ -19,6 +22,9 @@
 				<el-button type="primary" size="small" icon="el-icon-download"
 					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-export')"
 					@click="exportExcelModel">下载模板</el-button>
+				<el-button type="info" size="small" icon="el-icon-document"
+					v-if="$hasRole('admin') || $hasPermission('attendance-balancelog-view')"
+					@click="viewLogs">额度变动日志</el-button>
 			</el-row>
 		</view>
 
@@ -35,6 +41,32 @@
 				:form-type="form1.props.formType" :columns='form1.props.columns' label-width="140px" :inline="true"
 				:columnsNumber="2" @success="form1.props.show = false;refresh();" :border="true"></vk-data-form>
 		</vk-data-dialog>
+
+		<!-- 按规则生成弹窗 -->
+		<vk-data-dialog v-model="generateDialog.show" title="按年假规则生成额度" width="500px" top="10vh"
+			:close-on-click-modal="false">
+			<el-form :model="generateForm" :rules="generateRules" ref="generateFormRef" label-width="100px">
+				<el-form-item label="年度" prop="year" required>
+					<el-input-number v-model="generateForm.year" :min="2000" :max="2100"></el-input-number>
+				</el-form-item>
+				<el-form-item label="员工" prop="employee_ids">
+					<vk-data-input-table-select v-model="generateForm.employee_ids" multiple
+						action="admin/hrm/employees/sys/getList" placeholder="全部在职员工（留空则生成所有）" :columns="[
+		          { key: 'employee_id', title: '员工工号', type: 'text', idKey: true },
+		          { key: 'employee_name', title: '员工姓名', type: 'text', nameKey: true }
+		        ]" :queryColumns="[
+		          { key: 'employee_id', title: '员工工号', type: 'text', width: 150, mode: '%%' },
+		          { key: 'employee_name', title: '员工姓名', type: 'text', width: 150, mode: '%%' }
+		        ]"></vk-data-input-table-select>
+				</el-form-item>
+				<el-alert type="info" :closable="false"
+					title="将根据「年假规则配置」中的工龄分段、入职折算、试用期等规则，为员工生成当年年假额度。已存在的年假额度将被覆盖。"></el-alert>
+			</el-form>
+			<template v-slot:footer>
+				<el-button @click="generateDialog.show = false">取消</el-button>
+				<el-button type="primary" @click="doGenerate" :loading="generateLoading">开始生成</el-button>
+			</template>
+		</vk-data-dialog>
 	</view>
 </template>
 
@@ -42,6 +74,7 @@
 	let vk = uni.vk;
 	let originalForms = {};
 	const colWidth = 200;
+
 	export default {
 		data() {
 			return {
@@ -92,23 +125,25 @@
 							width: colWidth - 60
 						},
 						{
-							key: "total_quota",
-							title: "总额度(时)",
-							type: "number",
-							width: colWidth - 60
+							key: "total_minutes",
+							title: "总额度",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
-							key: "used_quota",
-							title: "已用(时)",
-							type: "number",
-							width: colWidth - 60
+							key: "used_minutes",
+							title: "已用",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
-							key: "remain_quota",
-							title: "剩余(时)",
-							type: "number",
-							width: colWidth - 60,
-							formatter: (val, row) => (row.total_quota || 0) - (row.used_quota || 0)
+							key: "remain_minutes",
+							title: "剩余",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val, row) => vk.myfn.formatMinutes((row.total_minutes || 0) - (row.used_minutes || 0))
 						},
 						{
 							key: "adjust_reason",
@@ -233,8 +268,8 @@
 						employee_id: '',
 						leave_type_id: '',
 						year: new Date().getFullYear(),
-						total_quota: 0,
-						used_quota: 0,
+						total_minutes: 0,
+						used_minutes: 0,
 						adjust_reason: '',
 						status: true,
 						remark: ''
@@ -301,15 +336,15 @@
 								required: true
 							},
 							{
-								key: "total_quota",
-								title: "总额度(小时)",
+								key: "total_minutes",
+								title: "总额度(分钟)",
 								type: "number",
 								width: colWidth - 60,
 								required: true
 							},
 							{
-								key: "used_quota",
-								title: "已用额度(小时)",
+								key: "used_minutes",
+								title: "已用额度(分钟)",
 								type: "number",
 								width: colWidth - 60
 							},
@@ -350,7 +385,7 @@
 								message: "年度不能为空",
 								trigger: "blur"
 							}],
-							total_quota: [{
+							total_minutes: [{
 								required: true,
 								message: "总额度不能为空",
 								trigger: "blur"
@@ -360,7 +395,19 @@
 						title: "",
 						show: false
 					}
-				}
+				},
+				// 按规则生成
+				generateDialog: {
+					show: false
+				},
+				generateForm: {
+					year: new Date().getFullYear(),
+					employee_ids: ''
+				},
+				generateRules: {
+					year: [{ required: true, message: '请选择年度', trigger: 'blur' }]
+				},
+				generateLoading: false
 			};
 		},
 		async onLoad() {
@@ -392,6 +439,10 @@
 			resetForm() {
 				vk.pubfn.resetForm(originalForms, this);
 			},
+			// 跳转到额度变动日志
+			viewLogs() {
+				vk.navigateTo('/pages/hrm/attendance/attendance-leavebalancelog/list');
+			},
 			addBtn() {
 				this.resetForm();
 				this.form1.props.action = 'admin/hrm/attendance/sys/leavebalance/add';
@@ -421,6 +472,46 @@
 					}
 				});
 			},
+
+			// ========== 按年假规则生成额度 ==========
+			generateByRule() {
+				this.generateForm.year = new Date().getFullYear();
+				this.generateForm.employee_id = '';
+				this.generateDialog.show = true;
+				this.$nextTick(() => {
+					if (this.$refs.generateFormRef) this.$refs.generateFormRef.clearValidate();
+				});
+			},
+			async doGenerate() {
+				const valid = await this.$refs.generateFormRef.validate().catch(() => false);
+				if (!valid) return;
+				this.generateLoading = true;
+				try {
+					const res = await vk.callFunction({
+						url: 'admin/hrm/attendance/sys/leavebalance/generateByRule',
+						data: {
+							year: this.generateForm.year,
+							employee_ids: this.generateForm.employee_ids && this.generateForm.employee_ids.length > 0 
+							      ? this.generateForm.employee_ids 
+							      : undefined
+						}
+					});
+					if (res.code === 0) {
+						vk.alert(res.msg || `成功生成 ${res.total} 条额度记录`, '提示', () => {
+							this.generateDialog.show = false;
+							this.refresh();
+						});
+					} else {
+						vk.alert(res.msg || '生成失败', '提示');
+					}
+				} catch (e) {
+					console.error(e);
+					vk.alert('请求异常：' + (e.message || '未知错误'), '提示');
+				} finally {
+					this.generateLoading = false;
+				}
+			},
+
 			// Excel 导入
 			handleChange(file) {
 				let typeObj = {
@@ -436,12 +527,12 @@
 						"title": "年度",
 						"type": "number"
 					},
-					total_quota: {
-						"title": "总额度(小时)",
+					total_minutes: {
+						"title": "总额度(分钟)",
 						"type": "number"
 					},
-					used_quota: {
-						"title": "已用额度(小时)",
+					used_minutes: {
+						"title": "已用额度(分钟)",
 						"type": "number"
 					},
 					adjust_reason: {
@@ -463,7 +554,6 @@
 								vk.alert('员工工号、假期类型、年度不能为空');
 								break;
 							}
-							// 可根据业务需要先删除同一条记录再添加，或直接 add
 							let addRes = await vk.callFunction({
 								url: 'admin/hrm/attendance/sys/leavebalance/add',
 								title: '请求中...',
@@ -488,6 +578,7 @@
 					console.log(error);
 				}
 			},
+
 			// 下载导入模板
 			exportExcelModel() {
 				this.$refs.table1.exportExcel({
@@ -509,13 +600,13 @@
 							type: "number"
 						},
 						{
-							key: "total_quota",
-							title: "总额度(小时)",
+							key: "total_minutes",
+							title: "总额度(分钟)",
 							type: "number"
 						},
 						{
-							key: "used_quota",
-							title: "已用额度(小时)",
+							key: "used_minutes",
+							title: "已用额度(分钟)",
 							type: "number"
 						},
 						{

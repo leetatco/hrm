@@ -138,16 +138,15 @@
 							"width": colWidth - 100
 						},
 						{
-							"key": "signature_url",
-							"title": "签名",
-							"type": "image",
-							"fixed": true,
-							"width": colWidth - 100
-						},
-						{
 							"key": "employee_name",
 							"title": "姓名",
 							"type": "text",
+							"fixed": true,
+							"width": colWidth - 100
+						}, {
+							"key": "signature_url",
+							"title": "签名",
+							"type": "image",
 							"fixed": true,
 							"width": colWidth - 100
 						},
@@ -449,6 +448,14 @@
 							format: "yyyy-MM",
 							"width": colWidth
 						}, {
+							key: "attendance_ym_key",
+							title: "月份",
+							type: "date",
+							dateType: "date",
+							valueFormat: "yyyy-MM",
+							format: "yyyy-MM",
+							width: colWidth
+						}, {
 							key: "card",
 							title: "",
 							type: "table-select",
@@ -508,6 +515,9 @@
 							},
 							showAll: true,
 							actionData: {
+								otherWhereJson: {
+									status: 0
+								},
 								pageSize: -1,
 								pageIndex: 1
 							}
@@ -1174,6 +1184,9 @@
 							//处理月份
 							item.attendance_ym_key = vk.myfn.toFormatDate(item.attendance_ym_key);
 
+							//处理保留两位小数
+							item.real_salary = vk.pubfn.toDecimal(item.real_salary, 2);
+
 							//修改新增人员和时间									
 							item.update_date = new Date().getTime();
 							item.update_id = vk.getVuex('$user.userInfo._id');
@@ -1598,10 +1611,11 @@
 			},
 			// 导出xls表格文件（全部数据）
 			async exportExcelAll() {
-				// 1. 校验月份
+				// 1. 校验时间和月份
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
-				if (vk.pubfn.isNull(attendance_ym)) {
-					return vk.alert('时间不能为空！');
+				const attendance_ym_key = this.queryForm1.formData.attendance_ym_key;
+				if (vk.pubfn.isNull(attendance_ym) && vk.pubfn.isNull(attendance_ym_key)) {
+					return vk.alert('时间和月份不能同时为空！');
 				}
 
 				uni.showLoading({
@@ -1922,7 +1936,7 @@
 					let failCount = 0;
 
 					if (imageUrls.length > 0) {
-						const BATCH_SIZE = 80; // 低于云函数 maxCount(100)，留有余量
+						const BATCH_SIZE = 60; // 低于云函数 maxCount(100)，留有余量
 						const total = imageUrls.length;
 						const batches = [];
 						for (let i = 0; i < total; i += BATCH_SIZE) {
@@ -2007,7 +2021,7 @@
 					const blob = new Blob([buffer], {
 						type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					});
-					FileSaver.saveAs(blob, `${attendance_ym}月份工资条（含签名）.xlsx`);
+					FileSaver.saveAs(blob, `${attendance_ym || attendance_ym_key}月份工资条（含签名）.xlsx`);
 
 					uni.hideLoading();
 
