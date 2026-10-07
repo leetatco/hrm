@@ -291,7 +291,7 @@
 								type: "remote-select",
 								placeholder: "请选择加班规则",
 								width: colWidth,
-								action: "admin/hrm/attendance/sys/overtimeRule/getList",
+								action: "admin/hrm/attendance/sys/overtimerule/getList",
 								props: {
 									list: "rows",
 									value: "_id",
@@ -598,6 +598,49 @@
 				this.$set(this.form1, "department_id", "");
 				vk.pubfn.resetForm(originalForms, this);
 			},
+			/**
+			 * 配置变更前的封存检查
+			 * @returns {Boolean} true=可以继续，false=取消
+			 */
+			async beforeConfigChange() {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					data: {}
+				});
+				if (res.code !== 0) {
+					vk.toast(res.msg || '检查失败');
+					return false;
+				}
+				if (!res.hasUnsealed) {
+					return true;
+				}
+			
+				const confirm = await new Promise(resolve => {
+					vk.confirm(
+						`检测到 ${res.unsealedCount} 条未封存的历史考勤数据（最早 ${res.earliestUnsealedDate}），修改配置前需要先封存。是否立即封存？`,
+						'提示',
+						'立即封存',
+						'取消',
+						(res) => resolve(res.confirm)
+					);
+				});
+				if (!confirm) return false;
+			
+				const sealRes = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/sealDailyData',
+					title: '封存中...',
+					data: {
+						seal_date: res.suggestedSealDate
+					}
+				});
+				if (sealRes.code === 0) {
+					vk.toast(sealRes.msg || '封存成功');
+					return true;
+				} else {
+					vk.toast(sealRes.msg || '封存失败');
+					return false;
+				}
+			},
 			addBtn() {
 				this.resetForm();
 				this.form1.props.action = 'admin/hrm/attendance/sys/group/add';
@@ -605,9 +648,11 @@
 				this.form1.props.title = '添加考勤组';
 				this.form1.props.show = true;
 			},
-			updateBtn({
+			async updateBtn({
 				item
 			}) {
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				let departmentItem = vk.pubfn.getListItem(this.form1.props.columns, "key", "department_ids");
 				departmentItem.actionData.company_id = item.company_id;
 				this.form1.props.action = 'admin/hrm/attendance/sys/group/update';
@@ -616,10 +661,12 @@
 				this.form1.props.show = true;
 				this.form1.data = item;
 			},
-			deleteBtn({
+			async deleteBtn({
 				item,
 				deleteFn
 			}) {
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				deleteFn({
 					action: "admin/hrm/attendance/sys/group/delete",
 					data: {

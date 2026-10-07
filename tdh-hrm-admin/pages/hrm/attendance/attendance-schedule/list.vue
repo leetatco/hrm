@@ -45,8 +45,8 @@
 		<vk-data-dialog v-model="form1.props.show" :title="form1.props.title" width="600px" mode="form"
 			:close-on-click-modal="false">
 			<vk-data-form ref="form1" v-model="form1.data" :rules="form1.props.rules" :action="form1.props.action"
-				:form-type="form1.props.formType" :columns='form1.props.columns' label-width="120px" :inline="true"
-				:columnsNumber="1" @success="form1.props.show = false;refresh();" :border="true"></vk-data-form>
+				:form-type="form1.props.formType" :columns='form1.props.columns' label-width="120px"
+				@success="form1.props.show = false;refresh();" :border="true"></vk-data-form>
 		</vk-data-dialog>
 
 		<!-- 批量生成弹窗 -->
@@ -114,6 +114,7 @@
 							title: "员工姓名",
 							type: "text",
 							width: colWidth - 40,
+							fixed: true,
 							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
 						},
 						{
@@ -394,6 +395,49 @@
 			async search() {
 				this.$refs.table1.search();
 			},
+			/**
+			 * 配置变更前的封存检查
+			 * @returns {Boolean} true=可以继续，false=取消
+			 */
+			async beforeConfigChange() {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					data: {}
+				});
+				if (res.code !== 0) {
+					vk.toast(res.msg || '检查失败');
+					return false;
+				}
+				if (!res.hasUnsealed) {
+					return true;
+				}
+
+				const confirm = await new Promise(resolve => {
+					vk.confirm(
+						`检测到 ${res.unsealedCount} 条未封存的历史考勤数据（最早 ${res.earliestUnsealedDate}），修改配置前需要先封存。是否立即封存？`,
+						'提示',
+						'立即封存',
+						'取消',
+						(res) => resolve(res.confirm)
+					);
+				});
+				if (!confirm) return false;
+
+				const sealRes = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/sealDailyData',
+					title: '封存中...',
+					data: {
+						seal_date: res.suggestedSealDate
+					}
+				});
+				if (sealRes.code === 0) {
+					vk.toast(sealRes.msg || '封存成功');
+					return true;
+				} else {
+					vk.toast(sealRes.msg || '封存失败');
+					return false;
+				}
+			},
 			addBtn() {
 				this.resetForm();
 				this.form1.props.action = 'admin/hrm/attendance/sys/schedule/add';
@@ -401,9 +445,11 @@
 				this.form1.props.title = '添加排班';
 				this.form1.props.show = true;
 			},
-			updateBtn({
+			async updateBtn({
 				item
 			}) {
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				this.form1.props.action = 'admin/hrm/attendance/sys/schedule/update';
 				this.form1.props.formType = 'update';
 				this.form1.props.title = '编辑排班';
@@ -412,10 +458,12 @@
 					...item
 				};
 			},
-			deleteBtn({
+			async deleteBtn({
 				item,
 				deleteFn
 			}) {
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				deleteFn({
 					action: "admin/hrm/attendance/sys/schedule/delete",
 					data: {

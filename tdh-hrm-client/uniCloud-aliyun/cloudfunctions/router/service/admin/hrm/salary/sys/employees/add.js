@@ -34,7 +34,8 @@ module.exports = {
 			card,
 			salary,
 			salary_type,
-			confirm_id,
+			contract_days,
+			confirm_id,			
 			comment,
 			update_date,
 			update_id
@@ -60,6 +61,7 @@ module.exports = {
 				card,
 				salary,
 				salary_type,
+				contract_days,
 				confirm_id,
 				comment,
 				update_id: uid,

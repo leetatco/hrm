@@ -62,6 +62,7 @@ module.exports = {
 				department_id,
 				status,
 				remark,
+				version: 1,
 				update_id: uid,
 				update_date: new Date().getTime()
 			}

@@ -28,7 +28,8 @@ module.exports = {
 		let {
 			uid,
 			todayStart,
-			todayEnd
+			todayEnd,
+			username
 		} = data;
 		let res = {
 			code: 0,
@@ -37,10 +38,15 @@ module.exports = {
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = 'hrm-clockin'; // 表名
 		let whereJson = {};
+		
+		// 只有当 username 有值时才加 employee_id 条件
+		if (username) {
+		    whereJson.employee_id = userInfo.username;
+		}
+		// console.log("userInfo.username:",userInfo.username)
+		// 时间条件
 		if (todayStart && todayEnd) {
-			whereJson = {
-				clockintime: _.gte(todayStart).lte(todayEnd)
-			}
+		    whereJson.clockintime = _.gte(todayStart).lte(todayEnd);
 		}
 		res = await vk.baseDao.getTableData({
 			dbName,
@@ -48,26 +54,27 @@ module.exports = {
 			whereJson,
 			// 副表
 			foreignDB: [{
-				dbName: "hrm-clockin-set",
-				localKey: "bssid",
-				foreignKey: "bssid",
-				as: "wifis",
-				limit: 1
-			}, 
-			{
-				dbName: "hrm-employees",
-				localKey: "employee_id",
-				foreignKey: "employee_id",
-				as: "employeeInfo",
-				limit: 1
-			}, 
-			{
-				dbName: "uni-id-users",
-				localKey: "update_id",
-				foreignKey: "_id",
-				as: "users",
-				limit: 1
-			}]
+					dbName: "hrm-clockin-set",
+					localKey: "bssid",
+					foreignKey: "bssid",
+					as: "wifis",
+					limit: 1
+				},
+				{
+					dbName: "hrm-employees",
+					localKey: "employee_id",
+					foreignKey: "employee_id",
+					as: "employeeInfo",
+					limit: 1
+				},
+				{
+					dbName: "uni-id-users",
+					localKey: "update_id",
+					foreignKey: "_id",
+					as: "users",
+					limit: 1
+				}
+			]
 		});
 		return res;
 	},

@@ -270,7 +270,7 @@
 						},
 						{
 							"key": "other_cost",
-							"title": "其它",
+							"title": "其他",
 							"type": "text",
 							"width": colWidth - 50
 						},
@@ -536,7 +536,7 @@
 						//{"key":"free_cost","title":"放假补助","type":"number","width":colWidth,"mode":"="},
 						//{"key":"grant","title":"补助金","type":"number","width":colWidth,"mode":"="},
 						//{"key":"agency_fee","title":"介绍费","type":"text","width":colWidth,"mode":"="},
-						//{"key":"other_cost","title":"其它费用","type":"text","width":colWidth,"mode":"="},
+						//{"key":"other_cost","title":"其他费用","type":"text","width":colWidth,"mode":"="},
 						//{"key":"we_cost","title":"水电费","type":"number","width":colWidth,"mode":"="},
 						//{"key":"clothes_cost","title":"工衣费用","type":"number","width":colWidth,"mode":"="},
 						//{"key":"earlytime_cost","title":"迟/早退费","type":"number","width":colWidth,"mode":"="},
@@ -743,7 +743,7 @@
 							},
 							{
 								"key": "other_cost",
-								"title": "其它",
+								"title": "其他",
 								"type": "number",
 								min: -10000,
 								controls: true,
@@ -898,7 +898,7 @@
 						show: false
 					}
 				},
-				// 其它弹窗表单
+				// 其他弹窗表单
 				formDatas: {},
 				// 表单相关结束 -----------------------------------------------------------
 			};
@@ -1159,7 +1159,7 @@
 						"type": "number"
 					},
 					other_cost: {
-						"title": "其它",
+						"title": "其他",
 						"type": "number"
 					},
 					we_cost: {
@@ -1737,7 +1737,7 @@
 				// 介绍费
 				item.agency_fee = item.agency_fee || 0;
 
-				// 其它费用(包括奖励和惩罚)
+				// 其他费用(包括奖励和惩罚)
 				let reward_cost = item.reward_cost || 0;
 				let punish_cost = item.punish_cost || 0;
 				let other_cost = item.other_cost || 0;
@@ -1812,7 +1812,7 @@
 				realSalary += vk.pubfn.string2Number(item.grant || 0);
 				// 介绍费
 				realSalary += vk.pubfn.string2Number(item.agency_fee || 0);
-				// 其它
+				// 其他
 				realSalary += vk.pubfn.string2Number(item.other_cost || 0);
 
 				// 减项
@@ -2095,7 +2095,7 @@
 						},
 						{
 							"key": "other_cost",
-							"title": "其它",
+							"title": "其他",
 							"type": "text"
 						},
 						{
@@ -2317,7 +2317,7 @@
 						},
 						{
 							"key": "other_cost",
-							"title": "其它",
+							"title": "其他",
 							"type": "text"
 						},
 						{

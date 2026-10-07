@@ -27,6 +27,7 @@ module.exports = {
 		} = util;
 		let {
 			uid,
+			openid,
 			mobile
 		} = data;
 		let res = {
@@ -34,13 +35,19 @@ module.exports = {
 			msg: ''
 		};
 		// 业务逻辑开始-----------------------------------------------------------
-		let dbName = 'hrm-entry-forms'; // 表名
+		let whereJson = {
+			openid
+		}
+
+		if (mobile) {
+			whereJson.mobile = new RegExp(mobile)
+		}
+
+		let dbName = 'hrm-entry-forms'; // 表名		
 		res = await vk.baseDao.getTableData({
 			dbName,
 			data,
-			whereJson: {
-				mobile
-			},
+			whereJson,
 			// 副表
 			foreignDB: [{
 				dbName: "hrm-bank",

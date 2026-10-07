@@ -276,13 +276,13 @@
 						},
 						{
 							"key": "agency_fee",
-							"title": "介绍费",
+							"title": "培训费",
 							"type": "text",
 							"width": colWidth - 100
 						},
 						{
 							"key": "other_cost",
-							"title": "其它",
+							"title": "其他",
 							"type": "text",
 							"width": colWidth - 50
 						},
@@ -443,7 +443,7 @@
 							key: "attendance_ym",
 							title: "时间",
 							type: "date",
-							dateType: "date",
+							dateType: "month",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							"width": colWidth
@@ -451,7 +451,7 @@
 							key: "attendance_ym_key",
 							title: "月份",
 							type: "date",
-							dateType: "date",
+							dateType: "month",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							width: colWidth
@@ -557,7 +557,7 @@
 								key: "attendance_ym",
 								title: "时间",
 								type: "date",
-								dateType: "date",
+								dateType: "month",
 								disabled: false,
 								valueFormat: "yyyy-MM",
 								format: "yyyy-MM",
@@ -567,7 +567,7 @@
 								key: "attendance_ym_key",
 								title: "月份",
 								type: "date",
-								dateType: "date",
+								dateType: "month",
 								disabled: false,
 								valueFormat: "yyyy-MM",
 								format: "yyyy-MM",
@@ -685,7 +685,7 @@
 							},
 							{
 								"key": "agency_fee",
-								"title": "介绍费",
+								"title": "培训费",
 								"type": "number",
 								min: -10000,
 								controls: true,
@@ -693,7 +693,7 @@
 							},
 							{
 								"key": "other_cost",
-								"title": "其它",
+								"title": "其他",
 								"type": "number",
 								min: -10000,
 								controls: true,
@@ -875,7 +875,7 @@
 						show: false
 					}
 				},
-				// 其它弹窗表单
+				// 其他弹窗表单
 				formDatas: {},
 				// 表单相关结束 -----------------------------------------------------------
 			};
@@ -1022,11 +1022,11 @@
 						"type": "number"
 					},
 					agency_fee: {
-						"title": "介绍费",
+						"title": "培训费",
 						"type": "number"
 					},
 					other_cost: {
-						"title": "其它",
+						"title": "其他",
 						"type": "number"
 					},
 					we_cost: {
@@ -1483,12 +1483,12 @@
 						},
 						{
 							"key": "agency_fee",
-							"title": "介绍费",
+							"title": "培训费",
 							"type": "text"
 						},
 						{
 							"key": "other_cost",
-							"title": "其它",
+							"title": "其他",
 							"type": "text"
 						},
 						{
@@ -1770,12 +1770,12 @@
 							width: 15
 						},
 						{
-							header: '介绍费',
+							header: '培训费',
 							key: 'agency_fee',
 							width: 15
 						},
 						{
-							header: '其它',
+							header: '其他',
 							key: 'other_cost',
 							width: 15
 						},

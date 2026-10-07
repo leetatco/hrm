@@ -137,7 +137,7 @@
 							title: "",
 							type: "table-select",
 							placeholder: "选择员工",
-							action: "admin/hrm/attendance/sys/getList",
+							action: "admin/hrm/employees/sys/getList",
 							multiple: false,
 							columns: [{
 									key: "employee_name",
@@ -199,7 +199,7 @@
 								title: "姓名",
 								type: "table-select",
 								placeholder: "选择员工",
-								action: "admin/hrm/attendance/sys/getList",
+								action: "admin/hrm/employees/sys/getList",
 								multiple: false,
 								columns: [{
 										key: "employee_name",

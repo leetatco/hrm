@@ -32,31 +32,42 @@ module.exports = {
 		let {
 			_id,
 			employee_id,
-			schedule_date,			
+			schedule_date,
 			attendance_group_id,
 			status,
 			remark,
 			update_date,
 			updat_id
 		} = data;
+		let dbName = 'hrm-attendance-schedule'; // 表名
 		// 参数验证开始
 		if (vk.pubfn.isNull(_id)) return {
 			code: -1,
 			msg: 'id不能为空'
 		};
+		const existRes = await vk.baseDao.findById({
+			dbName,
+			id: _id
+		});
+		if (!existRes) return {
+			code: -1,
+			msg: '记录不存在'
+		};
 
+		const newVersion = (existRes.version || 1) + 1;
 		// 参数验证结束
-		let dbName = 'hrm-attendance-schedule'; // 表名
+
 		// 执行 数据库 updateById 命令
 		await vk.baseDao.updateById({
 			dbName,
 			id: _id,
 			dataJson: {
 				employee_id,
-				schedule_date,				
+				schedule_date,
 				attendance_group_id,
 				status,
 				remark,
+				version: newVersion,
 				update_id: uid,
 				update_date: new Date().getTime()
 			},

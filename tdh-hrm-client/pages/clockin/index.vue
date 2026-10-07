@@ -246,6 +246,7 @@
 				} = vk.pubfn.getCommonTime(new Date(this.reqdata.clockintime));
 				this.reqdata.todayStart = todayStart;
 				this.reqdata.todayEnd = todayEnd;
+				this.reqdata.username = vk.getVuex('$user.userInfo.username');
 
 				let res = await vk.callFunction({
 					url: 'admin/hrm/clockin/sys/getList',

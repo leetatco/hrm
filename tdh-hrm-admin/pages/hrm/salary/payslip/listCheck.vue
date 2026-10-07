@@ -211,7 +211,7 @@
 							key: "attendance_ym",
 							title: "时间",
 							type: "date",
-							dateType: "date",
+							dateType: "month",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							width: colWidth
@@ -219,7 +219,7 @@
 							key: "attendance_ym_key",
 							title: "月份",
 							type: "date",
-							dateType: "date",
+							dateType: "month",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							width: colWidth
@@ -325,7 +325,7 @@
 							key: "attendance_ym_key",
 							title: "月份",
 							type: "date",
-							dateType: "date",
+							dateType: "month",
 							disabled: true,
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
@@ -409,7 +409,7 @@
 						show: false
 					}
 				},
-				// 其它弹窗表单
+				// 其他弹窗表单
 				formDatas: {},
 				// 表单相关结束 -----------------------------------------------------------
 			};

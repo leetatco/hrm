@@ -1,16 +1,9 @@
+// admin/hrm/salary/pub/getSumList
 module.exports = {
 	/**
-	 * 查询多条记录 分页
-	 * @url admin/hrm/salary/sys/getList 前端调用的url参数地址
-	 * data 请求参数 说明
-	 * @params {Number}         pageIndex 当前页码
-	 * @params {Number}         pageSize  每页显示数量
-	 * @params {Array<Object>}  sortRule  排序规则
-	 * @params {object}         formData  查询条件数据源
-	 * @params {Array<Object>}  columns   查询条件规则
-	 * res 返回参数说明
-	 * @params {Number}         code      错误码，0表示成功
-	 * @params {String}         msg       详细信息
+	 * 按月汇总工资合计（用于列表底部合计行）
+	 * @url admin/hrm/salary/pub/getSumList
+	 * data: { attendance_ym: '2026-08' }
 	 */
 	main: async (event) => {
 		let {
@@ -32,18 +25,25 @@ module.exports = {
 		} = data;
 		let res = {
 			code: 0,
-			msg: ''
+			msg: '',
+			rows: []
 		};
-		// 业务逻辑开始-----------------------------------------------------------
-		let dbName = "hrm-salary"; // 表名		
 
-		res = await vk.baseDao.getTableData({
+		// 参数校验
+		if (!attendance_ym) {
+			res.code = -1;
+			res.msg = '考勤月份不能为空';
+			return res;
+		}
+
+		let dbName = "hrm-salary";
+
+		// 使用 groupJson 聚合
+		let groupRes = await vk.baseDao.selects({
 			dbName,
-			whereJson: {
-				attendance_ym
-			},
+			whereJson: { attendance_ym },
 			groupJson: {
-				_id: "$attendance_ym", // 以 attendance_ym 作为分组字段				
+				_id: null,  // 不按任何字段分组，整体聚合
 				work_days: $.sum('$work_days'),
 				real_days: $.sum('$real_days'),
 				gross_salary: $.sum('$gross_salary'),
@@ -52,6 +52,8 @@ module.exports = {
 				grant: $.sum('$grant'),
 				agency_fee: $.sum('$agency_fee'),
 				other_cost: $.sum('$other_cost'),
+				typhoon_cost: $.sum('$typhoon_cost'),
+				liunian_cost: $.sum('$liunian_cost'),
 				we_cost: $.sum('$we_cost'),
 				clothes_cost: $.sum('$clothes_cost'),
 				earlytime_cost: $.sum('$earlytime_cost'),
@@ -61,9 +63,12 @@ module.exports = {
 				this_month_dk: $.sum('$this_month_dk'),
 				dkgs: $.sum('$dkgs'),
 				real_salary: $.sum('$real_salary'),
+				count: $.sum(1)
 			}
 		});
+
+		// 返回合计对象（一条）
+		res.rows = groupRes.rows || [];
 		return res;
 	}
-
-}
+};

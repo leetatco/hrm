@@ -1,5 +1,19 @@
 <template>
 	<view class="page-body">
+		<!-- 封存状态提示 -->
+		<el-card shadow="never" style="margin-bottom:15px;" v-if="sealInfo.unsealedCount > 0">
+			<el-row>
+				<el-col :span="18">
+					<span style="color:#E6A23C;">
+						当前有 {{ sealInfo.unsealedCount }} 条未封存数据，最早未封存日期：{{ sealInfo.earliestUnsealedDate }}
+					</span>
+				</el-col>
+				<el-col :span="6" style="text-align:right;">
+					<el-button type="warning" size="mini" @click="openSealDialog">立即封存</el-button>
+				</el-col>
+			</el-row>
+		</el-card>
+
 		<!-- 搜索区域 -->
 		<vk-data-table-query ref="queryForm1" v-model="queryForm1.formData" :columns="queryForm1.columns"
 			@search="search" @reset="resetForm">
@@ -18,6 +32,12 @@
 				<el-button type="primary" size="small" icon="el-icon-download"
 					v-if="$hasRole('admin') || $hasPermission('attendance-daily-export')"
 					@click="exportExcel">导出全部</el-button>
+				<el-button type="warning" size="small" icon="el-icon-lock"
+					v-if="$hasRole('admin') || $hasPermission('attendance-daily-seal')"
+					@click="openSealDialog">封存数据</el-button>
+				<el-button type="info" size="small" icon="el-icon-unlock"
+					v-if="$hasRole('admin') || $hasPermission('attendance-daily-unseal')"
+					@click="openUnsealDialog">解封数据</el-button>
 			</el-row>
 		</view>
 
@@ -68,19 +88,39 @@
 						<el-descriptions-item label="员工工号">{{ detailDialog.data.employee_id }}</el-descriptions-item>
 						<el-descriptions-item
 							label="员工姓名">{{ detailDialog.data.employee_name || '-' }}</el-descriptions-item>
+						<el-descriptions-item label="身份证号">{{ detailDialog.data.card || '-' }}</el-descriptions-item>
 						<el-descriptions-item
 							label="日期">{{ vk.pubfn.timeFormat(new Date(detailDialog.data.attendance_date), 'yyyy-MM-dd')}}</el-descriptions-item>
 						<el-descriptions-item
+							label="考勤组">{{ detailDialog.data.attendance_group_name || '-' }}</el-descriptions-item>
+						<el-descriptions-item
 							label="班次">{{ detailDialog.data.shift_name || '-' }}</el-descriptions-item>
-						<el-descriptions-item label="迟到">{{ vk.myfn.formatMinutes(detailDialog.data.late_minutes) }}</el-descriptions-item>
-						<el-descriptions-item label="早退">{{ vk.myfn.formatMinutes(detailDialog.data.early_minutes) }}</el-descriptions-item>
+						<el-descriptions-item label="应出勤">
+							{{ vk.myfn.formatMinutes(detailDialog.data.should_attend_minutes) }}
+						</el-descriptions-item>
+						<el-descriptions-item label="实际出勤">
+							{{ vk.myfn.formatMinutes(detailDialog.data.actual_attend_minutes) }}
+						</el-descriptions-item>
+						<el-descriptions-item
+							label="迟到">{{ vk.myfn.formatMinutes(detailDialog.data.late_minutes) }}</el-descriptions-item>
+						<el-descriptions-item
+							label="早退">{{ vk.myfn.formatMinutes(detailDialog.data.early_minutes) }}</el-descriptions-item>
 						<el-descriptions-item
 							label="旷工">{{ vk.myfn.formatMinutes(detailDialog.data.absent_minutes) }}</el-descriptions-item>
 						<el-descriptions-item
-							label="加班">{{ vk.myfn.formatMinutes(detailDialog.data.overtime_minutes) }}</el-descriptions-item>
-						<el-descriptions-item label="请假">{{ vk.myfn.formatMinutes(detailDialog.data.leave_minutes) }}</el-descriptions-item>
-						<el-descriptions-item label="出差">{{ vk.myfn.formatMinutes(detailDialog.data.trip_minutes) }}</el-descriptions-item>
-						<el-descriptions-item label="外出">{{ vk.myfn.formatMinutes(detailDialog.data.outing_minutes) }}</el-descriptions-item>
+							label="加班合计">{{ vk.myfn.formatMinutes(detailDialog.data.overtime_minutes) }}</el-descriptions-item>
+						<el-descriptions-item label="调休加班">
+							{{ vk.myfn.formatMinutes(detailDialog.data.overtime_compensatory_minutes) }}
+						</el-descriptions-item>
+						<el-descriptions-item label="计薪加班">
+							{{ vk.myfn.formatMinutes(detailDialog.data.overtime_paid_minutes) }}
+						</el-descriptions-item>
+						<el-descriptions-item
+							label="请假">{{ vk.myfn.formatMinutes(detailDialog.data.leave_minutes) }}</el-descriptions-item>
+						<el-descriptions-item
+							label="出差">{{ vk.myfn.formatMinutes(detailDialog.data.trip_minutes) }}</el-descriptions-item>
+						<el-descriptions-item
+							label="外出">{{ vk.myfn.formatMinutes(detailDialog.data.outing_minutes) }}</el-descriptions-item>
 						<el-descriptions-item
 							label="调休">{{ vk.myfn.formatMinutes(detailDialog.data.compensatory_minutes) }}</el-descriptions-item>
 						<el-descriptions-item
@@ -88,6 +128,11 @@
 						<el-descriptions-item label="状态">
 							<el-tag :type="getStatusTag(detailDialog.data.attendance_status)">
 								{{ getStatusText(detailDialog.data.attendance_status) }}
+							</el-tag>
+						</el-descriptions-item>
+						<el-descriptions-item label="是否封存">
+							<el-tag :type="detailDialog.data.sealed ? 'warning' : 'info'">
+								{{ detailDialog.data.sealed ? '已封存' : '未封存' }}
 							</el-tag>
 						</el-descriptions-item>
 					</el-descriptions>
@@ -134,7 +179,9 @@
 						</el-table-column>
 						<el-table-column label="类型" width="120">
 							<template slot-scope="scope">
-								{{ scope.row.overtime_type === 'paid' ? '计薪' : '调休' }}
+								<el-tag :type="scope.row.overtime_type === 'paid' ? 'success' : 'warning'" size="small">
+									{{ scope.row.overtime_type === 'paid' ? '计薪' : '调休' }}
+								</el-tag>
 							</template>
 						</el-table-column>
 						<el-table-column label="时长" width="120">
@@ -254,17 +301,37 @@
 				<el-button @click="detailDialog.show = false">关闭</el-button>
 			</template>
 		</vk-data-dialog>
+
+		<!-- 封存/解封弹窗 -->
+		<attendanceSeal v-model="sealDialog" @success="onSealSuccess"></attendanceSeal>
 	</view>
 </template>
 
 <script>
+	import attendanceSeal from '@/components/attendance-seal/index.vue';
+
 	let vk = uni.vk;
 	let originalForms = {};
 	const colWidth = 200;
 
 	export default {
+		components: {
+			attendanceSeal
+		},
 		data() {
 			return {
+				sealDialog: {
+					show: false,
+					mode: 'seal',
+					seal_date: '',
+					employee_ids: []
+				},
+				sealInfo: {
+					unsealedCount: 0,
+					earliestUnsealedDate: '',
+					latestUnsealedDate: '',
+					suggestedSealDate: ''
+				},
 				table1: {
 					action: "admin/hrm/attendance/sys/dailyAttendance/getList",
 					customRightBtns: [{
@@ -281,14 +348,24 @@
 							key: "employee_id",
 							title: "员工工号",
 							type: "text",
-							width: colWidth - 40
+							width: colWidth - 100,
+							fixed: true
+						},
+						{
+							key: "card",
+							title: "身份证号码",
+							type: "text",
+							width: colWidth - 30,
+							fixed: true
 						},
 						{
 							key: "employee_name",
 							title: "员工姓名",
 							type: "text",
-							width: colWidth - 40,
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
+							width: colWidth - 100,
+							fixed: true,
+							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : (row
+								.employee_name || '')
 						},
 						{
 							key: "attendance_date",
@@ -300,10 +377,30 @@
 							formatter: (val) => val ? vk.pubfn.timeFormat(new Date(val), 'yyyy-MM-dd') : ''
 						},
 						{
+							key: "attendance_group_name",
+							title: "考勤组",
+							type: "text",
+							width: colWidth - 20
+						},
+						{
 							key: "shift_name",
 							title: "班次",
 							type: "text",
 							width: colWidth - 60
+						},
+						{
+							key: "should_attend_minutes",
+							title: "应出勤",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
+						},
+						{
+							key: "actual_attend_minutes",
+							title: "实际出勤",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "punch_records",
@@ -343,8 +440,15 @@
 							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
-							key: "overtime_minutes",
-							title: "加班",
+							key: "overtime_compensatory_minutes",
+							title: "调休加班",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => vk.myfn.formatMinutes(val)
+						},
+						{
+							key: "overtime_paid_minutes",
+							title: "计薪加班",
 							type: "text",
 							width: colWidth - 40,
 							formatter: (val) => vk.myfn.formatMinutes(val)
@@ -390,6 +494,23 @@
 								{
 									value: false,
 									label: "否",
+									tagType: "info"
+								}
+							]
+						},
+						{
+							key: "sealed",
+							title: "封存",
+							type: "tag",
+							width: colWidth - 80,
+							data: [{
+									value: true,
+									label: "已封存",
+									tagType: "warning"
+								},
+								{
+									value: false,
+									label: "未封存",
 									tagType: "info"
 								}
 							]
@@ -520,6 +641,22 @@
 								}
 							],
 							mode: "="
+						},
+						{
+							key: "sealed",
+							title: "封存状态",
+							type: "select",
+							width: colWidth - 80,
+							data: [{
+									value: true,
+									label: "已封存"
+								},
+								{
+									value: false,
+									label: "未封存"
+								}
+							],
+							mode: "="
 						}
 					]
 				},
@@ -546,6 +683,12 @@
 				generateLoading: false
 			};
 		},
+		onLoad() {
+			originalForms = {
+				form1: vk.pubfn.copyObject(this.form1)
+			};
+			this.loadSealStatus();
+		},
 		methods: {
 			init(options) {
 				originalForms["form1"] = vk.pubfn.copyObject(this.form1);
@@ -557,12 +700,71 @@
 				this.$refs.table1.refresh();
 			},
 			resetForm() {
-				vk.pubfn.resetForm(originalForms, this);
+				this.init();
 			},
 
+			// ========== 封存 / 解封 ==========
+			async loadSealStatus() {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					data: {}
+				});
+				if (res.code === 0) {
+					this.sealInfo = {
+						unsealedCount: res.unsealedCount || 0,
+						earliestUnsealedDate: res.earliestUnsealedDate || '',
+						latestUnsealedDate: res.latestUnsealedDate || '',
+						suggestedSealDate: res.suggestedSealDate || ''
+					};
+				}
+			},
+
+			async openSealDialog() {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					data: {}
+				});
+				if (res.code !== 0) {
+					vk.toast(res.msg || '检查失败');
+					return;
+				}
+				if (!res.hasUnsealed) {
+					vk.alert('当前没有未封存的数据', '提示');
+					return;
+				}
+				this.sealDialog = {
+					show: true,
+					mode: 'seal',
+					seal_date: res.suggestedSealDate || '',
+					employee_ids: []
+				};
+			},
+
+			openUnsealDialog() {
+				this.sealDialog = {
+					show: true,
+					mode: 'unseal',
+					seal_date: '',
+					employee_ids: []
+				};
+			},
+
+			onSealSuccess(res) {
+				this.loadSealStatus();
+				this.refresh();
+			},
+
+			// ========== 导出 ==========
 			async exportExcel() {
+				const {
+					attendance_date
+				} = this.queryForm1.formData;
+				if (vk.pubfn.isNull(attendance_date)) {
+					return vk.alert('请先选择日期范围');
+				}
+
 				this.$refs.table1.exportExcel({
-					fileName: '日考勤明细',
+					fileName: `${vk.pubfn.timeFormat(new Date(), 'yyyy-MM-dd')}(日考勤明细)`,
 					title: "正在导出数据...",
 					columns: [{
 							key: "employee_id",
@@ -570,10 +772,16 @@
 							type: "text"
 						},
 						{
+							key: "card",
+							title: "身份证号码",
+							type: "text"
+						},
+						{
 							key: "employee_name",
 							title: "员工姓名",
 							type: "text",
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
+							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : (
+								row.employee_name || '')
 						},
 						{
 							key: "attendance_date",
@@ -584,9 +792,26 @@
 							formatter: (val) => val ? vk.pubfn.timeFormat(new Date(val), 'yyyy-MM-dd') : ''
 						},
 						{
+							key: "attendance_group_name",
+							title: "考勤组",
+							type: "text"
+						},
+						{
 							key: "shift_name",
 							title: "班次",
 							type: "text"
+						},
+						{
+							key: "should_attend_minutes",
+							title: "应出勤",
+							type: "text",
+							formatter: (val) => vk.myfn.formatMinutes(val)
+						},
+						{
+							key: "actual_attend_minutes",
+							title: "实际出勤",
+							type: "text",
+							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
 							key: "punch_records",
@@ -618,8 +843,14 @@
 							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
 						{
-							key: "overtime_minutes",
-							title: "加班",
+							key: "overtime_compensatory_minutes",
+							title: "调休加班",
+							type: "text",
+							formatter: (val) => vk.myfn.formatMinutes(val)
+						},
+						{
+							key: "overtime_paid_minutes",
+							title: "计薪加班",
 							type: "text",
 							formatter: (val) => vk.myfn.formatMinutes(val)
 						},
@@ -654,6 +885,12 @@
 							formatter: (val) => val ? '是' : '否'
 						},
 						{
+							key: "sealed",
+							title: "封存状态",
+							type: "text",
+							formatter: (val) => val ? '已封存' : '未封存'
+						},
+						{
 							key: "attendance_status",
 							title: "状态",
 							type: "text",
@@ -665,6 +902,7 @@
 				});
 			},
 
+			// ========== 详情 ==========
 			onDetail(item) {
 				this.detailDialog.show = true;
 				this.detailDialog.loading = true;
@@ -673,7 +911,8 @@
 					this.detailDialog.title = '考勤详情';
 					this.$set(this.detailDialog, 'data', {
 						...JSON.parse(JSON.stringify(item || {})),
-						employee_name: item.employeeInfo ? item.employeeInfo.employee_name : ''
+						employee_name: item.employeeInfo ? item.employeeInfo.employee_name : (item
+							.employee_name || '')
 					});
 					this.detailDialog.loading = false;
 					this.$forceUpdate();
@@ -714,6 +953,7 @@
 				return map[type] || type || '未指定';
 			},
 
+			// ========== 手动生成 ==========
 			showGenerateDialog() {
 				this.generateForm.dateRange = [];
 				this.generateForm.employee_ids = [];
@@ -741,9 +981,10 @@
 						data: params
 					});
 					if (res.code === 0) {
-						vk.alert(`成功生成 ${res.total} 条考勤记录`, '提示', () => {
+						vk.alert(res.msg, '提示', () => {
 							this.generateDialog.show = false;
 							this.refresh();
+							this.loadSealStatus();
 						});
 					} else {
 						vk.toast(res.msg || '生成失败');

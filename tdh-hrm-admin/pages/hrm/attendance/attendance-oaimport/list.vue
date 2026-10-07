@@ -351,14 +351,14 @@
 				if (items.length === 0) return vk.toast('没有可汇入的记录');
 
 				vk.confirm(`确定要批量汇入 ${items.length} 条记录吗？`, async (res) => {
-					if (res.confirm) {
-						vk.showLoading('正在批量汇入...');
+					if (res.confirm) {						
 						let successCount = 0;
 						let failCount = 0;
 						let failMsgs = [];
 						for (let item of items) {
 							const result = await vk.callFunction({
 								url: 'admin/hrm/attendance/sys/oaimport/importOAData',
+								title:'正在批量汇入...',
 								data: {
 									_id: item._id
 								}
@@ -369,8 +369,7 @@
 								failCount++;
 								failMsgs.push(`${item.title || item._id}: ${result.msg}`);
 							}
-						}
-						vk.hideLoading();
+						}						
 						if (failCount > 0) {
 							vk.alert(`成功 ${successCount} 条，失败 ${failCount} 条`, '批量汇入结果', () => this.refresh());
 						} else {

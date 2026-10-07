@@ -353,7 +353,7 @@ class CallFunctionUtil {
                 }
                 if (envItem.endpoint)
                   initConifg.endpoint = envItem.endpoint;
-                uniCloudEnvs[envKey] = common_vendor.wr.init(initConifg);
+                uniCloudEnvs[envKey] = common_vendor.Vs.init(initConifg);
               }
             }
           }
@@ -634,7 +634,7 @@ class CallFunctionUtil {
     let promiseAction = new Promise(function(resolve, reject) {
       if (config.debug)
         Logger.startTime = Date.now();
-      let runCloud = myCloud || uniCloudEnvs[env] || common_vendor.wr;
+      let runCloud = myCloud || uniCloudEnvs[env] || common_vendor.Vs;
       let decryptFn;
       if (encrypt) {
         let encryptRes = vk.crypto.encryptCallFunction(data);

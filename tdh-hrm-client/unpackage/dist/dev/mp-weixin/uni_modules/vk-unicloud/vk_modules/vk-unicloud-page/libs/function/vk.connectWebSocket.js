@@ -93,14 +93,14 @@ async function connectWebSocket(obj = {}) {
     });
     url = WebSocketPool.getCloudObjectUrl(url);
   } else {
-    if (typeof common_vendor.wr.connectWebSocket === "undefined") {
+    if (typeof common_vendor.Vs.connectWebSocket === "undefined") {
       if (title)
         vk2.hideLoading();
       let errMsg = "当前环境不支持WebSocket";
       vk2.toast(errMsg);
       throw new Error(errMsg + `（仅支付宝云支持）`);
     }
-    webSocket = await common_vendor.wr.connectWebSocket({
+    webSocket = await common_vendor.Vs.connectWebSocket({
       name,
       query: {
         url

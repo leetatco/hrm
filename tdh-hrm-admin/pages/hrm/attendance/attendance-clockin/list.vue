@@ -27,7 +27,7 @@
 		</vk-data-table>
 
 		<!-- 添加/编辑弹窗 -->
-		<vk-data-dialog v-model="form1.props.show" :title="form1.props.title" width="850px" mode="form"
+		<vk-data-dialog v-model="form1.props.show" :title="form1.props.title" width="950px" mode="form"
 			:close-on-click-modal="false">
 			<vk-data-form ref="form1" v-model="form1.data" :rules="form1.props.rules" :action="form1.props.action"
 				:form-type="form1.props.formType" :columns='form1.props.columns' label-width="140px" :inline="true"
@@ -277,22 +277,79 @@
 										label: "出差卡"
 									}
 								]
-							},
+							},							
 							{
 								key: "bssid",
-								title: "打卡地点",
-								type: "remote-select",
-								placeholder: "请输入打卡地点",
+								title: "允许打卡地点",
+								type: "table-select",
+								placeholder: "请选择打卡地点",
 								width: colWidth,
+								multiple: false,
 								action: "admin/hrm/clockin/sys/setting/getList",
-								props: {
-									list: "rows",
-									value: "bssid",
-									label: "address"
-								},
-								showAll: true,
-								actionData: {
-									pageSize: 1000
+								columns: [{
+										key: "bssid",
+										title: "WiFi名称",
+										type: "text",
+										idKey: true,
+										show: ["detail", "update", "add"]
+									},
+									{
+										key: "company_name",
+										title: "公司别",
+										type: "text",
+										width: 100
+									},
+									{
+										key: "department_name",
+										title: "部门名称",
+										type: "text",
+										width: 120
+									},
+									{
+										key: "address",
+										title: "位置",
+										type: "text",
+										nameKey: true
+									},									
+									{
+										key: "ssid",
+										title: "WiFi Mac",
+										type: "text"
+									}
+								],
+								queryColumns: [{
+										key: "company_name",
+										title: "公司名称",
+										type: "text",
+										width: 150,
+										mode: "%%"
+									},
+									{
+										key: "department_name",
+										title: "部门名称",
+										type: "text",
+										width: 150,
+										mode: "%%"
+									},
+									{
+										key: "address",
+										title: "位置",
+										type: "text",
+										width: 150,
+										mode: "%%"
+									},
+									{
+										key: "bssid",
+										title: "WiFi名称",
+										type: "text",
+										width: 150,
+										mode: "%%"
+									}
+								],
+								formData: (row) => {
+									return {
+										flatten: true
+									};
 								}
 							},
 							{

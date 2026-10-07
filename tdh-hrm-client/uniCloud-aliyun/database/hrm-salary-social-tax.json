@@ -1,0 +1,114 @@
+{
+	"bsonType": "object",
+	"required": ["attendance_ym", "employee_id", "card"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"attendance_ym": {
+			"title": "考勤日期",
+			"bsonType": "date",
+			"description": "考勤月份，如 2026-08"
+		},
+		"employee_id": {
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "员工工号",
+			"foreignKey": "hrm-employees.employee_id",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "身份证号码",
+			"trim": "both"
+		},
+		"last_month_sb": {
+			"title": "下月社保",
+			"bsonType": "double",
+			"description": "上月社保，保留 2 位小数"
+		},
+		"last_month_dk": {
+			"title": "下月社保代扣",
+			"bsonType": "double",
+			"description": "下月社保代扣部分，保留 2 位小数"
+		},
+		"last_month_gjj": {
+			"title": "下月公积金",
+			"bsonType": "double",
+			"description": "下月公积金，保留 2 位小数"
+		},
+		"this_month_sb": {
+			"title": "本月社保",
+			"bsonType": "double",
+			"description": "本月社保，保留 2 位小数"
+		},
+		"this_month_dk": {
+			"title": "本月社保代扣",
+			"bsonType": "double",
+			"description": "本月社保代扣部分，保留 2 位小数"
+		},
+
+		"company_social": {
+			"title": "公司部份社保",
+			"bsonType": "double",
+			"description": "公司承担社保，保留 2 位小数"
+		},
+		"company_fund": {
+			"title": "公司部份公积金",
+			"bsonType": "double",
+			"description": "公司承担公积金，保留 2 位小数"
+		},
+		"dkgs": {
+			"title": "代扣个税",
+			"bsonType": "double",
+			"description": "代扣个税，保留 2 位小数"
+		},
+		"comment": {
+			"title": "备注",
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"trim": "both",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"index": [{
+		"IndexName": "uk_card_ym",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+					"Name": "card",
+					"Direction": "1"
+				},
+				{
+					"Name": "attendance_ym",
+					"Direction": "1"
+				}
+			],
+			"MgoIsUnique": true
+		}
+	}],
+	"version": "0.0.1"
+}

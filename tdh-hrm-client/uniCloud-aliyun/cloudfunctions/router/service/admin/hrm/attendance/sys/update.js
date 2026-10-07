@@ -54,6 +54,8 @@ module.exports = {
 			missed_cost,
 			enable_hr,
 			enable_fd,
+			sealed,
+			sealed_date,
 			comment,
 			update_date,
 			update_id
@@ -106,6 +108,8 @@ module.exports = {
 				missed_cost,
 				enable_hr,
 				enable_fd,
+				sealed,
+				sealed_date,
 				comment,
 				update_id: uid,
 				update_date: new Date().getTime()

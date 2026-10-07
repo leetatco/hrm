@@ -11,9 +11,6 @@
 		<view>
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('hrm-salary-config-add')"
-					@click="autoBtn">自动生成定薪表</el-button>
-				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-config-add')" @click="addBtn">添加</el-button>
 				<el-button type="primary" size="small" icon="el-icon-edit-outline"
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-config-add')" @click="exportExcelAll"> 导出全部
@@ -117,13 +114,13 @@
 							"width": colWidth
 						},
 						{
-							"key": "employees.department_name",
+							"key": "employees.departments.department_name",
 							"title": "部门",
 							"type": "text",
 							"width": colWidth
 						},
 						{
-							"key": "employees.position_name",
+							"key": "employees.positions.position_name",
 							"title": "职务",
 							"type": "text",
 							"width": colWidth - 100
@@ -159,7 +156,17 @@
 							}
 						},
 						{
-							"key": "confirms.employee_name",
+							"key": "contract_days",
+							"title": "合同天数",
+							"type": "number",
+							"width": colWidth - 100,
+							formatter: function(val, row, column, index) {
+								if (row.salary_type !== 1) return '-';
+								return val || 0;
+							}
+						},
+						{
+							"key": "confirm_id",
 							"title": "确认人姓名",
 							"type": "text",
 							"width": colWidth - 100
@@ -240,46 +247,31 @@
 						},
 						{
 							key: "confirm_id",
-							title: "",
-							type: "table-select",
-							placeholder: "选择确认人",
-							action: "admin/hrm/attendance/sys/getList",
-							multiple: false,
-							columns: [{
-									key: "employee_name",
-									title: "员工姓名",
-									type: "text",
-									nameKey: true
+							title: "确认人",
+							type: "text",
+							width: 150,
+							mode: "%%"
+						},
+						{
+							key: "salary_type",
+							title: "工资类型",
+							type: "select",
+							width: colWidth - 100,
+							data: [{
+									value: 1,
+									label: "月薪"
 								},
 								{
-									key: "card",
-									title: "身份证号码",
-									type: "text",
-									idKey: true
-
+									value: 2,
+									label: "日薪"
+								},
+								{
+									value: 3,
+									label: "时薪"
 								}
 							],
-							queryColumns: [{
-									key: "employee_name",
-									title: "员工姓名",
-									type: "text",
-									width: 150,
-									mode: "%%"
-								},
-								{
-									key: "card",
-									title: "身份证号码",
-									type: "text",
-									width: 150,
-									mode: "%%"
-								}
-
-							]
-						},
-						//{"key":"confirm_id","title":"确认人","type":"text","width":colWidth,"mode":"="},
-						//{"key":"comment","title":"备注","type":"text","width":colWidth,"mode":"="},
-						//{"key":"update_date","title":"更新时间","type":"datetimerange","width":colWidth,"mode":"="},
-						//{"key":"update_id","title":"更新人","type":"text","width":colWidth,"mode":"="}
+							mode: "="
+						}
 					]
 				},
 				form1: {
@@ -297,7 +289,7 @@
 								title: "姓名",
 								type: "table-select",
 								placeholder: "选择员工",
-								action: "admin/hrm/attendance/sys/getList",
+								action: "admin/hrm/employees/sys/getList",
 								multiple: false,
 								columns: [{
 										key: "employee_name",
@@ -344,7 +336,17 @@
 								}, {
 									"value": 3,
 									"label": "时薪"
-								}]
+								}],
+								watch: ({
+									value,
+									formData,
+									$set
+								}) => {
+									// 切到非月薪时，清空合同天数
+									if (value !== 1) {
+										$set(formData, 'contract_days', 0);
+									}
+								}
 							},
 							{
 								"key": "salary",
@@ -354,42 +356,21 @@
 								"width": colWidth
 							},
 							{
+								"key": "contract_days",
+								"title": "合同天数",
+								"type": "number",
+								"precision": 1,
+								"width": colWidth,
+								"tips": "合同约定每月应出勤天数，主要用于月薪人员",
+								show: ({
+									formData
+								}) => formData.salary_type === 1
+							},
+							{
 								key: "confirm_id",
 								title: "确认人",
-								type: "table-select",
-								placeholder: "选择确认人",
-								action: "admin/hrm/attendance/sys/getList",
-								multiple: false,
-								columns: [{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										nameKey: true
-									},
-									{
-										key: "card",
-										title: "身份证号码",
-										type: "text",
-										idKey: true
-
-									}
-								],
-								queryColumns: [{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "card",
-										title: "身份证号码",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									}
-
-								]
+								type: "text",
+								width: colWidth
 							},
 							{
 								key: "comment",
@@ -425,6 +406,17 @@
 								required: true,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
+							}],
+							contract_days: [{
+								validator: (rule, value, callback) => {
+									if (this.form1.data.salary_type === 1 && (!value ||
+											value <= 0)) {
+										callback(new Error('月薪人员合同天数不能为空'));
+									} else {
+										callback();
+									}
+								},
+								trigger: ['blur', 'change']
 							}]
 						},
 						// add 代表添加 update 代表修改
@@ -435,13 +427,13 @@
 						show: false
 					}
 				},
-				// 其它弹窗表单
+				// 其他弹窗表单
 				formDatas: {},
 				// 表单相关结束 -----------------------------------------------------------
 			};
 		},
 		// 监听 - 页面每次【加载时】执行(如：前进)
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
 		},
@@ -521,98 +513,9 @@
 					},
 				});
 			},
-			//自动生成考勤数据			
-			async autoBtn() {
-				vk.prompt("请输入考勤日期", "注意日期格式YYYY-MM", "确定", "取消", (res) => {
-					if (res.confirm) {
-						if (vk.pubfn.isNull(res.content)) {
-							return vk.alert('考勤日期不能为空！');
-						}
-						const attendance_ym = res.content;
-						vk.confirm(`确定将删除全部数据，重新生成定薪表数据！`, '提示', '确定', '取消', async (res) => {
-							if (res.confirm) {
-								try {
-									// 1. 先获取所有定薪表数据
-									let resDetails = await vk.callFunction({
-										url: 'admin/hrm/salary/pub/getEmployeeList',
-										title: '请求中...',
-										data: {
-											attendance_ym: attendance_ym
-										},
-									});
-
-									if (resDetails.total == 0) {
-										return vk.alert(`没有${attendance_ym}薪资表明细！`);
-									}
-
-									// 2. 提取所有员工工号
-									const empCards = resDetails.rows.map(item => item.card).filter(
-										card =>
-										card);
-
-									// 3.删除旧数据
-									let delRes = await vk.callFunction({
-										url: 'admin/hrm/salary/sys/employees/deleteAll',
-										title: '删除中...',
-										data: {
-											cards: empCards
-										}
-									})
-
-									if (delRes.code != 0) {
-										return vk.alert(`员工定薪明细删除失败！`);
-									}
-
-
-									// 7. 批量处理数据
-									const validData = [];
-									const seenCards = new Set();
-									resDetails.rows.forEach((item) => {
-									    if (vk.pubfn.isNotNull(item.attendances)) {
-									        const card = item.card;
-									        if (!seenCards.has(card)) {     
-									            seenCards.add(card);        
-									            validData.push({
-									                card: card,
-									                salary: item.total_salary,
-									                salary_type: item.attendances.salary_type
-									            });
-									        }
-									    }
-									});
-
-									vk.toast('开始导入数据...');
-									const result = await vk.callFunction({
-										url: 'admin/hrm/salary/sys/employees/addAll',
-										title: '请求中...',
-										data: {
-											items: validData
-										},
-									});
-
-									if (result.code === 0) {
-										let resultMessage = `导入完成！成功: ${result.id.length}条`;
-										vk.alert(resultMessage, "导入成功", "确定", () => {
-											this.refresh();
-										})
-									} else {
-										vk.alert(`导入数据失败!`, "系统错误", "确定");
-									}
-
-								} catch (error) {
-									console.error('处理过程中发生错误:', error);
-									vk.alert(`处理过程中发生错误: ${error.message}`, "系统错误", "确定");
-								}
-							}
-						});
-
-					}
-				}, nowym);
-			},
 
 			//导入xls表格文件
 			handleChange(file) {
-				//定义字段即将导入的excel表中的数据显示在el-table中，这些字段是显示的部分（同时需要将导入的数据传给后端）
 				let typeObj = {
 					card: {
 						"title": "身份证号码",
@@ -620,10 +523,14 @@
 					},
 					salary_type: {
 						"title": "工资类型",
-						"type": "number"
+						"type": "text"
 					},
 					salary: {
 						"title": "综合工资",
+						"type": "number"
+					},
+					contract_days: {
+						"title": "合同天数",
 						"type": "number"
 					},
 					confirm_id: {
@@ -642,31 +549,11 @@
 							return vk.alert('Excel中没有数据！');
 						}
 
-						// 1. 提取所有身份证号码
 						const cards = res.map(item => item.card).filter(card => card);
 						if (cards.length === 0) {
 							return vk.alert('Excel中没有有效的身份证号码！');
 						}
 
-						// 2. 批量检查人员基本资料
-						/*vk.toast('检查人员基本资料中...');
-						const checkRes = await vk.callFunction({
-							url: 'admin/hrm/employees/pub/getCheckCards',
-							title: '检查人员资料...',
-							data: {
-								cards
-							}
-						});
-
-						if (checkRes.cardeds && checkRes.cardeds.length > 0) {
-							const errorCards = checkRes.cardeds.slice(0, 10).join(', ');
-							const errorMsg = checkRes.cardeds.length > 10 ?
-								`人员基本资料不能为空(${checkRes.cardeds.length}条): ${errorCards}...等` :
-								`人员基本资料不能为空(${checkRes.cardeds.length}条): ${errorCards}`;
-							return vk.alert(errorMsg, "检测Excel导入数据", "确定");
-						}*/
-
-						// 3. 批量获取员工信息映射
 						vk.toast('获取员工信息中...');
 						const employeeMap = await vk.myfn.batchGetAttendEmployeeInfo(
 							cards);
@@ -674,19 +561,10 @@
 							return vk.alert('获取员工信息失败！');
 						}
 
-						// 4. 准备要处理的数据
 						const validData = [];
 						const errorData = [];
 
 						for (const item of res) {
-							// 验证必要字段
-							if (!item.attendance_ym) {
-								errorData.push({
-									item,
-									reason: '考勤日期不能为空'
-								});
-								continue;
-							}
 							if (!item.card) {
 								errorData.push({
 									item,
@@ -695,7 +573,6 @@
 								continue;
 							}
 
-							// 获取card
 							const employeeInfo = employeeMap.get(item.card);
 							if (!employeeInfo) {
 								errorData.push({
@@ -705,13 +582,21 @@
 								continue;
 							}
 
-							if (item.salary_type === "月薪") {
+							// 工资类型转换
+							if (item.salary_type === "月薪" || item.salary_type === 1) {
 								item.salary_type = 1;
+							} else if (item.salary_type === "日薪" || item.salary_type ===
+								2) {
+								item.salary_type = 2;
 							} else {
-								item.salary_type === "日薪" ? 2 : 3;
+								item.salary_type = 3;
 							}
 
-							//修改新增人员和时间									
+							// 非月薪人员合同天数置 0
+							if (item.salary_type !== 1) {
+								item.contract_days = 0;
+							}
+
 							item.update_date = new Date().getTime();
 							item.update_id = vk.getVuex('$user.userInfo._id');
 
@@ -731,13 +616,10 @@
 							return vk.alert(`所有数据验证失败:\n${errorMsg}`, "导入失败", "确定");
 						}
 
-
-						// 5. 提取所有员工工号
 						const empCards = validData.map(item => item.card).filter(
 							card =>
 							card);
 
-						// 6.删除旧数据
 						let delRes = await vk.callFunction({
 							url: 'admin/hrm/salary/sys/employees/deleteAll',
 							title: '删除中...',
@@ -750,8 +632,6 @@
 							return vk.alert(`员工定薪明细删除失败！`);
 						}
 
-
-						// 7. 批量处理数据
 						vk.toast('开始导入数据...');
 						const result = await vk.callFunction({
 							url: 'admin/hrm/salary/sys/employees/addAll',
@@ -806,8 +686,13 @@
 							"type": "number"
 						},
 						{
-							"key": "confirms.employee_name",
-							"title": "确认人姓名",
+							"key": "contract_days",
+							"title": "合同天数",
+							"type": "number"
+						},
+						{
+							"key": "confirm_id",
+							"title": "确认人",
 							"type": "text"
 						},
 						{
@@ -840,7 +725,6 @@
 							"title": "职位名称",
 							"type": "text"
 						},
-
 						{
 							"key": "employees.department_name",
 							"title": "所属部门",
@@ -870,7 +754,12 @@
 							"type": "number"
 						},
 						{
-							"key": "confirms.employee_name",
+							"key": "contract_days",
+							"title": "合同天数",
+							"type": "number"
+						},
+						{
+							"key": "confirm_id",
 							"title": "确认人姓名",
 							"type": "text"
 						},

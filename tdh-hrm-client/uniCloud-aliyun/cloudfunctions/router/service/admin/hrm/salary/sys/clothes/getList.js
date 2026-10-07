@@ -45,7 +45,7 @@ module.exports = {
 			},
 			// 副表
 			foreignDB: [{
-				dbName: "hrm-attendance-detail",
+				dbName: "hrm-employees",
 				localKey: "card",
 				localKeyType: "array",
 				foreignKey: "card",

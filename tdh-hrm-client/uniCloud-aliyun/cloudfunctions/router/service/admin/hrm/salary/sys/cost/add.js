@@ -17,7 +17,9 @@ module.exports = {
 		// 获取前端传过来的参数
 		let {
 			attendance_ym,
-			card,			
+			card,	
+			typhoon_cost,
+			liunian_cost,		
 			reward_cost,
 			punish_cost,
 			grant,
@@ -52,7 +54,9 @@ module.exports = {
 			dbName,
 			dataJson: {
 				attendance_ym,
-				card,				
+				card,		
+				typhoon_cost,
+				liunian_cost,			
 				reward_cost,
 				punish_cost,
 				grant,

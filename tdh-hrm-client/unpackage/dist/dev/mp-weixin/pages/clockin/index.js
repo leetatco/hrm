@@ -119,6 +119,7 @@ const _sfc_main = {
       } = vk.pubfn.getCommonTime(new Date(this.reqdata.clockintime));
       this.reqdata.todayStart = todayStart;
       this.reqdata.todayEnd = todayEnd;
+      this.reqdata.username = vk.getVuex("$user.userInfo.username");
       let res = await vk.callFunction({
         url: "admin/hrm/clockin/sys/getList",
         title: "加载中...",
@@ -206,7 +207,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "32",
       color: "#666"
     }),
-    b: common_vendor.o((...args) => $options.prevDay && $options.prevDay(...args), "ed"),
+    b: common_vendor.o((...args) => $options.prevDay && $options.prevDay(...args), "8b"),
     c: common_vendor.t($data.currentDateStr),
     d: common_vendor.t($data.currentWeekday),
     e: common_vendor.p({
@@ -214,13 +215,13 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "28",
       color: "#999"
     }),
-    f: common_vendor.o((...args) => $options.openCalendar && $options.openCalendar(...args), "bb"),
+    f: common_vendor.o((...args) => $options.openCalendar && $options.openCalendar(...args), "16"),
     g: common_vendor.p({
       name: "arrow-right",
       size: "32",
       color: "#666"
     }),
-    h: common_vendor.o((...args) => $options.nextDay && $options.nextDay(...args), "93"),
+    h: common_vendor.o((...args) => $options.nextDay && $options.nextDay(...args), "13"),
     i: !$data.empty && $data.clocks.length > 0
   }, !$data.empty && $data.clocks.length > 0 ? {
     j: common_vendor.p({
@@ -300,20 +301,20 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     s: $data.scrollHeight + "px",
     t: $data.refreshing,
-    v: common_vendor.o((...args) => $options.onRefresherRefresh && $options.onRefresherRefresh(...args), "b7"),
-    w: common_vendor.o((...args) => $options.onScrollToLower && $options.onScrollToLower(...args), "9d"),
+    v: common_vendor.o((...args) => $options.onRefresherRefresh && $options.onRefresherRefresh(...args), "57"),
+    w: common_vendor.o((...args) => $options.onScrollToLower && $options.onScrollToLower(...args), "0f"),
     x: common_vendor.p({
       name: "calendar",
       size: "44",
       color: "#666"
     }),
-    y: common_vendor.o((...args) => $options.openCalendar && $options.openCalendar(...args), "57"),
+    y: common_vendor.o((...args) => $options.openCalendar && $options.openCalendar(...args), "58"),
     z: common_vendor.p({
       name: "order",
       size: "44",
       color: "#666"
     }),
-    A: common_vendor.o((...args) => $options.todayDatas && $options.todayDatas(...args), "74"),
+    A: common_vendor.o((...args) => $options.todayDatas && $options.todayDatas(...args), "04"),
     B: _ctx.uniIDHasRole("clockinAdmin") || _ctx.uniIDHasRole("admin")
   }, _ctx.uniIDHasRole("clockinAdmin") || _ctx.uniIDHasRole("admin") ? {
     C: common_vendor.p({
@@ -321,16 +322,16 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "44",
       color: "#666"
     }),
-    D: common_vendor.o((...args) => $options.toSetting && $options.toSetting(...args), "3d")
+    D: common_vendor.o((...args) => $options.toSetting && $options.toSetting(...args), "2d")
   } : {}, {
     E: common_vendor.p({
       name: "map",
       size: "40",
       color: "#ffffff"
     }),
-    F: common_vendor.o((...args) => $options.toClockin && $options.toClockin(...args), "8f"),
-    G: common_vendor.o($options.handleCalendarChange, "4b"),
-    H: common_vendor.o(($event) => $data.showCalendar = $event, "a6"),
+    F: common_vendor.o((...args) => $options.toClockin && $options.toClockin(...args), "0a"),
+    G: common_vendor.o($options.handleCalendarChange, "ff"),
+    H: common_vendor.o(($event) => $data.showCalendar = $event, "72"),
     I: common_vendor.p({
       mode: $data.mode,
       color: $data.themeColor,

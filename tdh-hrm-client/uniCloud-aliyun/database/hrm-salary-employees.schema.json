@@ -10,14 +10,7 @@
 	"properties": {
 		"_id": {
 			"description": "存储文档 ID，系统自动生成"
-		},
-		"employee_id": {
-			"title": "员工工号",
-			"bsonType": "string",
-			"description": "员工工号唯一标识，不可修改，不允许重复",
-			"foreignKey": "hrm-employees.employee_id",
-			"trim": "both"
-		},
+		},		
 		"card": {
 			"title": "身份证号码",
 			"bsonType": "string",
@@ -46,10 +39,15 @@
 			"bsonType": "int",
 			"description": "综合工资"
 		},
+		"contract_days": {
+			"title": "合同天数",
+			"bsonType": "double",
+			"description": "合同约定每月应出勤天数，主要用于月薪人员；日薪/时薪人员可不填",
+			"defaultValue": 0
+		},
 		"confirm_id": {
 			"bsonType": "string",
-			"title": "确认人",
-			"foreignKey": "hrm-attendance-detail.card",
+			"title": "确认人",			
 			"description": "确认人",
 			"trim": "both"
 		},

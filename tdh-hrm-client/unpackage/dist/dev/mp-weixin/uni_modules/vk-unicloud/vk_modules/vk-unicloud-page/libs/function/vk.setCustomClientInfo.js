@@ -5,7 +5,7 @@ function setCustomClientInfo(data) {
     common_vendor.index.__f__("warn", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.setCustomClientInfo.js:12", "setCustomClientInfo(data)的参数data必须是一个对象");
     return;
   }
-  common_vendor.wr.setCustomClientInfo({
+  common_vendor.Vs.setCustomClientInfo({
     customInfo: data
   });
 }

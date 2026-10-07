@@ -8,9 +8,13 @@ module.exports = {
 			data = {}, userInfo, util
 		} = event;
 		let {
-			vk, db, _
+			vk,
+			db,
+			_
 		} = util;
-		let { uid } = data;
+		let {
+			uid
+		} = data;
 		let res = {
 			code: 0,
 			msg: 'ok'
@@ -29,19 +33,31 @@ module.exports = {
 
 		// 参数验证
 		if (!calendar_name) {
-			return { code: -1, msg: '工作日历名称不能为空' };
+			return {
+				code: -1,
+				msg: '工作日历名称不能为空'
+			};
 		}
 		if (!calendar_date) {
-			return { code: -1, msg: '日期不能为空' };
+			return {
+				code: -1,
+				msg: '日期不能为空'
+			};
 		}
 		if (!date_type) {
-			return { code: -1, msg: '日期类型不能为空' };
+			return {
+				code: -1,
+				msg: '日期类型不能为空'
+			};
 		}
 		if (!year && calendar_date) {
 			year = new Date(calendar_date).getFullYear();
 		}
 		if (!year) {
-			return { code: -1, msg: '年份不能为空' };
+			return {
+				code: -1,
+				msg: '年份不能为空'
+			};
 		}
 
 		const dbName = 'hrm-attendance-calendar';
@@ -75,6 +91,7 @@ module.exports = {
 				name,
 				is_default,
 				remark,
+				version: 1,
 				update_id: uid,
 				update_date: new Date().getTime()
 			}

@@ -39,6 +39,7 @@ module.exports = {
 			educational_id,
 			stay,
 			card,
+			openid,
 			birth_date,
 			birth_month,
 			age,
@@ -56,15 +57,20 @@ module.exports = {
 		let dbName = 'hrm-entry-forms'; // 表名
 		// 参数验证开始
 		let checkRes = await vk.baseDao.findByWhereJson({
-			dbName,
-			whereJson: {
-				card: card
-			}
-		});
+			dbName,			
+			whereJson: _.or([
+			  {
+			    card: card,
+			  },
+			  {
+			    mobile: mobile,
+			  },
+			])
+		})
 		if (checkRes) {
 			return {
 				code: -1,
-				msg: "身份证号码重复！"
+				msg: "身份证号码或手机号码重复！"
 			}
 		}
 		// 参数验证结束		
@@ -81,6 +87,7 @@ module.exports = {
 				educational_id,
 				stay,
 				card,
+				openid,
 				birth_date,
 				birth_month,
 				age,

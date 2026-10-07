@@ -1,217 +1,541 @@
+// admin/hrm/attendance/sys/calcDailyAttendance
 module.exports = {
 	main: async (event) => {
-		const { data = {}, util } = event;
-		const { vk, db } = util;
-		const { employee_ids = [], start_date, end_date } = data;
+		const {
+			data = {}, util
+		} = event;
+		const {
+			vk,
+			db,
+			_
+		} = util;
+		const {
+			employee_ids = [], start_date, end_date
+		} = data;
 
-		// ========== 1. 日期范围生成 ==========
-		let dates = [];
-		if (start_date && end_date) {
-			const start = new Date(start_date);
-			const end = new Date(end_date);
-			for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-				dates.push(vk.pubfn.timeFormat(d, 'yyyy-MM-dd'));
-			}
-		} else {
-			const yesterday = new Date();
-			yesterday.setDate(yesterday.getDate() - 1);
-			dates.push(vk.pubfn.timeFormat(yesterday, 'yyyy-MM-dd'));
-		}
+		// ========== 1. 日期范围 ==========
+		const dates = buildDateList(vk, start_date, end_date);
+		if (dates.length === 0) return {
+			code: -1,
+			msg: '日期范围为空'
+		};
 
-		// ========== 2. 获取员工列表 ==========
-		let employees = [];
-		if (employee_ids.length > 0) {
-			employees = employee_ids;
-		} else {
-			const empRes = await vk.baseDao.selects({
-				dbName: 'hrm-employees',
-				whereJson: { status: 1 },
-				fieldJson: { employee_id: true }
-			});
-			employees = empRes.rows.map(e => e.employee_id);
-		}
+		// ========== 2. 员工列表 ==========
+		const employees = await loadEmployees(util, employee_ids);
+		if (employees.length === 0) return {
+			code: -1,
+			msg: '没有需要计算的员工'
+		};
 
-		// ========== 3. 获取考勤参数 ==========
+		console.log('计算范围：员工数=', employees.length, '日期数=', dates.length);
+
+		// ========== 3. 考勤参数 ==========
 		const paramsRes = await vk.callFunction({
 			url: 'admin/hrm/attendance/pub/getParams',
 			data: {}
 		});
 		const params = paramsRes.code === 0 ? paramsRes.rows : {};
-		console.log('计算范围：员工数=', employees.length, '日期数=', dates.length, '参数=', params);
 
-		const stats = { total: 0, success: 0, skipped: { no_data: 0, error: 0 }, errors: [] };
+		// ========== 4. 按天分片并发预加载 ==========
+		const preload = await preloadByDay(util, employees, dates);
 
-		await clearDailyRecords(util, employees, dates);
+		// ========== 5. 预加载考勤组、班次、打卡规则 ==========
+		const cache = await preloadGroupAndShift(util, preload);
+
+		// ========== 6. 预加载员工信息 ==========
+		const empInfoMap = await loadEmployeeInfoMap(util, employees);
+
+		// ========== 7. 预加载豁免规则 ==========
+		const exemptionMap = await buildExemptionMap(util, employees, dates[0], dates[dates.length - 1]);
+
+		// ========== 8. 预加载已有日考勤（判断封存） ==========
+		const existDailyMap = await loadExistDailyMap(util, employees, dates);
+
+		// ========== 9. 清理未封存旧数据 ==========
+		const delCount = await clearUnsealedRecords(util, employees, dates);
+		console.log('[清理旧数据] 删除:', delCount);
+
+		// ========== 10. 逐员工逐天计算 ==========
+		const stats = {
+			total: 0,
+			success: 0,
+			skipped: {
+				no_data: 0,
+				error: 0,
+				exempted: 0,
+				sealed: 0
+			},
+			errors: []
+		};
+		const addList = [];
 
 		for (const empId of employees) {
 			for (const dateStr of dates) {
 				stats.total++;
 				try {
-					const result = await calcOneDay(empId, dateStr, util, params);
-					if (result.status === 'success') stats.success++;
-					else stats.skipped[result.status]++;
+					const result = calcOneDay(
+						empId, dateStr, util, params,
+						exemptionMap, empInfoMap, preload, cache, existDailyMap
+					);
+					if (result.status === 'success') {
+						stats.success++;
+						addList.push(result.record);
+					} else if (stats.skipped[result.status] !== undefined) {
+						stats.skipped[result.status]++;
+					} else {
+						stats.skipped.error++;
+					}
 				} catch (e) {
 					stats.skipped.error++;
-					stats.errors.push({ empId, dateStr, error: e.message });
+					stats.errors.push({
+						empId,
+						dateStr,
+						error: e.message
+					});
 					console.error(`计算异常 ${empId} ${dateStr}:`, e.message);
 				}
 			}
 		}
 
-		console.log('统计结果:', stats);
+		console.log('[计算完成] addList:', addList.length);
+		console.log('[统计]', stats);
+
+		// ========== 11. 批量写入 ==========
+		if (addList.length > 0) await batchAdd(util, addList);
+
 		return {
 			code: 0,
-			msg: `成功计算${stats.success}条记录，跳过${stats.total - stats.success}条`,
+			msg: `成功计算${stats.success}条记录，跳过${stats.total - stats.success}条（豁免${stats.skipped.exempted}，已封存${stats.skipped.sealed}）`,
 			total: stats.total,
 			stats
 		};
 	}
 };
 
-// ==================== 辅助函数 ====================
-async function clearDailyRecords(util, employees, dates) {
-	const { vk, db } = util;
+// ==================== 日期列表 ====================
+function buildDateList(vk, start_date, end_date) {
+	const dates = [];
+	if (start_date && end_date) {
+		const start = new Date(start_date);
+		const end = new Date(end_date);
+		for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+			dates.push(vk.pubfn.timeFormat(d, 'yyyy-MM-dd'));
+		}
+	} else {
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1);
+		dates.push(vk.pubfn.timeFormat(yesterday, 'yyyy-MM-dd'));
+	}
+	return dates;
+}
+
+// ==================== 员工列表 ====================
+async function loadEmployees(util, employee_ids) {
+	const {
+		vk
+	} = util;
+	if (employee_ids.length > 0) return employee_ids;
+	const empRes = await vk.baseDao.select({
+		dbName: 'hrm-employees',
+		whereJson: {
+			status: 1
+		},
+		fieldJson: {
+			employee_id: true
+		},
+		pageSize: -1
+	});
+	return empRes.rows.map(e => e.employee_id);
+}
+
+// ==================== 按天分片预加载 ====================
+async function preloadByDay(util, employees, dates) {
+	const {
+		vk
+	} = util;
+	const BATCH_SIZE = 10;
+	const allResults = [];
+
+	for (let i = 0; i < dates.length; i += BATCH_SIZE) {
+		const batchDates = dates.slice(i, i + BATCH_SIZE);
+		const tasks = batchDates.map(date => {
+			return vk.callFunction({
+				url: 'admin/hrm/attendance/pub/preloadOneDay',
+				data: {
+					date,
+					employee_ids: employees
+				}
+			}).then(res => res.code === 0 ? res.data : {
+				date,
+				error: res.msg
+			});
+		});
+		const batchResults = await Promise.all(tasks);
+
+		allResults.push(...batchResults);
+	}
+
+	console.log('========== [preloadByDay 结果] ==========');
+	allResults.forEach(dayData => {
+		if (!dayData) {
+			console.log('  [空]', dayData);
+			return;
+		}
+		if (dayData.error) {
+			console.log(`  [失败] date=${dayData.date} error=${dayData.error}`);
+			return;
+		}
+		console.log(
+			`  [成功] date=${dayData.date} 打卡${(dayData.clockRows||[]).length} 加班${(dayData.overtimeRows||[]).length} 外出${(dayData.outingRows||[]).length} 排班${(dayData.scheduleRows||[]).length}`
+		);
+	});
+	console.log('==========================================');
+
+	const preload = {
+		leaveMap: {},
+		tripMap: {},
+		compMap: {},
+		remedyMap: {},
+		overtimeMap: {},
+		scheduleMap: {},
+		clockMap: {},
+		outingMap: {}
+	};
+
+	for (const dayData of allResults) {
+		if (!dayData || dayData.error) {
+			console.warn('预加载失败:', dayData);
+			continue;
+		}
+		const {
+			date,
+			leaveRows,
+			tripRows,
+			compRows,
+			remedyRows,
+			overtimeRows,
+			scheduleRows,
+			clockRows,
+			outingRows
+		} = dayData;
+
+		mergeEmpDateRows(vk, preload.leaveMap, leaveRows, date, 'leave_date');
+		mergeTripRows(vk, preload.tripMap, tripRows, date);
+		mergeEmpDateRows(vk, preload.compMap, compRows, date, 'compensatory_date');
+		mergeEmpDateRows(vk, preload.remedyMap, remedyRows, date);
+		mergeEmpDateRows(vk, preload.overtimeMap, overtimeRows, date, 'overtime_date');
+		mergeScheduleRows(preload.scheduleMap, scheduleRows, date);
+		mergeEmpDateRows(vk, preload.clockMap, clockRows, date, 'clockintime');
+		mergeEmpDateRows(vk, preload.outingMap, outingRows, date);
+	}
+
+	console.log('[合并后] overtimeMap keys:', Object.keys(preload.overtimeMap));
+	console.log('[合并后] outingMap keys:', Object.keys(preload.outingMap));
+	console.log('[合并后] clockMap keys:', Object.keys(preload.clockMap));
+
+	return preload;
+}
+
+// ==================== 合并数据到索引 ====================
+function mergeEmpDateRows(vk, map, rows, date, timestampKey) {
+	for (const row of rows) {
+		let dateStr = date;
+		if (timestampKey) {
+			dateStr = vk.pubfn.timeFormat(new Date(row[timestampKey]), 'yyyy-MM-dd');
+		}
+		const empId = row.employee_id || row.applicant_id;
+		const key = `${empId}_${dateStr}`;
+		if (!map[key]) map[key] = [];
+		map[key].push(row);
+	}
+}
+
+function mergeTripRows(vk, map, rows, date) {
+	for (const row of rows) {
+		const empId = row.employee_id;
+		const key = `${empId}_${date}`;
+		if (!map[key]) map[key] = [];
+		map[key].push(row);
+	}
+}
+
+function mergeScheduleRows(map, rows, date) {
+	for (const row of rows) {
+		map[`${row.employee_id}_${date}`] = row;
+	}
+}
+
+// ==================== 预加载考勤组、班次、打卡规则 ====================
+async function preloadGroupAndShift(util, preload) {
+	const {
+		vk,
+		_
+	} = util;
+
+	const groupIds = [...new Set(
+		Object.values(preload.scheduleMap).map(s => s.attendance_group_id).filter(Boolean)
+	)];
+	if (groupIds.length === 0) return {
+		groupMap: {},
+		shiftMap: {},
+		ruleMap: {}
+	};
+
+	const groupRes = await vk.baseDao.select({
+		dbName: 'hrm-attendance-group',
+		whereJson: {
+			_id: _.in(groupIds)
+		},
+		pageSize: -1
+	});
+	const groupMap = {};
+	for (const g of groupRes.rows) groupMap[g._id] = g;
+
+	const shiftIds = [...new Set(groupRes.rows.map(g => g.shift_id).filter(Boolean))];
+	const ruleIds = [...new Set(groupRes.rows.map(g => g.punch_rule_id).filter(Boolean))];
+
+	const [shiftRes, ruleRes] = await Promise.all([
+		shiftIds.length > 0 ? vk.baseDao.select({
+			dbName: 'hrm-attendance-shift',
+			whereJson: {
+				_id: _.in(shiftIds)
+			},
+			pageSize: -1
+		}) : {
+			rows: []
+		},
+		ruleIds.length > 0 ? vk.baseDao.select({
+			dbName: 'hrm-attendance-punchrule',
+			whereJson: {
+				_id: _.in(ruleIds)
+			},
+			pageSize: -1
+		}) : {
+			rows: []
+		}
+	]);
+
+	const shiftMap = {};
+	for (const s of shiftRes.rows) shiftMap[s._id] = s;
+	const ruleMap = {};
+	for (const r of ruleRes.rows) ruleMap[r._id] = r;
+
+	return {
+		groupMap,
+		shiftMap,
+		ruleMap
+	};
+}
+
+// ==================== 预加载员工信息 ====================
+async function loadEmployeeInfoMap(util, employees) {
+	const {
+		vk,
+		_
+	} = util;
+	const map = {};
+	const empRes = await vk.baseDao.select({
+		dbName: 'hrm-employees',
+		whereJson: {
+			employee_id: _.in(employees)
+		},
+		fieldJson: {
+			employee_id: true,
+			card: true,
+			employee_name: true,
+			department_id: true
+		},
+		pageSize: -1
+	});
+	for (const e of empRes.rows) map[e.employee_id] = e;
+	return map;
+}
+
+// ==================== 预加载豁免规则 ====================
+async function buildExemptionMap(util, employees, startDateStr, endDateStr) {
+	const {
+		vk,
+		_
+	} = util;
+	const map = {};
+
+	const exempRes = await vk.baseDao.select({
+		dbName: 'hrm-attendance-exemption',
+		whereJson: {
+			status: true,
+			start_date: _.lte(endDateStr),
+			$or: [{
+					end_date: _.exists(false)
+				},
+				{
+					end_date: ''
+				},
+				{
+					end_date: _.gte(startDateStr)
+				}
+			]
+		},
+		pageSize: -1
+	});
+	const rules = exempRes.rows || [];
+	if (rules.length === 0) return map;
+
+	const empRes = await vk.baseDao.select({
+		dbName: 'hrm-employees',
+		whereJson: {
+			employee_id: _.in(employees)
+		},
+		fieldJson: {
+			employee_id: true,
+			department_id: true
+		},
+		pageSize: -1
+	});
+	const empDeptMap = {};
+	for (const e of empRes.rows) empDeptMap[e.employee_id] = e.department_id || '';
+
+	const empRules = rules.filter(r => r.exemption_type === 1);
+	const deptRules = rules.filter(r => r.exemption_type === 2);
+	const groupRules = rules.filter(r => r.exemption_type === 3);
+
+	for (const empId of employees) {
+		const matched = [];
+		for (const r of empRules) {
+			if (Array.isArray(r.employee_ids) && r.employee_ids.includes(empId)) matched.push(r);
+		}
+		const deptId = empDeptMap[empId];
+		if (deptId) {
+			for (const r of deptRules) {
+				if (Array.isArray(r.department_ids) && r.department_ids.includes(deptId)) matched.push(r);
+			}
+		}
+		if (groupRules.length > 0) {
+			for (const r of groupRules) matched.push(r);
+		}
+		if (matched.length > 0) map[empId] = matched;
+	}
+	return map;
+}
+
+// ==================== 预加载已有日考勤 ====================
+async function loadExistDailyMap(util, employees, dates) {
+	const {
+		vk,
+		db,
+		_
+	} = util;
 	const startTs = new Date(dates[0] + 'T00:00:00').getTime();
 	const endTs = new Date(dates[dates.length - 1] + 'T23:59:59.999').getTime();
-	await vk.baseDao.del({
+
+	const res = await selectAll(util, 'hrm-attendance-daily', {
+		employee_id: _.in(employees),
+		attendance_date: db.command.gte(startTs).and(db.command.lte(endTs))
+	}, {
+		fieldJson: {
+			_id: true,
+			employee_id: true,
+			attendance_date: true,
+			sealed: true
+		}
+	});
+
+	const map = {};
+	for (const r of res.rows) {
+		const dateStr = vk.pubfn.timeFormat(new Date(r.attendance_date), 'yyyy-MM-dd');
+		map[`${r.employee_id}_${dateStr}`] = r;
+	}
+	return map;
+}
+
+// ==================== 清理未封存记录 ====================
+async function clearUnsealedRecords(util, employees, dates) {
+	const {
+		vk,
+		db,
+		_
+	} = util;
+	const startTs = new Date(dates[0] + 'T00:00:00').getTime();
+	const endTs = new Date(dates[dates.length - 1] + 'T23:59:59.999').getTime();
+
+	const res = await vk.baseDao.del({
 		dbName: 'hrm-attendance-daily',
 		whereJson: {
 			employee_id: db.command.in(employees),
-			attendance_date: db.command.gte(startTs).and(db.command.lte(endTs))
+			attendance_date: db.command.gte(startTs).and(db.command.lte(endTs)),
+			sealed: _.neq(true)
 		}
 	});
+	return res;
 }
 
-function extractHHmmFromTimestamp(timestamp) {
-	if (!timestamp) return null;
-	const date = new Date(timestamp);
-	const hours = String(date.getHours()).padStart(2, '0');
-	const minutes = String(date.getMinutes()).padStart(2, '0');
-	return `${hours}:${minutes}`;
-}
-
-function toMinutes(hhmm) {
-	if (!hhmm) return 0;
-	const [h, m] = hhmm.split(':').map(Number);
-	return h * 60 + m;
-}
-
-function calcOverlapMinutes(start1, end1, start2, end2) {
-	const overlapStart = Math.max(start1, start2);
-	const overlapEnd = Math.min(end1, end2);
-	if (overlapStart >= overlapEnd) return 0;
-	return Math.round((overlapEnd - overlapStart) / (1000 * 60));
-}
-
-function getPeriodRange(dateStr, params) {
-	const date = new Date(dateStr + 'T00:00:00');
-	const y = date.getFullYear();
-	const m = date.getMonth();
-	const startDay = params.period_start_day || 1;
-	let start;
-	if (date.getDate() >= startDay) start = new Date(y, m, startDay);
-	else start = new Date(y, m - 1, startDay);
-	const end = new Date(start.getFullYear(), start.getMonth() + 1, startDay - 1);
-	const fmt = (d) => {
-		const yy = d.getFullYear();
-		const mm = String(d.getMonth() + 1).padStart(2, '0');
-		const dd = String(d.getDate()).padStart(2, '0');
-		return `${yy}-${mm}-${dd}`;
-	};
-	return { startStr: fmt(start), endStr: fmt(end) };
-}
-
-function getPunchWindow(punchRule) {
-	if (punchRule) {
-		return {
-			inBefore: punchRule.sign_in_before_minutes ?? 60,
-			inAfter: punchRule.sign_in_after_minutes ?? 30,
-			outBefore: punchRule.sign_out_before_minutes ?? 30,
-			outAfter: punchRule.sign_out_after_minutes ?? 120
-		};
+// ==================== 批量新增 ====================
+async function batchAdd(util, addList) {
+	const {
+		vk
+	} = util;
+	const BATCH_SIZE = 500;
+	for (let i = 0; i < addList.length; i += BATCH_SIZE) {
+		await vk.baseDao.adds({
+			dbName: 'hrm-attendance-daily',
+			dataJson: addList.slice(i, i + BATCH_SIZE)
+		});
 	}
-	return { inBefore: 60, inAfter: 30, outBefore: 30, outAfter: 120 };
 }
 
-function roundOvertimeMinutes(minutes) {
-	const unit = 30;
-	if (!minutes || minutes <= 0) return 0;
-	return Math.floor(minutes / unit) * unit;
+// ==================== 分页查询 ====================
+async function selectAll(util, dbName, whereJson, options = {}) {
+	const {
+		vk
+	} = util;
+	const pageSize = options.pageSize || 1000;
+	const allRows = [];
+	let pageIndex = 1;
+
+	while (true) {
+		const res = await vk.baseDao.select({
+			dbName,
+			whereJson,
+			sortArr: options.sortArr || [],
+			fieldJson: options.fieldJson || {},
+			pageIndex,
+			pageSize
+		});
+		const rows = res.rows || [];
+		allRows.push(...rows);
+		if (rows.length < pageSize) break;
+		pageIndex++;
+		if (pageIndex > 1000) break;
+	}
+	return {
+		rows: allRows
+	};
 }
 
-// 判断某个时间点是否在外出时间段内
-function isInOutingRange(punchMin, outingRanges) {
-	return outingRanges.some(r => punchMin >= r.start && punchMin <= r.end);
-}
-
-// ==================== 单日计算 ====================
-async function calcOneDay(employeeId, dateStr, util, params) {
-	const { vk, db } = util;
+// ==================== 单日计算（纯内存） ====================
+function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap, preload, cache, existDailyMap) {
+	const {
+		vk
+	} = util;
+	const empInfo = empInfoMap[employeeId] || {};
+	const card = empInfo.card || '';
+	const employeeName = empInfo.employee_name || '';
 
 	const dayStartTs = new Date(dateStr + 'T00:00:00').getTime();
 	const dayEndTs = new Date(dateStr + 'T23:59:59.999').getTime();
 
-	// ========== 1. 并行查询 ==========
-	const [leaveRes, tripRes, compRes, remedyRes, overtimeRes, scheduleRes, clockRes, abnormalRes, remedyRuleRes, outingRes] = await Promise.all([
-		vk.baseDao.selects({
-			dbName: 'hrm-attendance-leaverecord',
-			whereJson: { employee_id: employeeId, leave_date: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs)) }
-		}),
-		vk.baseDao.selects({
-			dbName: 'hrm-attendance-triprecord',
-			whereJson: { employee_id: employeeId, start_time: db.command.lte(dayEndTs), end_time: db.command.gte(dayStartTs) }
-		}),
-		vk.baseDao.selects({
-			dbName: 'hrm-attendance-compensatoryrecord',
-			whereJson: { employee_id: employeeId, compensatory_date: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs)) }
-		}),
-		vk.baseDao.selects({
-			dbName: 'bpmn-application-form',
-			whereJson: {
-				applicant_id: employeeId,
-				form_type_code: 'MISS_PUNCH_RECORD',
-				status: 'approved',
-				'form_data.miss_date': dateStr
-			}
-		}),
-		vk.baseDao.selects({
-			dbName: 'hrm-attendance-overtimerecord',
-			whereJson: { employee_id: employeeId, overtime_date: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs)), import_status: 1 }
-		}),
-		vk.baseDao.selects({
-			dbName: 'hrm-attendance-schedule',
-			whereJson: { employee_id: employeeId, schedule_date: dateStr },
-			limit: 1
-		}),
-		vk.baseDao.selects({
-			dbName: 'hrm-clockin',
-			whereJson: { employee_id: employeeId, type: '公司卡', clockintime: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs)) },
-			sortArr: [{ name: 'clockintime', type: 'asc' }]
-		}),
-		vk.baseDao.selects({
-			dbName: 'hrm-attendance-abnormalrule',
-			whereJson: { status: true },
-			limit: 1
-		}),
-		vk.baseDao.selects({
-			dbName: 'hrm-attendance-remedyrule',
-			whereJson: { status: true },
-			limit: 1
-		}),
-		// 外出申请单（直接读 OA 审批表，不建记录表）
-		vk.baseDao.selects({
-			dbName: 'bpmn-application-form',
-			whereJson: {
-				applicant_id: employeeId,
-				form_type_code: 'OUTING_APPLICATION',
-				status: 'approved',
-				'form_data.outing_date': dateStr
-			}
-		})
-	]);
+	let allSegmentsMissing = false;
+	let hasAnyMissing = false;
 
-	// 异常判定规则
-	const abnormalRule = abnormalRes.rows[0] || {
+	const leaveRows = preload.leaveMap[`${employeeId}_${dateStr}`] || [];
+	const tripRows = preload.tripMap[`${employeeId}_${dateStr}`] || [];
+	const compRows = preload.compMap[`${employeeId}_${dateStr}`] || [];
+	const remedyRows = preload.remedyMap[`${employeeId}_${dateStr}`] || [];
+	const overtimeRows = preload.overtimeMap[`${employeeId}_${dateStr}`] || [];
+	const schedule = preload.scheduleMap[`${employeeId}_${dateStr}`];
+	const clockRows = preload.clockMap[`${employeeId}_${dateStr}`] || [];
+	const outingRows = preload.outingMap[`${employeeId}_${dateStr}`] || [];
+
+	const abnormalRule = {
 		single_punch_rule: 1,
 		late_early_coexist_rule: 1,
 		out_office_cancel_absence: true,
@@ -220,11 +544,69 @@ async function calcOneDay(employeeId, dateStr, util, params) {
 		overtime_cancel_early: false
 	};
 
-	// 补卡规则
-	const remedyRule = remedyRuleRes.rows[0] || {};
+	// 封存检查
+	const existRec = existDailyMap[`${employeeId}_${dateStr}`];
+	if (existRec && existRec.sealed === true) {
+		return {
+			status: 'sealed'
+		};
+	}
 
-	// ========== 2. 解析外出申请单 ==========
-	const outingRecords = outingRes.rows.map(r => ({
+	// 考勤组、班次
+	let shift = null;
+	let segments = [];
+	let punchRule = null;
+	let attendanceGroupId = '';
+	let attendanceGroupName = '';
+	let groupRes = null;
+
+	if (schedule && schedule.attendance_group_id) {
+		attendanceGroupId = schedule.attendance_group_id;
+		groupRes = cache.groupMap[attendanceGroupId];
+		if (groupRes) {
+			attendanceGroupName = groupRes.group_name || '';
+			if (groupRes.shift_id) {
+				shift = cache.shiftMap[groupRes.shift_id];
+				if (shift && shift.status) segments = shift.segments || [];
+				else shift = null;
+			}
+			if (groupRes.punch_rule_id) {
+				punchRule = cache.ruleMap[groupRes.punch_rule_id];
+				if (punchRule && !punchRule.status) punchRule = null;
+			}
+		}
+	}
+
+	// 配置快照
+	const configSnapshot = {
+		schedule: schedule ? {
+			_id: schedule._id,
+			attendance_group_id: schedule.attendance_group_id,
+			version: schedule.version || 0
+		} : null,
+		group: groupRes ? {
+			_id: groupRes._id,
+			group_name: groupRes.group_name,
+			shift_id: groupRes.shift_id,
+			punch_rule_id: groupRes.punch_rule_id,
+			version: groupRes.version || 0
+		} : null,
+		shift: shift ? {
+			_id: shift._id,
+			shift_name: shift.shift_name,
+			segments: shift.segments || [],
+			version: shift.version || 0
+		} : null
+	};
+
+	// 豁免判断
+	const exemptionRes = checkExemptionInMemory(employeeId, dateStr, attendanceGroupId, exemptionMap);
+	if (exemptionRes.exempted) return {
+		status: 'exempted'
+	};
+
+	// 解析外出
+	const outingRecords = outingRows.map(r => ({
 		outing_title: r.form_data?.outing_title || '',
 		outing_type: r.form_data?.outing_type || '',
 		start_time: r.form_data?.start_time || '',
@@ -233,35 +615,40 @@ async function calcOneDay(employeeId, dateStr, util, params) {
 		outing_reason: r.form_data?.outing_reason || '',
 		remark: r.form_data?.remarks || ''
 	}));
-
-	// 外出时间段（HH:mm 转分钟区间）
 	const outingRanges = outingRecords
 		.filter(r => r.start_time && r.end_time)
 		.map(r => ({
 			start: toMinutes(r.start_time),
 			end: toMinutes(r.end_time)
 		}));
-
-	// 外出总时长（分钟）
 	const outingMinutes = outingRecords.reduce((sum, r) => sum + (r.total_minutes || 0), 0);
 
-	// ========== 3. 汇总其他记录 ==========
-	const leaveMinutes = leaveRes.rows.reduce((sum, r) => sum + (r.total_minutes || 0), 0);
-	const tripMinutes = tripRes.rows.reduce((sum, r) => sum + calcOverlapMinutes(r.start_time, r.end_time, dayStartTs, dayEndTs), 0);
-	const compMinutes = compRes.rows.reduce((sum, r) => sum + (r.total_minutes || 0), 0);
-	const overtimeMinutesFromRecord = params.allow_overtime_application
-		? overtimeRes.rows.reduce((sum, r) => sum + (r.total_minutes || 0), 0)
-		: 0;
+	// 汇总其他记录
+	const leaveMinutes = leaveRows.reduce((sum, r) => sum + (r.total_minutes || 0), 0);
+	const tripMinutes = tripRows.reduce((sum, r) => sum + calcOverlapMinutes(r.start_time, r.end_time, dayStartTs,
+		dayEndTs), 0);
+	const compMinutes = compRows.reduce((sum, r) => sum + (r.total_minutes || 0), 0);
 
-	// 明细
-	const leaveRecords = leaveRes.rows.map(r => ({
+	// 加班分类汇总
+	let overtimeCompensatoryMinutes = 0;
+	let overtimePaidMinutes = 0;
+	for (const r of overtimeRows) {
+		if (r.overtime_type === 'compensatory') {
+			overtimeCompensatoryMinutes += r.total_minutes || 0;
+		} else if (r.overtime_type === 'paid') {
+			overtimePaidMinutes += r.total_minutes || 0;
+		}
+	}
+	const overtimeMinutesFromRecord = overtimeCompensatoryMinutes + overtimePaidMinutes;
+
+	const leaveRecords = leaveRows.map(r => ({
 		leave_type: r.leave_type,
 		leave_name: r.leave_name,
 		total_minutes: r.total_minutes,
 		reason: r.reason || '',
 		leave_date: r.leave_date
 	}));
-	const tripRecords = tripRes.rows.map(r => ({
+	const tripRecords = tripRows.map(r => ({
 		trip_location: r.trip_location,
 		start_time: r.start_time,
 		end_time: r.end_time,
@@ -269,12 +656,12 @@ async function calcOneDay(employeeId, dateStr, util, params) {
 		trip_type: r.trip_type || 'domestic',
 		reason: r.reason || ''
 	}));
-	const compRecords = compRes.rows.map(r => ({
+	const compRecords = compRows.map(r => ({
 		total_minutes: r.total_minutes,
 		reason: r.reason || '',
 		items: r.items || []
 	}));
-	const overtimeRecords = overtimeRes.rows.map(r => ({
+	const overtimeRecords = overtimeRows.map(r => ({
 		overtime_date: r.overtime_date,
 		total_minutes: r.total_minutes,
 		overtime_type: r.overtime_type,
@@ -282,8 +669,8 @@ async function calcOneDay(employeeId, dateStr, util, params) {
 		afternoon_range: r.afternoon_range || null
 	}));
 
-	// ========== 4. 解析补卡申请 ==========
-	let remedyList = remedyRes.rows
+	// 补卡
+	let remedyList = remedyRows
 		.map(r => r.form_data)
 		.filter(fd => fd && fd.miss_time && (fd.miss_type === 'clock_in' || fd.miss_type === 'clock_out'))
 		.map(fd => ({
@@ -293,280 +680,438 @@ async function calcOneDay(employeeId, dateStr, util, params) {
 			used: false
 		}));
 
-	if (remedyList.length > 0) {
-		const period = getPeriodRange(dateStr, params);
-		const periodRemedyRes = await vk.baseDao.selects({
-			dbName: 'bpmn-application-form',
-			whereJson: {
-				applicant_id: employeeId,
-				form_type_code: 'MISS_PUNCH_RECORD',
-				status: 'approved',
-				'form_data.miss_date': db.command.gte(period.startStr).and(db.command.lte(period.endStr))
-			}
-		});
-		const remedyLimit = remedyRule.remedy_max_per_month ?? 3;
-		if (remedyLimit > 0 && periodRemedyRes.rows.length > remedyLimit) {
-			console.log(`[签卡超限] ${employeeId} ${dateStr} 周期内签卡${periodRemedyRes.rows.length}次 > 上限${remedyLimit}，签卡不生效`);
-			remedyList = [];
-		}
-	}
+	const {
+		inBefore,
+		inAfter,
+		outBefore,
+		outAfter
+	} = getPunchWindow(punchRule);
+	const shouldAttendMinutes = calcShouldAttendMinutes(segments);
 
-	// ========== 5. 排班与班次 ==========
-	const schedule = scheduleRes.rows[0];
-	let shift = null;
-	let segments = [];
-	let punchRule = null;
+	// ========== 无排班但有特殊记录 ==========
+	// console.log('[分支判断]', {
+	// 	employeeId,
+	// 	dateStr,
+	// 	hasShift: !!shift,
+	// 	segmentsLen: segments.length,
+	// 	leaveMinutes,
+	// 	tripMinutes,
+	// 	compMinutes,
+	// 	overtimeMinutesFromRecord,
+	// 	outingMinutes,
+	// 	hasSpecialRecord: leaveMinutes > 0 || tripMinutes > 0 || compMinutes > 0 ||
+	// 		overtimeMinutesFromRecord > 0 || outingMinutes > 0
+	// });
 
-	if (schedule && schedule.shift_id) {
-		const shiftRes = await vk.baseDao.findById({ dbName: 'hrm-attendance-shift', id: schedule.shift_id });
-		if (shiftRes && shiftRes.status) {
-			shift = shiftRes;
-			segments = shift.segments || [];
-		}
-	}
-
-	if (schedule && schedule.attendance_group_id) {
-		const groupRes = await vk.baseDao.findById({ dbName: 'hrm-attendance-group', id: schedule.attendance_group_id });
-		if (groupRes && groupRes.punch_rule_id) {
-			const ruleRes = await vk.baseDao.findById({ dbName: 'hrm-attendance-punchrule', id: groupRes.punch_rule_id });
-			if (ruleRes && ruleRes.status) punchRule = ruleRes;
-		}
-	}
-
-	const { inBefore, inAfter, outBefore, outAfter } = getPunchWindow(punchRule);
-
-	// ========== 6. 无排班但有特殊记录 ==========
+	// ========== 无排班但有特殊记录 ==========
 	if (!shift || segments.length === 0) {
-		const hasSpecialRecord = leaveMinutes > 0 || tripMinutes > 0 || compMinutes > 0
-			|| overtimeMinutesFromRecord > 0 || outingMinutes > 0;
+		const hasSpecialRecord = leaveMinutes > 0 || tripMinutes > 0 || compMinutes > 0 ||
+			overtimeMinutesFromRecord > 0 || outingMinutes > 0;
 
-		if (!hasSpecialRecord) {
-			console.log(`[跳过] ${employeeId} ${dateStr} 无排班且无特殊记录`);
-			return { status: 'no_data' };
+		if (!hasSpecialRecord) return {
+			status: 'no_data'
+		};
+
+		// ========== 优先处理加班（加班优先于外出） ==========
+		if (overtimeMinutesFromRecord > 0) {
+			// 加班分支（外出单作为打卡凭证参与匹配）
+			const overtimeSegments = [];
+			overtimeRecords.forEach(r => {
+				if (r.morning_range && r.morning_range.length === 2) {
+					overtimeSegments.push({
+						name: '上午',
+						start_time: r.morning_range[0],
+						end_time: r.morning_range[1]
+					});
+				}
+				if (r.afternoon_range && r.afternoon_range.length === 2) {
+					overtimeSegments.push({
+						name: '下午',
+						start_time: r.afternoon_range[0],
+						end_time: r.afternoon_range[1]
+					});
+				}
+			});
+
+			const outingRangesForOt = outingRecords
+				.filter(r => r.start_time && r.end_time)
+				.map(r => ({
+					start: toMinutes(r.start_time),
+					end: toMinutes(r.end_time)
+				}));
+
+			const otResult = matchSegments(
+				clockRows, overtimeSegments, remedyList, outingRangesForOt,
+				inBefore, inAfter, outBefore, outAfter, params
+			);
+
+			let otAttendanceStatus = 6;
+			if (otResult.allMissing && leaveMinutes === 0 && tripMinutes === 0 &&
+				compMinutes === 0 && outingMinutes === 0) {
+				otAttendanceStatus = 5;
+			} else if (otResult.hasMissing) {
+				otAttendanceStatus = 0;
+			} else {
+				otAttendanceStatus = 6;
+			}
+						
+			const record = buildRecord({
+				employeeId,
+				employeeName,
+				card,
+				dayStartTs,
+				attendanceGroupId,
+				attendanceGroupName,
+				shift: null,
+				segments: otResult.segmentResults,
+				shouldAttendMinutes: 0,
+				actualAttendMinutes: 0,
+				lateMinutes: otResult.totalLate,
+				earlyMinutes: otResult.totalEarly,
+				absentMinutes: otResult.allMissing ? 8 * 60 : 0,
+				overtimeMinutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
+				overtimeCompensatoryMinutes,
+				overtimePaidMinutes,
+				leaveMinutes: 0,
+				tripMinutes: 0,
+				compMinutes: 0,
+				outingMinutes,
+				leaveRecords: [],
+				tripRecords: [],
+				compRecords: [],
+				outingRecords,
+				overtimeRecords,
+				remedyRecords: remedyList.filter(r => r.used).map(r => ({
+					miss_type: r.miss_type,
+					miss_time: r.miss_time,
+					miss_reason: r.miss_reason
+				})),
+				remedyFlag: remedyList.some(r => r.used),
+				attendanceStatus: otAttendanceStatus,
+				configSnapshot
+			});
+			return {
+				status: 'success',
+				record
+			};
 		}
 
-		// 优先处理请假/出差/调休/外出
+		// ========== 其次是请假/出差/调休/外出 ==========
 		if (leaveMinutes > 0 || tripMinutes > 0 || compMinutes > 0 || outingMinutes > 0) {
 			let attendanceStatus = 0;
 			if (leaveMinutes > 0) attendanceStatus = 2;
 			else if (tripMinutes > 0) attendanceStatus = 3;
 			else if (compMinutes > 0) attendanceStatus = 4;
 
-			const record = {
-				employee_id: employeeId,
-				attendance_date: dayStartTs,
-				shift_id: null,
-				shift_name: '',
+			const record = buildRecord({
+				employeeId,
+				employeeName,
+				card,
+				dayStartTs,
+				attendanceGroupId,
+				attendanceGroupName,
+				shift: null,
 				segments: [],
-				late_minutes: 0,
-				early_minutes: 0,
-				absent_minutes: 0,
-				overtime_minutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
-				leave_minutes: leaveMinutes,
-				trip_minutes: tripMinutes,
-				compensatory_minutes: compMinutes,
-				outing_minutes: outingMinutes,
-				leave_records: leaveRecords,
-				trip_records: tripRecords,
-				compensatory_records: compRecords,
-				outing_records: outingRecords,
-				overtime_records: overtimeRecords,
-				remedy_records: [],
-				remedy_flag: false,
-				attendance_status: attendanceStatus,
-				update_id: 'system',
-				update_date: Date.now()
-			};
-			await upsertDailyRecord(employeeId, dayStartTs, record, util);
-			return { status: 'success' };
-		}
-
-		// 仅加班（休息日加班）
-		if (overtimeMinutesFromRecord > 0) {
-			const overtimeSegments = [];
-			overtimeRecords.forEach((r) => {
-				if (r.morning_range && Array.isArray(r.morning_range) && r.morning_range.length === 2) {
-					overtimeSegments.push({ name: '上午', start_time: r.morning_range[0], end_time: r.morning_range[1] });
-				}
-				if (r.afternoon_range && Array.isArray(r.afternoon_range) && r.afternoon_range.length === 2) {
-					overtimeSegments.push({ name: '下午', start_time: r.afternoon_range[0], end_time: r.afternoon_range[1] });
-				}
+				shouldAttendMinutes: 0,
+				actualAttendMinutes: 0,
+				lateMinutes: 0,
+				earlyMinutes: 0,
+				absentMinutes: 0,
+				overtimeMinutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
+				overtimeCompensatoryMinutes,
+				overtimePaidMinutes,
+				leaveMinutes,
+				tripMinutes,
+				compMinutes,
+				outingMinutes,
+				leaveRecords,
+				tripRecords,
+				compRecords,
+				outingRecords,
+				overtimeRecords,
+				remedyRecords: [],
+				remedyFlag: false,
+				attendanceStatus,
+				configSnapshot
 			});
+			return {
+				status: 'success',
+				record
+			};
+		}
+	}
 
-			const overtimePunches = clockRes.rows;
-			const otSegmentResults = [];
-			const otUsedPunchIndexes = new Set();
+	// ========== 有排班，优先处理特殊状态 ==========
+	if (leaveMinutes > 0 || tripMinutes > 0 || compMinutes > 0) {
+		let status = 0;
+		if (leaveMinutes > 0) status = 2;
+		else if (tripMinutes > 0) status = 3;
+		else if (compMinutes > 0) status = 4;
 
-			if (overtimeSegments.length > 0) {
-				for (const seg of overtimeSegments) {
-					const segStartMin = toMinutes(seg.start_time);
-					const segEndMin = toMinutes(seg.end_time);
-					let inPunch = null, outPunch = null;
-					let bestInDiff = Infinity, bestOutDiff = Infinity;
-					let bestInIdx = -1, bestOutIdx = -1;
+		const actualAttendMinutes = calcActualAttendMinutes({
+			shouldAttendMinutes,
+			punchWorkMinutes: 0,
+			tripMinutes,
+			outingMinutes,
+			compMinutes,
+			leaveMinutes,
+			absentMinutes: 0
+		});
 
-					for (let i = 0; i < overtimePunches.length; i++) {
-						if (otUsedPunchIndexes.has(i)) continue;
-						const hhmm = extractHHmmFromTimestamp(overtimePunches[i].clockintime);
-						const pMin = toMinutes(hhmm);
-						if (pMin >= segStartMin - inBefore && pMin <= segStartMin + inAfter) {
-							const diff = Math.abs(pMin - segStartMin);
-							if (diff < bestInDiff) { bestInDiff = diff; bestInIdx = i; inPunch = hhmm; }
-						}
-						if (pMin >= segEndMin - outBefore && pMin <= segEndMin + outAfter) {
-							const diff = Math.abs(pMin - segEndMin);
-							if (diff < bestOutDiff) { bestOutDiff = diff; bestOutIdx = i; outPunch = hhmm; }
-						}
-					}
-					if (bestInIdx !== -1) otUsedPunchIndexes.add(bestInIdx);
-					if (bestOutIdx !== -1) otUsedPunchIndexes.add(bestOutIdx);
+		const record = buildRecord({
+			employeeId,
+			employeeName,
+			card,
+			dayStartTs,
+			attendanceGroupId,
+			attendanceGroupName,
+			shift,
+			segments: [],
+			shouldAttendMinutes,
+			actualAttendMinutes,
+			lateMinutes: 0,
+			earlyMinutes: 0,
+			absentMinutes: 0,
+			overtimeMinutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
+			overtimeCompensatoryMinutes,
+			overtimePaidMinutes,
+			leaveMinutes,
+			tripMinutes,
+			compMinutes,
+			outingMinutes,
+			leaveRecords,
+			tripRecords,
+			compRecords,
+			outingRecords,
+			overtimeRecords,
+			remedyRecords: [],
+			remedyFlag: false,
+			attendanceStatus: status,
+			configSnapshot
+		});
+		return {
+			status: 'success',
+			record
+		};
+	}
 
-					// 补卡修正
-					if (!inPunch) {
-						for (const rem of remedyList) {
-							if (rem.used || rem.miss_type !== 'clock_in') continue;
-							const remMin = toMinutes(rem.miss_time);
-							if (remMin >= segStartMin - inBefore && remMin <= segStartMin + inAfter) {
-								inPunch = rem.miss_time; rem.used = true; break;
-							}
-						}
-					}
-					if (!outPunch) {
-						for (const rem of remedyList) {
-							if (rem.used || rem.miss_type !== 'clock_out') continue;
-							const remMin = toMinutes(rem.miss_time);
-							if (remMin >= segEndMin - outBefore && remMin <= segEndMin + outAfter) {
-								outPunch = rem.miss_time; rem.used = true; break;
-							}
-						}
-					}
+	// ========== 正常打卡（有排班） ==========
+	const matchResult = matchSegments(clockRows, segments, remedyList, outingRanges, inBefore, inAfter, outBefore,
+		outAfter, params);
 
-					let segLate = 0, segEarly = 0;
-					if (inPunch) {
-						const lateDiff = toMinutes(inPunch) - segStartMin;
-						if (lateDiff > (params.late_threshold_minutes || 0)) segLate = lateDiff;
-					}
-					if (outPunch) {
-						const earlyDiff = segEndMin - toMinutes(outPunch);
-						if (earlyDiff > (params.early_threshold_minutes || 0)) segEarly = earlyDiff;
-					}
-
-					otSegmentResults.push({
-						segment_name: seg.name,
-						start_time: seg.start_time,
-						end_time: seg.end_time,
-						clock_in: inPunch,
-						clock_out: outPunch,
-						late_minutes: segLate,
-						early_minutes: segEarly,
-						missing_in: !inPunch,
-						missing_out: !outPunch
-					});
+	const minWorkMinutes = punchRule?.missing_punch_min_work_minutes || 0;
+	if (minWorkMinutes > 0) {
+		for (const seg of matchResult.segmentResults) {
+			const onlyOne = (seg.clock_in && !seg.clock_out) || (!seg.clock_in && seg.clock_out);
+			if (onlyOne) {
+				const worked = seg.clock_in && seg.clock_out ? toMinutes(seg.clock_out) - toMinutes(seg.clock_in) : 0;
+				if (worked < minWorkMinutes) {
+					seg.missing_in = false;
+					seg.missing_out = false;
 				}
 			}
-
-			const otTotalLate = otSegmentResults.reduce((sum, s) => sum + s.late_minutes, 0);
-			const otTotalEarly = otSegmentResults.reduce((sum, s) => sum + s.early_minutes, 0);
-			const otHasMissing = otSegmentResults.some(s => s.missing_in || s.missing_out);
-			const otAllMissing = otSegmentResults.length > 0 && otSegmentResults.every(s => s.missing_in && s.missing_out);
-
-			let otAttendanceStatus = 6;
-			if (otAllMissing) otAttendanceStatus = 5;
-			else if (otHasMissing) otAttendanceStatus = 0;
-
-			const record = {
-				employee_id: employeeId,
-				attendance_date: dayStartTs,
-				shift_id: null,
-				shift_name: '',
-				segments: otSegmentResults,
-				late_minutes: otTotalLate,
-				early_minutes: otTotalEarly,
-				absent_minutes: otAllMissing ? 8 * 60 : 0,
-				overtime_minutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
-				leave_minutes: 0,
-				trip_minutes: 0,
-				compensatory_minutes: 0,
-				outing_minutes: 0,
-				leave_records: [],
-				trip_records: [],
-				compensatory_records: [],
-				outing_records: [],
-				overtime_records: overtimeRecords,
-				remedy_records: remedyList.filter(r => r.used).map(r => ({
-					miss_type: r.miss_type,
-					miss_time: r.miss_time,
-					miss_reason: r.miss_reason
-				})),
-				remedy_flag: remedyList.some(r => r.used),
-				attendance_status: otAttendanceStatus,
-				update_id: 'system',
-				update_date: Date.now()
-			};
-			await upsertDailyRecord(employeeId, dayStartTs, record, util);
-			return { status: 'success' };
 		}
 	}
 
-	// ========== 7. 有排班，优先处理特殊状态 ==========
-	if (leaveMinutes > 0) {
-		await createSpecialRecord(employeeId, dayStartTs, shift, leaveMinutes, tripMinutes, compMinutes,
-			outingMinutes, roundOvertimeMinutes(overtimeMinutesFromRecord), 2, leaveRecords, tripRecords,
-			compRecords, outingRecords, overtimeRecords, [], util);
-		return { status: 'success' };
-	}
-	if (tripMinutes > 0) {
-		await createSpecialRecord(employeeId, dayStartTs, shift, leaveMinutes, tripMinutes, compMinutes,
-			outingMinutes, roundOvertimeMinutes(overtimeMinutesFromRecord), 3, leaveRecords, tripRecords,
-			compRecords, outingRecords, overtimeRecords, [], util);
-		return { status: 'success' };
-	}
-	if (compMinutes > 0) {
-		await createSpecialRecord(employeeId, dayStartTs, shift, leaveMinutes, tripMinutes, compMinutes,
-			outingMinutes, roundOvertimeMinutes(overtimeMinutesFromRecord), 4, leaveRecords, tripRecords,
-			compRecords, outingRecords, overtimeRecords, [], util);
-		return { status: 'success' };
+	// 应用异常判定规则
+	let totalLate = matchResult.segmentResults.reduce((sum, s) => sum + s.late_minutes, 0);
+	let totalEarly = matchResult.segmentResults.reduce((sum, s) => sum + s.early_minutes, 0);
+
+	// 迟到早退共存规则
+	if (totalLate > 0 && totalEarly > 0) {
+		switch (abnormalRule.late_early_coexist_rule) {
+			case 1:
+				break;
+			case 2:
+				if (totalLate >= totalEarly) totalEarly = 0;
+				else totalLate = 0;
+				break;
+			case 3:
+				totalEarly = 0;
+				break;
+			case 4:
+				totalLate = 0;
+				break;
+		}
 	}
 
-	// ========== 8. 正常打卡计算（含外出视为打卡） ==========
-	const punches = clockRes.rows;
-	console.log(`[计算] ${employeeId} ${dateStr} 打卡记录数=${punches.length}, 外出时间段=${outingRanges.length}`);
+	// 出差、外出：清除迟到早退
+	if (abnormalRule.out_office_cancel_late && (tripMinutes > 0 || outingMinutes > 0)) {
+		totalLate = 0;
+		for (const seg of matchResult.segmentResults) seg.late_minutes = 0;
+	}
+	if (abnormalRule.out_office_cancel_early && (tripMinutes > 0 || outingMinutes > 0)) {
+		totalEarly = 0;
+		for (const seg of matchResult.segmentResults) seg.early_minutes = 0;
+	}
+	if (abnormalRule.overtime_cancel_early && overtimeMinutesFromRecord > 0) {
+		totalEarly = 0;
+		for (const seg of matchResult.segmentResults) seg.early_minutes = 0;
+	}
 
+	// 只打一次卡处理
+	let singlePunchAbsent = 0;
+	for (const seg of matchResult.segmentResults) {
+		const onlyOne = (seg.clock_in && !seg.clock_out) || (!seg.clock_in && seg.clock_out);
+		if (onlyOne) {
+			switch (abnormalRule.single_punch_rule) {
+				case 1:
+					if (leaveMinutes > 0 || tripMinutes > 0 || outingMinutes > 0) {
+						seg.missing_in = false;
+						seg.missing_out = false;
+					} else singlePunchAbsent += 8 * 60;
+					break;
+				case 2:
+					singlePunchAbsent += 8 * 60;
+					break;
+				case 3:
+					if (seg.clock_in && !seg.clock_out) {
+						seg.early_minutes += seg.end_time ? toMinutes(seg.end_time) - toMinutes(seg.clock_in) : 0;
+					} else {
+						seg.late_minutes += seg.clock_out ? toMinutes(seg.clock_out) - toMinutes(seg.start_time) : 0;
+					}
+					break;
+				case 4:
+					break;
+			}
+		}
+	}
+
+	totalLate = matchResult.segmentResults.reduce((sum, s) => sum + s.late_minutes, 0);
+	totalEarly = matchResult.segmentResults.reduce((sum, s) => sum + s.early_minutes, 0);
+
+	let realMissingCount = 0;
+	for (const seg of matchResult.segmentResults) {
+		if (seg.missing_in || seg.missing_out) realMissingCount++;
+	}
+
+	const absentThreshold = params.absent_threshold_minutes || 30;
+
+	let absentMinutes = singlePunchAbsent;
+	let attendanceStatus = 1;
+
+	// 状态判定
+	if (allSegmentsMissing && leaveMinutes === 0 && tripMinutes === 0 && compMinutes === 0 && outingMinutes === 0) {
+		absentMinutes = 8 * 60;
+		attendanceStatus = 5;
+	} else if (totalLate >= absentThreshold || totalEarly >= absentThreshold) {
+		absentMinutes = Math.max(absentMinutes, Math.max(totalLate, totalEarly));
+		attendanceStatus = 5;
+	} else if (realMissingCount > 0) {
+		attendanceStatus = 0;
+	} else if (overtimeMinutesFromRecord > 0) {
+		attendanceStatus = 6;
+	} else {
+		attendanceStatus = 1;
+	}
+
+	let punchWorkMinutes = 0;
+	for (const seg of matchResult.segmentResults) {
+		if (seg.clock_in && seg.clock_out) {
+			punchWorkMinutes += toMinutes(seg.clock_out) - toMinutes(seg.clock_in);
+		}
+	}
+
+	const actualAttendMinutes = calcActualAttendMinutes({
+		shouldAttendMinutes,
+		punchWorkMinutes,
+		tripMinutes,
+		outingMinutes,
+		compMinutes,
+		leaveMinutes,
+		absentMinutes
+	});
+
+	const usedRemedyRecords = remedyList
+		.filter(r => r.used)
+		.map(r => ({
+			miss_type: r.miss_type,
+			miss_time: r.miss_time,
+			miss_reason: r.miss_reason
+		}));
+
+	const record = buildRecord({
+		employeeId,
+		employeeName,
+		card,
+		dayStartTs,
+		attendanceGroupId,
+		attendanceGroupName,
+		shift,
+		segments: matchResult.segmentResults,
+		shouldAttendMinutes,
+		actualAttendMinutes,
+		lateMinutes: totalLate,
+		earlyMinutes: totalEarly,
+		absentMinutes,
+		overtimeMinutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
+		overtimeCompensatoryMinutes,
+		overtimePaidMinutes,
+		leaveMinutes,
+		tripMinutes,
+		compMinutes,
+		outingMinutes,
+		leaveRecords,
+		tripRecords,
+		compRecords,
+		outingRecords,
+		overtimeRecords,
+		remedyRecords: usedRemedyRecords,
+		remedyFlag: usedRemedyRecords.length > 0,
+		attendanceStatus,
+		configSnapshot
+	});
+	return {
+		status: 'success',
+		record
+	};
+}
+
+// ==================== 匹配时段 ====================
+function matchSegments(clockRows, segments, remedyList, outingRanges, inBefore, inAfter, outBefore, outAfter, params) {
 	const segmentResults = [];
 	const usedPunchIndexes = new Set();
 
 	for (const seg of segments) {
 		const segStartMin = toMinutes(seg.start_time);
 		const segEndMin = toMinutes(seg.end_time);
+		let inPunch = null,
+			outPunch = null;
+		let bestInDiff = Infinity,
+			bestOutDiff = Infinity;
+		let bestInIdx = -1,
+			bestOutIdx = -1;
 
-		let inPunch = null, outPunch = null;
-		let missingIn = false, missingOut = false;
-		let bestInDiff = Infinity, bestOutDiff = Infinity;
-		let bestInIdx = -1, bestOutIdx = -1;
-
-		// 8.1 先匹配实际打卡
-		for (let i = 0; i < punches.length; i++) {
+		for (let i = 0; i < clockRows.length; i++) {
 			if (usedPunchIndexes.has(i)) continue;
-			const hhmm = extractHHmmFromTimestamp(punches[i].clockintime);
+			const hhmm = extractHHmmFromTimestamp(clockRows[i].clockintime);
 			const pMin = toMinutes(hhmm);
-
 			if (pMin >= segStartMin - inBefore && pMin <= segStartMin + inAfter) {
 				const diff = Math.abs(pMin - segStartMin);
-				if (diff < bestInDiff) { bestInDiff = diff; bestInIdx = i; inPunch = hhmm; }
+				if (diff < bestInDiff) {
+					bestInDiff = diff;
+					bestInIdx = i;
+					inPunch = hhmm;
+				}
 			}
 			if (pMin >= segEndMin - outBefore && pMin <= segEndMin + outAfter) {
 				const diff = Math.abs(pMin - segEndMin);
-				if (diff < bestOutDiff) { bestOutDiff = diff; bestOutIdx = i; outPunch = hhmm; }
+				if (diff < bestOutDiff) {
+					bestOutDiff = diff;
+					bestOutIdx = i;
+					outPunch = hhmm;
+				}
 			}
 		}
 
-		// 8.2 补卡修正
 		if (!inPunch) {
 			for (const rem of remedyList) {
 				if (rem.used || rem.miss_type !== 'clock_in') continue;
 				const remMin = toMinutes(rem.miss_time);
 				if (remMin >= segStartMin - inBefore && remMin <= segStartMin + inAfter) {
-					inPunch = rem.miss_time; rem.used = true; break;
+					inPunch = rem.miss_time;
+					rem.used = true;
+					break;
 				}
 			}
 		}
@@ -575,38 +1120,28 @@ async function calcOneDay(employeeId, dateStr, util, params) {
 				if (rem.used || rem.miss_type !== 'clock_out') continue;
 				const remMin = toMinutes(rem.miss_time);
 				if (remMin >= segEndMin - outBefore && remMin <= segEndMin + outAfter) {
-					outPunch = rem.miss_time; rem.used = true; break;
+					outPunch = rem.miss_time;
+					rem.used = true;
+					break;
 				}
 			}
 		}
 
-		// 8.3 外出申请单视为打卡（仅当缺卡时，且外出时间段与班次时段有重叠）
 		if (!inPunch) {
-			const outingInPunch = outingRanges.find(r => 
-				r.start <= segStartMin + inAfter && r.end >= segStartMin - inBefore
-			);
-			if (outingInPunch) {
-				// 用外出起始时间作为签到时间
-				inPunch = minutesToHHmm(Math.max(outingInPunch.start, segStartMin - inBefore));
-			}
+			const outingIn = outingRanges.find(r => r.start <= segStartMin + inAfter && r.end >= segStartMin -
+				inBefore);
+			if (outingIn) inPunch = minutesToHHmm(Math.max(outingIn.start, segStartMin - inBefore));
 		}
 		if (!outPunch) {
-			const outingOutPunch = outingRanges.find(r => 
-				r.start <= segEndMin + outAfter && r.end >= segEndMin - outBefore
-			);
-			if (outingOutPunch) {
-				// 用外出结束时间作为签退时间
-				outPunch = minutesToHHmm(Math.min(outingOutPunch.end, segEndMin + outAfter));
-			}
+			const outingOut = outingRanges.find(r => r.start <= segEndMin + outAfter && r.end >= segEndMin - outBefore);
+			if (outingOut) outPunch = minutesToHHmm(Math.min(outingOut.end, segEndMin + outAfter));
 		}
 
 		if (bestInIdx !== -1) usedPunchIndexes.add(bestInIdx);
 		if (bestOutIdx !== -1) usedPunchIndexes.add(bestOutIdx);
 
-		if (!inPunch) missingIn = true;
-		if (!outPunch) missingOut = true;
-
-		let segLate = 0, segEarly = 0;
+		let segLate = 0,
+			segEarly = 0;
 		if (inPunch) {
 			const lateDiff = toMinutes(inPunch) - segStartMin;
 			if (lateDiff > (params.late_threshold_minutes || 0)) segLate = lateDiff;
@@ -624,211 +1159,169 @@ async function calcOneDay(employeeId, dateStr, util, params) {
 			clock_out: outPunch,
 			late_minutes: segLate,
 			early_minutes: segEarly,
-			missing_in: missingIn,
-			missing_out: missingOut
+			missing_in: !inPunch,
+			missing_out: !outPunch
 		});
 	}
 
-	// 缺卡最小工作分钟数处理
-	const minWorkMinutes = punchRule?.missing_punch_min_work_minutes || 0;
-	if (minWorkMinutes > 0) {
-		for (const seg of segmentResults) {
-			const onlyOnePunch = (seg.clock_in && !seg.clock_out) || (!seg.clock_in && seg.clock_out);
-			if (onlyOnePunch) {
-				const workedMinutes = seg.clock_in && seg.clock_out ? toMinutes(seg.clock_out) - toMinutes(seg.clock_in) : 0;
-				if (workedMinutes < minWorkMinutes) {
-					seg.missing_in = false;
-					seg.missing_out = false;
-				}
-			}
-		}
-	}
+	const totalLate = segmentResults.reduce((sum, s) => sum + s.late_minutes, 0);
+	const totalEarly = segmentResults.reduce((sum, s) => sum + s.early_minutes, 0);
+	const hasMissing = segmentResults.some(s => s.missing_in || s.missing_out);
+	const allMissing = segmentResults.length > 0 && segmentResults.every(s => s.missing_in && s.missing_out);
 
-	// ========== 9. 应用异常判定规则 ==========
-	let totalLate = segmentResults.reduce((sum, s) => sum + s.late_minutes, 0);
-	let totalEarly = segmentResults.reduce((sum, s) => sum + s.early_minutes, 0);
+	return {
+		segmentResults,
+		totalLate,
+		totalEarly,
+		hasMissing,
+		allMissing
+	};
+}
 
-	if (totalLate > 0 && totalEarly > 0) {
-		switch (abnormalRule.late_early_coexist_rule) {
-			case 1: break;
-			case 2:
-				if (totalLate >= totalEarly) totalEarly = 0;
-				else totalLate = 0;
-				break;
-			case 3: totalEarly = 0; break;
-			case 4: totalLate = 0; break;
-		}
-	}
-
-	if (abnormalRule.out_office_cancel_absence && (tripMinutes > 0 || outingMinutes > 0)) {
-		for (const seg of segmentResults) {
-			seg.missing_in = false;
-			seg.missing_out = false;
-		}
-	}
-
-	if (abnormalRule.out_office_cancel_late && (tripMinutes > 0 || outingMinutes > 0)) {
-		totalLate = 0;
-		for (const seg of segmentResults) {
-			seg.late_minutes = 0;
-		}
-	}
-
-	if (abnormalRule.out_office_cancel_early && (tripMinutes > 0 || outingMinutes > 0)) {
-		totalEarly = 0;
-		for (const seg of segmentResults) {
-			seg.early_minutes = 0;
-		}
-	}
-
-	if (abnormalRule.overtime_cancel_early && overtimeMinutesFromRecord > 0) {
-		totalEarly = 0;
-		for (const seg of segmentResults) {
-			seg.early_minutes = 0;
-		}
-	}
-
-	// 只打一次卡处理
-	let singlePunchAbsent = 0;
-	for (const seg of segmentResults) {
-		const onlyOnePunch = (seg.clock_in && !seg.clock_out) || (!seg.clock_in && seg.clock_out);
-		if (onlyOnePunch) {
-			switch (abnormalRule.single_punch_rule) {
-				case 1:
-					if (leaveMinutes > 0 || tripMinutes > 0 || outingMinutes > 0) {
-						seg.missing_in = false;
-						seg.missing_out = false;
-					} else {
-						singlePunchAbsent += 8 * 60;
-					}
-					break;
-				case 2:
-					singlePunchAbsent += 8 * 60;
-					break;
-				case 3:
-					if (seg.clock_in && !seg.clock_out) {
-						seg.early_minutes += seg.end_time ? toMinutes(seg.end_time) - toMinutes(seg.clock_in) : 0;
-					} else {
-						seg.late_minutes += seg.clock_out ? toMinutes(seg.clock_out) - toMinutes(seg.start_time) : 0;
-					}
-					break;
-				case 4: break;
-			}
-		}
-	}
-
-	totalLate = segmentResults.reduce((sum, s) => sum + s.late_minutes, 0);
-	totalEarly = segmentResults.reduce((sum, s) => sum + s.early_minutes, 0);
-
-	const hasAnyMissing = segmentResults.some(s => s.missing_in || s.missing_out);
-	const allSegmentsMissing = segmentResults.length > 0 && segmentResults.every(s => s.missing_in && s.missing_out);
-
-	// ========== 10. 旷工判断 ==========
-	const absentThreshold = params.absent_threshold_minutes || 30;
-	let absentMinutes = singlePunchAbsent;
-	let attendanceStatus = 1;
-
-	if (allSegmentsMissing && leaveMinutes === 0 && tripMinutes === 0 && compMinutes === 0 && outingMinutes === 0) {
-		absentMinutes = 8 * 60;
-		attendanceStatus = 5;
-	} else if (totalLate >= absentThreshold || totalEarly >= absentThreshold) {
-		absentMinutes = Math.max(absentMinutes, Math.max(totalLate, totalEarly));
-		attendanceStatus = 5;
-	} else if (hasAnyMissing || absentMinutes > 0) {
-		attendanceStatus = 0;
-	}
-
-	const usedRemedyRecords = remedyList
-		.filter(r => r.used)
-		.map(r => ({ miss_type: r.miss_type, miss_time: r.miss_time, miss_reason: r.miss_reason }));
-
-	const record = {
-		employee_id: employeeId,
-		attendance_date: dayStartTs,
-		shift_id: shift._id,
-		shift_name: shift.shift_name,
-		segments: segmentResults,
-		late_minutes: totalLate,
-		early_minutes: totalEarly,
-		absent_minutes: absentMinutes,
-		overtime_minutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
-		leave_minutes: leaveMinutes,
-		trip_minutes: tripMinutes,
-		compensatory_minutes: compMinutes,
-		outing_minutes: outingMinutes,
-		leave_records: leaveRecords,
-		trip_records: tripRecords,
-		compensatory_records: compRecords,
-		outing_records: outingRecords,
-		overtime_records: overtimeRecords,
-		remedy_records: usedRemedyRecords,
-		remedy_flag: usedRemedyRecords.length > 0,
-		attendance_status: attendanceStatus,
+// ==================== 构建 record ====================
+function buildRecord(data) {
+	return {
+		employee_id: data.employeeId,
+		employee_name: data.employeeName,
+		card: data.card,
+		attendance_date: data.dayStartTs,
+		attendance_group_id: data.attendanceGroupId,
+		attendance_group_name: data.attendanceGroupName,
+		shift_id: data.shift ? data.shift._id : null,
+		shift_name: data.shift ? data.shift.shift_name : '',
+		segments: data.segments,
+		should_attend_minutes: data.shouldAttendMinutes,
+		actual_attend_minutes: data.actualAttendMinutes,
+		late_minutes: data.lateMinutes,
+		early_minutes: data.earlyMinutes,
+		absent_minutes: data.absentMinutes,
+		overtime_minutes: data.overtimeMinutes,
+		overtime_compensatory_minutes: data.overtimeCompensatoryMinutes || 0,
+		overtime_paid_minutes: data.overtimePaidMinutes || 0,
+		leave_minutes: data.leaveMinutes,
+		trip_minutes: data.tripMinutes,
+		compensatory_minutes: data.compMinutes,
+		outing_minutes: data.outingMinutes,
+		leave_records: data.leaveRecords,
+		trip_records: data.tripRecords,
+		compensatory_records: data.compRecords,
+		outing_records: data.outingRecords,
+		overtime_records: data.overtimeRecords,
+		remedy_records: data.remedyRecords,
+		remedy_flag: data.remedyFlag,
+		attendance_status: data.attendanceStatus,
+		sealed: false,
+		config_snapshot: data.configSnapshot,
 		update_id: 'system',
 		update_date: Date.now()
 	};
-
-	await upsertDailyRecord(employeeId, dayStartTs, record, util);
-	return { status: 'success' };
 }
 
-// 分钟转 HH:mm
+// ==================== 豁免内存判断 ====================
+function checkExemptionInMemory(employeeId, dateStr, attendanceGroupId, exemptionMap) {
+	const rules = exemptionMap[employeeId];
+	if (!rules || rules.length === 0) return {
+		exempted: false
+	};
+	for (const rule of rules) {
+		const endDate = rule.end_date || '9999-12-31';
+		if (dateStr < rule.start_date || dateStr > endDate) continue;
+		if (rule.exemption_type === 1 && Array.isArray(rule.employee_ids) && rule.employee_ids.includes(employeeId)) {
+			return {
+				exempted: true,
+				reason: rule.reason || '员工豁免'
+			};
+		}
+		if (rule.exemption_type === 2) {
+			return {
+				exempted: true,
+				reason: rule.reason || '部门豁免'
+			};
+		}
+		if (rule.exemption_type === 3 && attendanceGroupId && Array.isArray(rule.attendance_group_ids) && rule
+			.attendance_group_ids.includes(attendanceGroupId)) {
+			return {
+				exempted: true,
+				reason: rule.reason || '考勤组豁免'
+			};
+		}
+	}
+	return {
+		exempted: false
+	};
+}
+
+// ==================== 工具函数 ====================
+function extractHHmmFromTimestamp(timestamp) {
+	if (!timestamp) return null;
+	const date = new Date(timestamp);
+	return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function toMinutes(hhmm) {
+	if (!hhmm) return 0;
+	const [h, m] = hhmm.split(':').map(Number);
+	return h * 60 + m;
+}
+
 function minutesToHHmm(minutes) {
 	const h = Math.floor(minutes / 60);
 	const m = minutes % 60;
 	return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-// 创建特殊状态记录（带明细）
-async function createSpecialRecord(employeeId, dayStartTs, shift, leaveMinutes, tripMinutes, compMinutes,
-	outingMinutes, overtimeMinutes, status, leaveRecords, tripRecords, compRecords, outingRecords,
-	overtimeRecords, remedyRecords, util) {
-	const record = {
-		employee_id: employeeId,
-		attendance_date: dayStartTs,
-		shift_id: shift._id,
-		shift_name: shift.shift_name,
-		segments: [],
-		late_minutes: 0,
-		early_minutes: 0,
-		absent_minutes: 0,
-		overtime_minutes: overtimeMinutes,
-		leave_minutes: leaveMinutes,
-		trip_minutes: tripMinutes,
-		compensatory_minutes: compMinutes,
-		outing_minutes: outingMinutes,
-		leave_records: leaveRecords,
-		trip_records: tripRecords,
-		compensatory_records: compRecords,
-		outing_records: outingRecords,
-		overtime_records: overtimeRecords,
-		remedy_records: remedyRecords,
-		remedy_flag: remedyRecords.length > 0,
-		attendance_status: status,
-		update_id: 'system',
-		update_date: Date.now()
-	};
-	await upsertDailyRecord(employeeId, dayStartTs, record, util);
+function calcOverlapMinutes(start1, end1, start2, end2) {
+	const s = Math.max(start1, start2);
+	const e = Math.min(end1, end2);
+	if (s >= e) return 0;
+	return Math.round((e - s) / (1000 * 60));
 }
 
-// 写入或更新日考勤记录
-async function upsertDailyRecord(employeeId, attendanceDateTs, record, util) {
-	const { vk, db } = util;
-	const existRes = await vk.baseDao.selects({
-		dbName: 'hrm-attendance-daily',
-		whereJson: { employee_id: employeeId, attendance_date: attendanceDateTs },
-		limit: 1
-	});
-	if (existRes.rows.length > 0) {
-		await vk.baseDao.updateById({
-			dbName: 'hrm-attendance-daily',
-			id: existRes.rows[0]._id,
-			dataJson: record
-		});
-	} else {
-		await vk.baseDao.add({
-			dbName: 'hrm-attendance-daily',
-			dataJson: record
-		});
+function getPunchWindow(punchRule) {
+	if (punchRule) {
+		return {
+			inBefore: punchRule.sign_in_before_minutes ?? 60,
+			inAfter: punchRule.sign_in_after_minutes ?? 30,
+			outBefore: punchRule.sign_out_before_minutes ?? 30,
+			outAfter: punchRule.sign_out_after_minutes ?? 120
+		};
 	}
+	return {
+		inBefore: 60,
+		inAfter: 30,
+		outBefore: 30,
+		outAfter: 120
+	};
+}
+
+function roundOvertimeMinutes(minutes) {
+	const unit = 30;
+	if (!minutes || minutes <= 0) return 0;
+	return Math.floor(minutes / unit) * unit;
+}
+
+function calcShouldAttendMinutes(segments) {
+	let total = 0;
+	if (Array.isArray(segments)) {
+		for (const seg of segments) {
+			if (seg.start_time && seg.end_time) total += toMinutes(seg.end_time) - toMinutes(seg.start_time);
+		}
+	}
+	return total;
+}
+
+function calcActualAttendMinutes({
+	shouldAttendMinutes,
+	punchWorkMinutes,
+	tripMinutes,
+	outingMinutes,
+	compMinutes,
+	leaveMinutes,
+	absentMinutes
+}) {
+	if (!shouldAttendMinutes || shouldAttendMinutes <= 0) return 0;
+	const absenceTotal = leaveMinutes + compMinutes + absentMinutes;
+	if (absenceTotal >= shouldAttendMinutes) return 0;
+	const deemed = tripMinutes + outingMinutes + compMinutes;
+	return Math.min(shouldAttendMinutes, deemed + punchWorkMinutes);
 }

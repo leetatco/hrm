@@ -29,6 +29,16 @@
 			"description": "身份证号码唯一标识，不可修改，不允许重复",
 			"trim": "both"
 		},
+		"typhoon_cost": {
+			"title": "台风费用",
+			"bsonType": "number",
+			"description": "台风相关费用（补贴或扣款）"
+		},
+		"liunian_cost": {
+			"title": "留年费用",
+			"bsonType": "number",
+			"description": "留年相关费用（补贴或扣款）"
+		},
 		"reward_cost": {
 			"title": "奖励",
 			"bsonType": "int",

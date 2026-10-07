@@ -693,7 +693,7 @@
 		.logo-wrapper {
 			width: 140rpx;
 			height: 140rpx;
-			border-radius: 40rpx;
+			border-radius: 24rpx;
 			background: linear-gradient(135deg, #ffffff, #f8faff);
 			display: flex;
 			align-items: center;
@@ -1071,12 +1071,9 @@
 			margin-bottom: 32rpx;
 
 			.logo-wrapper {
-				width: 120rpx;
-				height: 120rpx;
-
 				.logo {
-					width: 80rpx;
-					height: 80rpx;
+					width: 120rpx;
+					height: 120rpx;
 				}
 			}
 
@@ -1196,8 +1193,8 @@
 		}
 
 		.logo-box .logo-wrapper {
-			width: 100rpx;
-			height: 100rpx;
+			width: 120rpx;
+			height: 120rpx;
 		}
 	}
 </style>

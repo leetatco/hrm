@@ -162,6 +162,10 @@
 			"description": "头像地址",
 			"trim": "both"
 		},
+		"openid": {
+			"bsonType": "string",
+			"description": "微信openid"
+		},
 		"file_attachments": {
 			"bsonType": "file",
 			"title": "证明文件",

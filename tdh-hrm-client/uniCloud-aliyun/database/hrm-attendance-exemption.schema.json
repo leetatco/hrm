@@ -1,0 +1,109 @@
+{
+	"bsonType": "object",
+	"required": ["exemption_type", "start_date"],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"exemption_type": {
+			"title": "豁免类型",
+			"bsonType": "int",
+			"description": "1=按员工，2=按部门，3=按考勤组",
+			"enum": [1, 2, 3]
+		},
+		"employee_ids": {
+			"title": "豁免员工",
+			"bsonType": "array",
+			"description": "exemption_type=1 时使用",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"department_ids": {
+			"title": "豁免部门",
+			"bsonType": "array",
+			"description": "exemption_type=2 时使用",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"attendance_group_ids": {
+			"title": "豁免考勤组",
+			"bsonType": "array",
+			"description": "exemption_type=3 时使用",
+			"items": {
+				"bsonType": "string"
+			}
+		},
+		"start_date": {
+			"title": "生效开始日期",
+			"bsonType": "string",
+			"description": "yyyy-MM-dd"
+		},
+		"end_date": {
+			"title": "生效结束日期",
+			"bsonType": "string",
+			"description": "yyyy-MM-dd，为空表示长期有效"
+		},
+		"reason": {
+			"title": "豁免原因",
+			"bsonType": "string",
+			"description": "如：高管、外派、试用期不打卡等",
+			"trim": "both"
+		},
+		"status": {
+			"title": "启用状态",
+			"bsonType": "bool",
+			"defaultValue": true
+		},
+		"remark": {
+			"title": "备注",
+			"bsonType": "string",
+			"trim": "both"
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"foreignKey": "uni-id-users._id",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"index": [
+		{
+			"IndexName": "idx_type_status",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{ "Name": "exemption_type", "Direction": "1" },
+					{ "Name": "status", "Direction": "1" }
+				],
+				"MgoIsUnique": false
+			}
+		},
+		{
+			"IndexName": "idx_date_range",
+			"MgoKeySchema": {
+				"MgoIndexKeys": [
+					{ "Name": "start_date", "Direction": "1" },
+					{ "Name": "end_date", "Direction": "1" }
+				],
+				"MgoIsUnique": false
+			}
+		}
+	],
+	"version": "0.0.1"
+}

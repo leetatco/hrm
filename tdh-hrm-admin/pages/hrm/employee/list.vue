@@ -512,6 +512,13 @@
 							"mode": "%%"
 						},
 						{
+							"key": "mobile",
+							"title": "手机号码",
+							"type": "text",
+							"width": colWidth - 50,
+							"mode": "="
+						},
+						{
 							"key": "card",
 							"title": "身份证号码",
 							"type": "text",
@@ -2001,12 +2008,11 @@
 							return vk.alert('Excel中没有数据！');
 						}
 
-						// 1. 数据验证
+						// ========== 1. 数据格式验证 ==========
 						let errors = [];
 						let validData = [];
 
 						for (const item of rows) {
-							//工号
 							if (vk.pubfn.isNull(item.employee_id)) {
 								errors.push({
 									employee_id: '无工号',
@@ -2014,7 +2020,6 @@
 								});
 								continue;
 							}
-							//手机号
 							if (!vk.pubfn.test(item.mobile, 'mobile')) {
 								errors.push({
 									employee_id: item.employee_id,
@@ -2022,7 +2027,6 @@
 								});
 								continue;
 							}
-							//身份证号
 							if (!vk.pubfn.test(item.card, 'card')) {
 								errors.push({
 									employee_id: item.employee_id,
@@ -2030,7 +2034,6 @@
 								});
 								continue;
 							}
-							//状态
 							if (vk.pubfn.isNull(item.status)) {
 								errors.push({
 									employee_id: item.employee_id,
@@ -2038,11 +2041,10 @@
 								});
 								continue;
 							}
-							// 可以添加更多校验（例如身份证格式等）							
 							validData.push(item);
 						}
 
-						// 2. 找到重复的数据（按工号）
+						// ========== 2. 检查工号重复 ==========
 						const employeeIds = validData.filter(item => item.employee_id).map(item => item
 							.employee_id);
 						const dupRes = await vk.callFunction({
@@ -2053,18 +2055,55 @@
 							}
 						});
 						if (dupRes.code !== 0) {
-							return vk.alert('查找重复的数据失败，导入终止');
+							return vk.alert('查找重复工号失败，导入终止');
 						}
-
 						if (dupRes.total > 0) {
-							dupRes.rows.map((item) => {
+							dupRes.rows.forEach((item) => {
 								errors.push({
 									employee_id: item.employee_id,
 									reason: '工号重复'
-								})
-							})
+								});
+							});
 						}
 
+						// ========== 3. 检查手机号重复 ==========
+						const mobiles = validData.filter(item => item.mobile).map(item => item.mobile);
+						if (mobiles.length > 0) {
+							const mobileDupRes = await vk.callFunction({
+								url: 'admin/hrm/employees/pub/getAllEmployeeByMobile',
+								title: '检查手机号重复...',
+								data: {
+									mobiles
+								}
+							});
+							if (mobileDupRes.code !== 0) {
+								return vk.alert('查找重复手机号失败，导入终止');
+							}
+							if (mobileDupRes.total > 0) {
+								mobileDupRes.rows.forEach((item) => {
+									errors.push({
+										employee_id: item.employee_id,
+										reason: `手机号 ${item.mobile} 已存在`
+									});
+								});
+							}
+						}
+
+						// ========== 4. 检查 Excel 内部手机号重复 ==========
+						const mobileMap = {};
+						validData.forEach((item) => {
+							if (!item.mobile) return;
+							if (mobileMap[item.mobile]) {
+								errors.push({
+									employee_id: item.employee_id,
+									reason: `Excel 中手机号 ${item.mobile} 重复`
+								});
+							} else {
+								mobileMap[item.mobile] = true;
+							}
+						});
+
+						// ========== 5. 统一报错 ==========
 						if (errors.length > 0) {
 							let msg = errors.slice(0, 10).map(e => `工号:${e.employee_id} - ${e.reason}`)
 								.join('\n');
@@ -2072,20 +2111,7 @@
 							return vk.alert(msg, '数据验证失败');
 						}
 
-						// 2. 批量删除旧数据（按工号）
-						// const employeeIds = validData.map(item => item.employee_id);
-						// const delRes = await vk.callFunction({
-						// 	url: 'admin/hrm/employees/sys/all/deleteAll',
-						// 	title: '清理旧数据...',
-						// 	data: {
-						// 		employee_ids: employeeIds
-						// 	}
-						// });
-						// if (delRes.code !== 0) {
-						// 	return vk.alert('清理旧数据失败，导入终止');
-						// }
-
-						// 转换数据（一次性调用）
+						// ========== 6. 后续：数据转换 + 批量新增 ==========
 						vk.toast('数据转换中...');
 						const empRes = await vk.callFunction({
 							url: 'admin/hrm/employees/pub/getImportEmployees',
@@ -2103,12 +2129,6 @@
 							return vk.alert('没有可导入的有效数据');
 						}
 
-						// 可选：提示部分转换失败
-						if (empRes.errors && empRes.errors.length > 0) {
-							vk.toast(`有 ${empRes.errors.length} 条数据转换失败，已跳过`);
-						}
-
-						// 批量新增
 						const addRes = await vk.callFunction({
 							url: 'admin/hrm/employees/sys/all/addAll',
 							data: {

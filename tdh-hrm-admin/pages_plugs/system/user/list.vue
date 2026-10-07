@@ -400,7 +400,7 @@
 							{
 								key: "username",
 								title: "用户名",
-								disabled: true,
+								disabled: false,
 								type: "text",
 
 							},
@@ -427,7 +427,7 @@
 							{
 								key: "mobile",
 								title: "手机号",
-								disabled: true,
+								disabled: false,
 								type: "text"
 							},
 							{

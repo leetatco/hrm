@@ -40,7 +40,7 @@ module.exports = {
 			dbName,
 			data,
 			whereJson: {
-				cards: card,//cards包含card的值
+				cards: card, //cards包含card的值
 				attendance_ym: attendance_ym_key
 			},
 			sortArr: [{
@@ -55,7 +55,7 @@ module.exports = {
 			}],
 			// 副表
 			foreignDB: [{
-				dbName: "hrm-attendance-detail",
+				dbName: "hrm-employees",
 				localKey: "cards",
 				localKeyType: "array",
 				foreignKey: "card",
@@ -74,7 +74,7 @@ module.exports = {
 				limit: 1
 			}]
 		});
-		console.log("card:",card);
+		console.log("card:", card);
 		return res;
 	}
 

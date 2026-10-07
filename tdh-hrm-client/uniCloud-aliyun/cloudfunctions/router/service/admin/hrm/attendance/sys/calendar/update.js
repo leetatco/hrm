@@ -1,78 +1,23 @@
+// admin/hrm/attendance/sys/calendar/update
 module.exports = {
-	/**
-	 * 修改工作日历数据
-	 * @url admin/hrm/attendance/sys/calendar/update
-	 */
 	main: async (event) => {
-		let {
-			data = {}, userInfo, util
-		} = event;
-		let {
-			vk,
-			db,
-			_
-		} = util;
-		let {
-			uid
-		} = data;
-		let res = {
-			code: 0,
-			msg: 'ok'
-		};
+		const { data = {}, util } = event;
+		const { vk, _ } = util;
+		const { _id, calendar_name, calendar_date, year, date_type, name, is_default, remark, uid } = data;
 
-		// 获取参数
-		let {
-			_id,
-			calendar_code,
-			calendar_name,
-			calendar_date,
-			date_type,
-			year,
-			name,
-			is_default,
-			remark
-		} = data;
-
-		// 参数验证
-		if (vk.pubfn.isNull(_id)) {
-			return {
-				code: -1,
-				msg: 'id不能为空'
-			};
-		}
-		if (!calendar_name) {
-			return {
-				code: -1,
-				msg: '工作日历名称不能为空'
-			};
-		}
-		if (!calendar_date) {
-			return {
-				code: -1,
-				msg: '日期不能为空'
-			};
-		}
-		if (!date_type) {
-			return {
-				code: -1,
-				msg: '日期类型不能为空'
-			};
-		}
-		if (!year && calendar_date) {
-			year = new Date(calendar_date).getFullYear();
-		}
-		if (!year) {
-			return {
-				code: -1,
-				msg: '年份不能为空'
-			};
-		}
+		if (!_id) return { code: -1, msg: 'id不能为空' };
 
 		const dbName = 'hrm-attendance-calendar';
-		const calendar_code = calendar_code || `${calendar_name}_${year}`;
 
-		// 重复校验：同一日历（calendar_name + year）下同一天不允许重复（排除自身）
-		let repeatCount = await vk.baseDao.count({
+		const existRes = await vk.baseDao.findById({ dbName, id: _id });
+		if (!existRes) return { code: -1, msg: '记录不存在' };
+
+		const newVersion = (existRes.version || 1) + 1;
+
+		const calendar_code = existRes.calendar_code || `${calendar_name}_${year}`;
+
+		// 重复校验
+		const repeatCount = await vk.baseDao.count({
 			dbName,
 			whereJson: {
 				_id: _.neq(_id),
@@ -82,13 +27,9 @@ module.exports = {
 			}
 		});
 		if (repeatCount > 0) {
-			return {
-				code: -1,
-				msg: `该工作日历【${calendar_name}（${year}）】中，日期【${calendar_date}】已存在，请勿重复修改`
-			};
+			return { code: -1, msg: `该工作日历【${calendar_name}（${year}）】中，日期【${calendar_date}】已存在` };
 		}
 
-		// 更新数据
 		await vk.baseDao.updateById({
 			dbName,
 			id: _id,
@@ -101,11 +42,12 @@ module.exports = {
 				name,
 				is_default,
 				remark,
+				version: newVersion,
 				update_id: uid,
-				update_date: new Date().getTime()
+				update_date: Date.now()
 			}
 		});
 
-		return res;
+		return { code: 0, msg: '保存成功' };
 	}
 };

@@ -61,7 +61,6 @@ class IExcel {
 		}
 	}
 
-
 	//将文件按照二进制进行读取
 	readFile(file) {
 		return new Promise((resolve) => {
@@ -72,6 +71,7 @@ class IExcel {
 			}
 		})
 	}
+
 	//导入excel  ------ 将二进制转json (file是文件流，typeObj是传给后端的表格字段，suc是成功的回调，err是错误的回调）
 	async importExcel(file, typeObj, suc, err) {
 		const data = await this.readFile(file);
@@ -97,11 +97,10 @@ class IExcel {
 				v = item[text] || "";
 				if (type === "text" && vk.pubfn.isNotNull(v)) {
 					v = String(v).trim();
-				} 
-				if (type === "number" && vk.pubfn.isNotNull(v)) {
-					v = Number(v);
 				}
-				// type === "date" ? (v = vk.pubfn.timeFormat(new Date((v - 25569) * 86400 * 1000), "yyyy-MM-dd")) : "";
+				if (type === "number" && vk.pubfn.isNotNull(v)) {
+					v = this.toExcelSerial(v);
+				}
 				obj[key] = v;
 			}
 			arr.push(obj);
@@ -141,6 +140,47 @@ class IExcel {
 			}
 		}
 		return wbout;
+	}
+
+	toExcelSerial(dateStr) {
+		// 非字符串先兜底：本来就是数字直接返回
+		if (typeof dateStr === 'number') {
+			if (!Number.isFinite(dateStr)) throw new TypeError('数字不合法')
+			return dateStr
+		}
+
+		if (typeof dateStr !== 'string') {
+			throw new TypeError('请输入字符串或数字格式的日期/序列号')
+		}
+
+		const raw = dateStr.trim()
+
+		// ✅ 新增：纯数字字符串（整数，可选前后空格）直接转数字返回
+		if (/^\d+$/.test(raw)) {
+			return Number(raw)
+		}
+
+		// 1. 统一把 / 换成 -，再按 - 拆分
+		const parts = raw
+			.replace(/\//g, '-')
+			.split('-')
+			.filter(Boolean)
+			.map(Number)
+
+		if (parts.length !== 3 || parts.some(Number.isNaN)) {
+			throw new RangeError(`日期格式不合法: ${dateStr}`)
+		}
+
+		const [y, m, d] = parts
+		if (m < 1 || m > 12 || d < 1 || d > 31) {
+			throw new RangeError(`日期数值越界: ${dateStr}`)
+		}
+
+		// 2. Excel 基准日（兼容 1900 闰年 bug）
+		const base = Date.UTC(1899, 11, 30)
+		const target = Date.UTC(y, m - 1, d)
+
+		return Math.round((target - base) / 86400000)
 	}
 }
 export function initExcel() {

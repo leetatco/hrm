@@ -445,6 +445,49 @@
 				this.$set(this.form1, "department_id", "");
 				vk.pubfn.resetForm(originalForms, this);
 			},
+			/**
+			 * 配置变更前的封存检查
+			 * @returns {Boolean} true=可以继续，false=取消
+			 */
+			async beforeConfigChange() {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					data: {}
+				});
+				if (res.code !== 0) {
+					vk.toast(res.msg || '检查失败');
+					return false;
+				}
+				if (!res.hasUnsealed) {
+					return true;
+				}
+			
+				const confirm = await new Promise(resolve => {
+					vk.confirm(
+						`检测到 ${res.unsealedCount} 条未封存的历史考勤数据（最早 ${res.earliestUnsealedDate}），修改配置前需要先封存。是否立即封存？`,
+						'提示',
+						'立即封存',
+						'取消',
+						(res) => resolve(res.confirm)
+					);
+				});
+				if (!confirm) return false;
+			
+				const sealRes = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/sealDailyData',
+					title: '封存中...',
+					data: {
+						seal_date: res.suggestedSealDate
+					}
+				});
+				if (sealRes.code === 0) {
+					vk.toast(sealRes.msg || '封存成功');
+					return true;
+				} else {
+					vk.toast(sealRes.msg || '封存失败');
+					return false;
+				}
+			},
 			addBtn() {
 				this.resetForm();
 				this.form1.props.action = 'admin/hrm/attendance/sys/shift/add';
@@ -452,9 +495,11 @@
 				this.form1.props.title = '添加班次';
 				this.form1.props.show = true;
 			},
-			updateBtn({
+			async updateBtn({
 				item
-			}) {
+			}) {				
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				// 只有班次（叶子节点）允许编辑
 				if (item.type !== "shift") return;
 
@@ -471,10 +516,12 @@
 					segments: item.segments || []
 				};
 			},
-			deleteBtn({
+			async deleteBtn({
 				item,
 				deleteFn
 			}) {
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				// 只有班次（叶子节点）允许删除
 				if (item.type !== "shift") return;
 

@@ -34,6 +34,16 @@
 			"title": "下午时段",
 			"bsonType": "object"
 		},
+		"overtime_ratio": {
+			"title": "加班系数",
+			"bsonType": "double",
+			"description": "工作日1.5，休息日2.0，节假日3.0"
+		},
+		"day_type": {
+			"title": "日期类型",
+			"bsonType": "int",
+			"description": "1=工作日, 2=休息日, 3=节假日"
+		},
 		"import_status": {
 			"title": "汇入状态",
 			"bsonType": "int",

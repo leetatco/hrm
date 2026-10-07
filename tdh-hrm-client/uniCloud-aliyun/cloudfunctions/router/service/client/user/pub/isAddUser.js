@@ -33,7 +33,7 @@ module.exports = {
 		const employeeInfo = await hrmService.getEmployeeInfoByUsername(username);
 
 		if (!employeeInfo || vk.pubfn.isNull(employeeInfo.card) || employeeInfo.status == 2) {
-			res.msg = `员工信息不存在: ${mobile},请联系人事部档案管理人员！`;
+			res.msg = `员工信息不存在: ${mobile},如果没有填写入职登记，请点首页-->入职登记-->新建，填写相关个人资料再点保存，完成后再联系人事部！`;
 			return res;
 		}
 

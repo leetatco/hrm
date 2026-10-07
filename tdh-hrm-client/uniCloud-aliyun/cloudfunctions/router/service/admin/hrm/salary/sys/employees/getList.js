@@ -35,28 +35,43 @@ module.exports = {
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = "hrm-salary-employees"; // 表名
 		let sortArr = [{
-					name: "_id",
-					type: "asc"
-				}];
+			name: "_id",
+			type: "asc"
+		}];
 		res = await vk.baseDao.getTableData({
 			dbName,
 			data,
 			sortArr,
 			// 副表
 			foreignDB: [{
-				dbName: "hrm-attendance-detail",
+				dbName: "hrm-employees",
 				localKey: "card",
 				localKeyType: "array",
 				foreignKey: "card",
 				as: "employees",
-				limit: 1
-			}, {
-				dbName: "hrm-attendance-detail",
-				localKey: "confirm_id",
-				localKeyType: "array",
-				foreignKey: "card",
-				as: "confirms",
-				limit: 1
+				limit: 1,
+				foreignDB: [{
+						dbName: "hrm-positions",
+						localKey: "position_id",
+						foreignKey: "position_id",
+						as: "positions",
+						limit: 1
+					},
+					{
+						dbName: "hrm-companys",
+						localKey: "company_id",
+						foreignKey: "company_id",
+						as: "companys",
+						limit: 1
+					},
+					{
+						dbName: "hrm-departments",
+						localKey: "department_id",
+						foreignKey: "department_id",
+						as: "departments",
+						limit: 1
+					}
+				]
 			}, {
 				dbName: "uni-id-users",
 				localKey: "update_id",

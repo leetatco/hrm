@@ -1,6 +1,6 @@
 {
 	"bsonType": "object",
-	"required": ["attendance_ym", "employee_name"],
+	"required": ["attendance_ym", "employee_id", "employee_name", "card"],
 	"permission": {
 		"read": false,
 		"create": false,
@@ -12,14 +12,10 @@
 			"description": "存储文档 ID，系统自动生成"
 		},
 		"attendance_ym": {
-			"title": "考勤日期",
-			"bsonType": "date",
-			"description": "考勤日期"
-		},
-		"attendance_ym_key": {
-			"title": "考勤年月",
-			"bsonType": "date",
-			"description": "考勤年月(用在与离职月份做区分)"
+			"title": "考勤月份",
+			"bsonType": "string",
+			"description": "考勤月份，格式 yyyy-MM",
+			"trim": "both"
 		},
 		"employee_id": {
 			"title": "员工工号",
@@ -55,10 +51,7 @@
 		"hire_date": {
 			"title": "入职日期",
 			"bsonType": "timestamp",
-			"description": "入职日期",
-			"defaultValue": {
-				"$env": "now"
-			}
+			"description": "入职日期"
 		},
 		"resign_date": {
 			"title": "离职日期",
@@ -69,11 +62,6 @@
 			"title": "综合工资",
 			"bsonType": "int",
 			"description": "综合工资"
-		},
-		"rest_type": {
-			"bsonType": "string",
-			"description": "休息类型：1 单休 2 双休 3 大小周",
-			"title": "休息类型"
 		},
 		"base_salary": {
 			"title": "基本工资",
@@ -166,9 +154,9 @@
 			"description": "工衣费用"
 		},
 		"earlytime_cost": {
-			"title": "迟\/早退费",
+			"title": "迟/早退费",
 			"bsonType": "int",
-			"description": "迟\/早退费"
+			"description": "迟/早退费"
 		},
 		"missed_cost": {
 			"title": "未打卡费",
@@ -205,7 +193,6 @@
 			"bsonType": "double",
 			"description": "上月社保代扣部份,保留2位小数"
 		},
-
 		"dkgs": {
 			"title": "代扣个税",
 			"bsonType": "double",
@@ -261,5 +248,29 @@
 			}
 		}
 	},
-	"version": "0.0.1"
+	"index": [{
+		"IndexName": "uk_employee_ym",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+					"Name": "employee_id",
+					"Direction": "1"
+				},
+				{
+					"Name": "attendance_ym",
+					"Direction": "1"
+				}
+			],
+			"MgoIsUnique": true
+		}
+	}, {
+		"IndexName": "idx_attendance_ym",
+		"MgoKeySchema": {
+			"MgoIndexKeys": [{
+				"Name": "attendance_ym",
+				"Direction": "1"
+			}],
+			"MgoIsUnique": false
+		}
+	}],
+	"version": "0.0.2"
 }

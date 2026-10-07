@@ -26,7 +26,8 @@ module.exports = {
 			_
 		} = util;
 		let {
-			uid
+			uid,
+			mobile
 		} = data;
 		let res = {
 			code: 0,
@@ -37,6 +38,9 @@ module.exports = {
 		res = await vk.baseDao.getTableData({
 			dbName,
 			data,
+			whereJson: {
+				mobile
+			},
 			// 副表
 			foreignDB: [{
 				dbName: "hrm-bank",

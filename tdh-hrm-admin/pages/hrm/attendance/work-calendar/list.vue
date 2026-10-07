@@ -40,8 +40,7 @@
 						placeholder="请输入年份，如 2026" style="width: 100%;"></el-input-number>
 				</el-form-item>
 				<el-form-item label="工作日历名称" prop="calendar_name">
-					<el-input v-model="batchForm.data.calendar_name" placeholder="如：研发部工作日历"
-						maxlength="50"></el-input>
+					<el-input v-model="batchForm.data.calendar_name" placeholder="如：研发部工作日历" maxlength="50"></el-input>
 				</el-form-item>
 				<el-form-item label="周六是否上班" prop="saturday_work">
 					<el-radio-group v-model="batchForm.data.saturday_work">
@@ -376,8 +375,51 @@
 			resetForm() {
 				vk.pubfn.resetForm(originalForms, this);
 			},
+			/**
+			 * 配置变更前的封存检查
+			 * @returns {Boolean} true=可以继续，false=取消
+			 */
+			async beforeConfigChange() {
+				const res = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					data: {}
+				});
+				if (res.code !== 0) {
+					vk.toast(res.msg || '检查失败');
+					return false;
+				}
+				if (!res.hasUnsealed) {
+					return true;
+				}
+
+				const confirm = await new Promise(resolve => {
+					vk.confirm(
+						`检测到 ${res.unsealedCount} 条未封存的历史考勤数据（最早 ${res.earliestUnsealedDate}），修改配置前需要先封存。是否立即封存？`,
+						'提示',
+						'立即封存',
+						'取消',
+						(res) => resolve(res.confirm)
+					);
+				});
+				if (!confirm) return false;
+
+				const sealRes = await vk.callFunction({
+					url: 'admin/hrm/attendance/sys/sealDailyData',
+					title: '封存中...',
+					data: {
+						seal_date: res.suggestedSealDate
+					}
+				});
+				if (sealRes.code === 0) {
+					vk.toast(sealRes.msg || '封存成功');
+					return true;
+				} else {
+					vk.toast(sealRes.msg || '封存失败');
+					return false;
+				}
+			},
 			// 添加
-			addBtn() {
+			async addBtn() {
 				this.resetForm();
 				this.form1.props.action = 'admin/hrm/attendance/sys/calendar/add';
 				this.form1.props.formType = 'add';
@@ -393,9 +435,11 @@
 				});
 			},
 			// 编辑
-			updateBtn({
+			async updateBtn({
 				item
 			}) {
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				// 只有日期（叶子节点）允许编辑
 				if (item.type !== "date") return;
 				this.form1.props.action = 'admin/hrm/attendance/sys/calendar/update';
@@ -407,10 +451,12 @@
 				};
 			},
 			// 删除
-			deleteBtn({
+			async deleteBtn({
 				item,
 				deleteFn
 			}) {
+				const canEdit = await this.beforeConfigChange();
+				if (!canEdit) return;
 				// 只有日期（叶子节点）允许删除
 				if (item.type !== "date") return;
 				deleteFn({

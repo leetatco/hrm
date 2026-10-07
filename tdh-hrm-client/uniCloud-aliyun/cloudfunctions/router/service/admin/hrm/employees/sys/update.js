@@ -118,6 +118,22 @@ module.exports = {
 		    }
 		  }
 		}	
+		
+		// 如果传了手机号码，也检查是否重复（可选）
+		if (mobile) {
+		  let mobileCheck = await vk.baseDao.findByWhereJson({
+		    dbName,
+		    whereJson: { mobile, status: 1 }
+		  });
+		  if (mobileCheck) {
+		    if (_id && _id !== mobileCheck._id) {
+		      return { code: -1, msg: "手机号已被使用！", rows: mobileCheck };
+		    }
+		    if (!_id) {
+		      return { code: -1, msg: "手机号已存在！", rows: mobileCheck };
+		    }
+		  }
+		}	
 
 		// 参数验证结束		
 		// 执行 数据库 updateById 命令

@@ -4,7 +4,7 @@
 		<view class="filter-section">
 			<view class="filter-row">
 				<view class="filter-item">
-					<u-search @search="handleSearch" placeholder="请输入手机号搜索" v-model="searchMobile" :focus="true"
+					<u-search @search="handleSearch" placeholder="请输入手机号模糊搜索" v-model="searchMobile" :focus="true"
 						:show-action="false"></u-search>
 				</view>
 				<u-button type="primary" shape="circle" @click="addEntry" :custom-style="buttonStyle.primary">
@@ -253,6 +253,7 @@
 					no_crime: 2,
 					employee_name: '',
 					card: '',
+					openid: '',
 					mobile: '',
 					gender: 1,
 					age: '',
@@ -438,9 +439,12 @@
 				this.selectVisible[fieldKey] = false;
 			},
 			async loadList(reset = true) {
+				const userCenter = await vk.userCenter.code2SessionWeixin();
+				this.formData.openid = userCenter.openid;
 				if (reset) this.pagination.pageIndex = 1;
 				if (reset && !this.loading) this.loading = true;
-				if (vk.pubfn.isNull(this.searchMobile)) return;
+				if (vk.pubfn.isNull(this.formData.openid) && vk.pubfn.isNull(this.searchMobile)) return;
+
 				try {
 					let res = await vk.callFunction({
 						url: 'admin/hrm/entry-forms/pub/getList',
@@ -448,7 +452,8 @@
 						data: {
 							pageIndex: this.pagination.pageIndex,
 							pageSize: this.pagination.pageSize,
-							mobile: this.searchMobile || undefined
+							openid: this.formData.openid,
+							mobile: this.searchMobile
 						}
 					});
 					this.loading = false;
@@ -492,7 +497,10 @@
 			formatDate(ts, fmt) {
 				return vk.pubfn.timeFormat(ts, fmt);
 			},
-			onCardBlur() {
+			async onCardBlur() {
+				const userCenter = await vk.userCenter.code2SessionWeixin();
+				this.formData.openid = userCenter.openid;
+				this.formData.card = this.formData.card.toLocaleUpperCase();
 				const res = vk.myfn.test1(this.formData.card);
 				if (res.code === 0) {
 					this.formData.gender = res.data.sex;
@@ -531,6 +539,7 @@
 					no_crime: 2,
 					employee_name: '',
 					card: '',
+					openid: '',
 					mobile: '',
 					gender: 1,
 					age: '',
@@ -798,52 +807,52 @@
 				this.formData.avatar = '';
 				this.avatarFileList = [];
 			},
-			
+
 			onAttachInput(val) {
-			    // 如果 val 是临时路径，忽略更新
-			    if (Array.isArray(val) && val.length > 0) {
-			        const hasTempPath = val.some(file => 
-			            file.url && (file.url.startsWith('http://tmp/') || file.url.startsWith('blob:'))
-			        );
-			        if (hasTempPath) {
-			            console.log('忽略临时路径更新');
-			            return;
-			        }
-			    }
-			    // 正常更新
-			    this.attachFiles = val;
+				// 如果 val 是临时路径，忽略更新
+				if (Array.isArray(val) && val.length > 0) {
+					const hasTempPath = val.some(file =>
+						file.url && (file.url.startsWith('http://tmp/') || file.url.startsWith('blob:'))
+					);
+					if (hasTempPath) {
+						console.log('忽略临时路径更新');
+						return;
+					}
+				}
+				// 正常更新
+				this.attachFiles = val;
 			},
 
 			// ========== 证明文件删除 ==========
 			async onAttachRemove(e) {
-			    try {
-			        // 直接从 attachFiles 中获取要删除的文件
-			        const index = e.index;
-			        const fileToDelete = this.attachFiles[index];
-					
+				try {
+					// 直接从 attachFiles 中获取要删除的文件
+					const index = e.index;
+					const fileToDelete = this.attachFiles[index];
+
 					console.log(fileToDelete)
-			        
-			        if (fileToDelete && fileToDelete.url) {
-			            await vk.myfn.deleteFile(fileToDelete);
-			            console.log('删除云文件:', fileToDelete.url);
-			        }
-			        
-			        // 手动从列表中移除
-			        if (index !== undefined && index >= 0 && index < this.attachFiles.length) {
-			            this.attachFiles.splice(index, 1);
-			        }
-			        
-			        uni.showToast({
-			            title: '删除成功',
-			            icon: 'success'
-			        });
-			    } catch (error) {
-			        console.error('删除文件失败:', error);
-			        uni.showToast({
-			            title: '删除失败',
-			            icon: 'none'
-			        });
-			    }
+
+					if (fileToDelete && fileToDelete.url) {
+						await vk.myfn.deleteFile(fileToDelete);
+						console.log('删除云文件:', fileToDelete.url);
+					}
+
+					// 手动从列表中移除
+					if (index !== undefined && index >= 0 && index < this.attachFiles.length) {
+						this.attachFiles.splice(index, 1);
+					}
+
+					uni.showToast({
+						title: '删除成功',
+						icon: 'success'
+					});
+				} catch (error) {
+					console.error('删除文件失败:', error);
+					uni.showToast({
+						title: '删除失败',
+						icon: 'none'
+					});
+				}
 			},
 
 			onFileUploadFail(err) {

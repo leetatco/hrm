@@ -44,6 +44,7 @@ const _sfc_main = {
         no_crime: 2,
         employee_name: "",
         card: "",
+        openid: "",
         mobile: "",
         gender: 1,
         age: "",
@@ -225,7 +226,7 @@ const _sfc_main = {
             label: v.educational_name
           }));
       } catch (err) {
-        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:429", "加载选项数据失败：", err);
+        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:430", "加载选项数据失败：", err);
       }
     },
     onSelectConfirm(e, fieldKey) {
@@ -237,11 +238,13 @@ const _sfc_main = {
       this.selectVisible[fieldKey] = false;
     },
     async loadList(reset = true) {
+      const userCenter = await vk.userCenter.code2SessionWeixin();
+      this.formData.openid = userCenter.openid;
       if (reset)
         this.pagination.pageIndex = 1;
       if (reset && !this.loading)
         this.loading = true;
-      if (vk.pubfn.isNull(this.searchMobile))
+      if (vk.pubfn.isNull(this.formData.openid) && vk.pubfn.isNull(this.searchMobile))
         return;
       try {
         let res = await vk.callFunction({
@@ -250,7 +253,8 @@ const _sfc_main = {
           data: {
             pageIndex: this.pagination.pageIndex,
             pageSize: this.pagination.pageSize,
-            mobile: this.searchMobile || void 0
+            openid: this.formData.openid,
+            mobile: this.searchMobile
           }
         });
         this.loading = false;
@@ -266,7 +270,7 @@ const _sfc_main = {
         this.hasMore = this.list.length < this.pagination.total;
         this.loadMoreStatus = this.hasMore ? "loadmore" : "nomore";
       } catch (err) {
-        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:466", err);
+        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:471", err);
         common_vendor.index.showToast({
           title: "网络错误",
           icon: "none"
@@ -297,7 +301,10 @@ const _sfc_main = {
     formatDate(ts, fmt) {
       return vk.pubfn.timeFormat(ts, fmt);
     },
-    onCardBlur() {
+    async onCardBlur() {
+      const userCenter = await vk.userCenter.code2SessionWeixin();
+      this.formData.openid = userCenter.openid;
+      this.formData.card = this.formData.card.toLocaleUpperCase();
       const res = vk.myfn.test1(this.formData.card);
       if (res.code === 0) {
         this.formData.gender = res.data.sex;
@@ -337,6 +344,7 @@ const _sfc_main = {
         no_crime: 2,
         employee_name: "",
         card: "",
+        openid: "",
         mobile: "",
         gender: 1,
         age: "",
@@ -464,7 +472,7 @@ const _sfc_main = {
     },
     // ========== 手动上传文件（头像和证明文件共用） ==========
     async onFileSelect(e, fileType) {
-      common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:667", "文件选择事件:", e, "文件类型:", fileType);
+      common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:676", "文件选择事件:", e, "文件类型:", fileType);
       if (!e.tempFilePaths || e.tempFilePaths.length === 0) {
         return;
       }
@@ -547,7 +555,7 @@ const _sfc_main = {
         });
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:777", "文件上传失败:", error);
+        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:786", "文件上传失败:", error);
         common_vendor.index.showToast({
           title: "上传失败: " + (error.message || "未知错误"),
           icon: "none"
@@ -566,7 +574,7 @@ const _sfc_main = {
       const cloudPath = ((_a = e.tempFile) == null ? void 0 : _a.url) || this.formData.avatar;
       if (cloudPath) {
         await vk.myfn.deleteFile(e.tempFile);
-        common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:796", "删除云文件:", cloudPath);
+        common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:805", "删除云文件:", cloudPath);
       }
       this.formData.avatar = "";
       this.avatarFileList = [];
@@ -577,7 +585,7 @@ const _sfc_main = {
           (file) => file.url && (file.url.startsWith("http://tmp/") || file.url.startsWith("blob:"))
         );
         if (hasTempPath) {
-          common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:809", "忽略临时路径更新");
+          common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:818", "忽略临时路径更新");
           return;
         }
       }
@@ -588,10 +596,10 @@ const _sfc_main = {
       try {
         const index = e.index;
         const fileToDelete = this.attachFiles[index];
-        common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:824", fileToDelete);
+        common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:833", fileToDelete);
         if (fileToDelete && fileToDelete.url) {
           await vk.myfn.deleteFile(fileToDelete);
-          common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:828", "删除云文件:", fileToDelete.url);
+          common_vendor.index.__f__("log", "at pages/entry-forms/index.vue:837", "删除云文件:", fileToDelete.url);
         }
         if (index !== void 0 && index >= 0 && index < this.attachFiles.length) {
           this.attachFiles.splice(index, 1);
@@ -601,7 +609,7 @@ const _sfc_main = {
           icon: "success"
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:841", "删除文件失败:", error);
+        common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:850", "删除文件失败:", error);
         common_vendor.index.showToast({
           title: "删除失败",
           icon: "none"
@@ -609,7 +617,7 @@ const _sfc_main = {
       }
     },
     onFileUploadFail(err) {
-      common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:850", "文件上传失败:", err);
+      common_vendor.index.__f__("error", "at pages/entry-forms/index.vue:859", "文件上传失败:", err);
       common_vendor.index.showToast({
         title: "上传失败",
         icon: "none"
@@ -742,9 +750,9 @@ if (!Math) {
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: common_vendor.o($options.handleSearch, "01"),
-    b: common_vendor.o(($event) => $data.searchMobile = $event, "eb"),
+    b: common_vendor.o(($event) => $data.searchMobile = $event, "57"),
     c: common_vendor.p({
-      placeholder: "请输入手机号搜索",
+      placeholder: "请输入手机号模糊搜索",
       focus: true,
       ["show-action"]: false,
       modelValue: $data.searchMobile
@@ -754,7 +762,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "20",
       color: "#fff"
     }),
-    e: common_vendor.o($options.addEntry, "f2"),
+    e: common_vendor.o($options.addEntry, "33"),
     f: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -803,7 +811,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     l: !$data.loading && $data.list.length === 0
   }, !$data.loading && $data.list.length === 0 ? {
-    m: common_vendor.o($options.addEntry, "09"),
+    m: common_vendor.o($options.addEntry, "1f"),
     n: common_vendor.p({
       type: "primary",
       shape: "circle",
@@ -816,18 +824,18 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {}, {
     p: $data.hasMore && $data.list.length > 0
   }, $data.hasMore && $data.list.length > 0 ? {
-    q: common_vendor.o($options.loadMore, "63"),
+    q: common_vendor.o($options.loadMore, "cc"),
     r: common_vendor.p({
       status: $data.loadMoreStatus,
       ["load-text"]: $data.loadText
     })
   } : {}, {
     s: $data.refreshing,
-    t: common_vendor.o((...args) => $options.onPullDownRefresh && $options.onPullDownRefresh(...args), "b3"),
-    v: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args), "82")
+    t: common_vendor.o((...args) => $options.onPullDownRefresh && $options.onPullDownRefresh(...args), "16"),
+    v: common_vendor.o((...args) => $options.loadMore && $options.loadMore(...args), "58")
   }), {
     w: common_vendor.t($data.formDialog.title),
-    x: common_vendor.o(($event) => $data.formData.employee_name = $event, "d3"),
+    x: common_vendor.o(($event) => $data.formData.employee_name = $event, "ee"),
     y: common_vendor.p({
       placeholder: "请输入",
       modelValue: $data.formData.employee_name
@@ -837,8 +845,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "employee_name",
       required: true
     }),
-    A: common_vendor.o($options.onCardBlur, "e3"),
-    B: common_vendor.o(($event) => $data.formData.card = $event, "03"),
+    A: common_vendor.o($options.onCardBlur, "ec"),
+    B: common_vendor.o(($event) => $data.formData.card = $event, "5c"),
     C: common_vendor.p({
       placeholder: "请输入",
       modelValue: $data.formData.card
@@ -848,7 +856,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "card",
       required: true
     }),
-    E: common_vendor.o(($event) => $data.formData.mobile = $event, "20"),
+    E: common_vendor.o(($event) => $data.formData.mobile = $event, "1a"),
     F: common_vendor.p({
       placeholder: "请输入",
       modelValue: $data.formData.mobile
@@ -864,7 +872,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     I: common_vendor.p({
       name: 2
     }),
-    J: common_vendor.o(($event) => $data.formData.gender = $event, "ea"),
+    J: common_vendor.o(($event) => $data.formData.gender = $event, "5f"),
     K: common_vendor.p({
       disabled: true,
       modelValue: $data.formData.gender
@@ -873,7 +881,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       label: "性别",
       prop: "gender"
     }),
-    M: common_vendor.o(($event) => $data.formData.birth_date = $event, "aa"),
+    M: common_vendor.o(($event) => $data.formData.birth_date = $event, "8f"),
     N: common_vendor.p({
       disabled: true,
       placeholder: "自动识别",
@@ -883,7 +891,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       label: "出生日期",
       prop: "birth_date"
     }),
-    P: common_vendor.o(($event) => $data.formData.age = $event, "3e"),
+    P: common_vendor.o(($event) => $data.formData.age = $event, "fd"),
     Q: common_vendor.p({
       disabled: true,
       placeholder: "自动识别",
@@ -894,8 +902,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       label: "年龄",
       prop: "age"
     }),
-    S: common_vendor.o($options.validateBankCard, "6e"),
-    T: common_vendor.o(($event) => $data.formData.bank_card = $event, "e1"),
+    S: common_vendor.o($options.validateBankCard, "1d"),
+    T: common_vendor.o(($event) => $data.formData.bank_card = $event, "b8"),
     U: common_vendor.p({
       placeholder: "请输入",
       modelValue: $data.formData.bank_card
@@ -904,7 +912,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       label: "银行卡号",
       prop: "bank_card"
     }),
-    W: common_vendor.o(($event) => $data.formData.bank_id_label = $event, "59"),
+    W: common_vendor.o(($event) => $data.formData.bank_id_label = $event, "42"),
     X: common_vendor.p({
       disabled: true,
       placeholder: "自动识别",
@@ -914,7 +922,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       label: "银行名称",
       prop: "bank_id"
     }),
-    Z: common_vendor.o(($event) => $data.formData.location_id = $event, "e2"),
+    Z: common_vendor.o(($event) => $data.formData.location_id = $event, "90"),
     aa: common_vendor.p({
       options: $data.locationOptions,
       placeholder: "请选择开户地",
@@ -926,7 +934,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       label: "开户地",
       prop: "location_id"
     }),
-    ac: common_vendor.o(($event) => $data.formData.nation_id = $event, "64"),
+    ac: common_vendor.o(($event) => $data.formData.nation_id = $event, "a2"),
     ad: common_vendor.p({
       options: $data.nationOptions,
       placeholder: "请选择民族",
@@ -939,14 +947,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "nation_id",
       required: true
     }),
-    af: common_vendor.o((e) => $options.onSelectConfirm(e, "educational_id"), "7f"),
-    ag: common_vendor.o(($event) => $data.selectVisible.edu = $event, "60"),
+    af: common_vendor.o((e) => $options.onSelectConfirm(e, "educational_id"), "4a"),
+    ag: common_vendor.o(($event) => $data.selectVisible.edu = $event, "ed"),
     ah: common_vendor.p({
       list: $data.eduOptions,
       modelValue: $data.selectVisible.edu
     }),
-    ai: common_vendor.o(($event) => $data.selectVisible.edu = true, "a7"),
-    aj: common_vendor.o(($event) => $data.formData.educational_id_label = $event, "e6"),
+    ai: common_vendor.o(($event) => $data.selectVisible.edu = true, "59"),
+    aj: common_vendor.o(($event) => $data.formData.educational_id_label = $event, "29"),
     ak: common_vendor.p({
       type: "select",
       placeholder: "请选择学历",
@@ -963,7 +971,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     an: common_vendor.p({
       name: 2
     }),
-    ao: common_vendor.o(($event) => $data.formData.stay = $event, "d0"),
+    ao: common_vendor.o(($event) => $data.formData.stay = $event, "f6"),
     ap: common_vendor.p({
       modelValue: $data.formData.stay
     }),
@@ -972,7 +980,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "stay",
       required: true
     }),
-    ar: common_vendor.o(($event) => $data.formData.expiration_date = $event, "8c"),
+    ar: common_vendor.o(($event) => $data.formData.expiration_date = $event, "17"),
     as: common_vendor.p({
       placeholder: "例如 2025-12-31",
       modelValue: $data.formData.expiration_date
@@ -982,7 +990,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "expiration_date",
       required: true
     }),
-    av: common_vendor.o(($event) => $data.formData.card_location = $event, "99"),
+    av: common_vendor.o(($event) => $data.formData.card_location = $event, "58"),
     aw: common_vendor.p({
       type: "textarea",
       modelValue: $data.formData.card_location
@@ -992,7 +1000,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "card_location",
       required: true
     }),
-    ay: common_vendor.o(($event) => $data.formData.emergency_contact = $event, "d7"),
+    ay: common_vendor.o(($event) => $data.formData.emergency_contact = $event, "d1"),
     az: common_vendor.p({
       modelValue: $data.formData.emergency_contact
     }),
@@ -1001,7 +1009,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "emergency_contact",
       required: true
     }),
-    aB: common_vendor.o(($event) => $data.formData.emergency_mobile = $event, "29"),
+    aB: common_vendor.o(($event) => $data.formData.emergency_mobile = $event, "8a"),
     aC: common_vendor.p({
       modelValue: $data.formData.emergency_mobile
     }),
@@ -1016,7 +1024,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     aF: common_vendor.p({
       name: 2
     }),
-    aG: common_vendor.o(($event) => $data.formData.marital_status = $event, "2f"),
+    aG: common_vendor.o(($event) => $data.formData.marital_status = $event, "d8"),
     aH: common_vendor.p({
       modelValue: $data.formData.marital_status
     }),
@@ -1031,7 +1039,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     aK: common_vendor.p({
       name: 2
     }),
-    aL: common_vendor.o(($event) => $data.formData.no_crime = $event, "e4"),
+    aL: common_vendor.o(($event) => $data.formData.no_crime = $event, "8b"),
     aM: common_vendor.p({
       modelValue: $data.formData.no_crime
     }),
@@ -1040,7 +1048,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       prop: "no_crime",
       required: true
     }),
-    aO: common_vendor.o(($event) => $data.formData.comment = $event, "7d"),
+    aO: common_vendor.o(($event) => $data.formData.comment = $event, "56"),
     aP: common_vendor.p({
       type: "textarea",
       modelValue: $data.formData.comment
@@ -1054,10 +1062,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "28",
       color: "#2979ff"
     }),
-    aS: common_vendor.o((e) => $options.onFileSelect(e, "avatar"), "d0"),
-    aT: common_vendor.o((e) => $options.onAvatarRemove(e), "ea"),
-    aU: common_vendor.o($options.onFileUploadFail, "2e"),
-    aV: common_vendor.o(($event) => $data.avatarFileList = $event, "49"),
+    aS: common_vendor.o((e) => $options.onFileSelect(e, "avatar"), "6f"),
+    aT: common_vendor.o((e) => $options.onAvatarRemove(e), "a5"),
+    aU: common_vendor.o($options.onFileUploadFail, "cc"),
+    aV: common_vendor.o(($event) => $data.avatarFileList = $event, "31"),
     aW: common_vendor.p({
       ["auto-upload"]: false,
       limit: 1,
@@ -1070,10 +1078,10 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       label: "头像",
       prop: "avatar"
     }),
-    aY: common_vendor.o((val) => $options.onAttachInput(val), "ff"),
-    aZ: common_vendor.o((e) => $options.onFileSelect(e, "attachment"), "99"),
-    ba: common_vendor.o((e) => $options.onAttachRemove(e), "ea"),
-    bb: common_vendor.o($options.onFileUploadFail, "19"),
+    aY: common_vendor.o((val) => $options.onAttachInput(val), "e5"),
+    aZ: common_vendor.o((e) => $options.onFileSelect(e, "attachment"), "72"),
+    ba: common_vendor.o((e) => $options.onAttachRemove(e), "f2"),
+    bb: common_vendor.o($options.onFileUploadFail, "72"),
     bc: common_vendor.p({
       value: $data.attachFiles,
       ["file-mediatype"]: "all",
@@ -1107,14 +1115,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       ["label-position"]: "left",
       ["label-width"]: "180rpx"
     }),
-    bj: common_vendor.o($options.closeFormDialog, "f7"),
-    bk: common_vendor.o($options.submitForm, "58"),
+    bj: common_vendor.o($options.closeFormDialog, "56"),
+    bk: common_vendor.o($options.submitForm, "9a"),
     bl: common_vendor.p({
       type: "primary",
       loading: $data.submitting
     }),
-    bm: common_vendor.o($options.closeFormDialog, "a7"),
-    bn: common_vendor.o(($event) => $data.formDialog.show = $event, "3c"),
+    bm: common_vendor.o($options.closeFormDialog, "e1"),
+    bn: common_vendor.o(($event) => $data.formDialog.show = $event, "dd"),
     bo: common_vendor.p({
       mode: "bottom",
       ["border-radius"]: "20",
@@ -1122,8 +1130,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       closeable: true,
       modelValue: $data.formDialog.show
     }),
-    bp: common_vendor.o($options.filePreviewClose, "5a"),
-    bq: common_vendor.o($options.downloadFile, "56"),
+    bp: common_vendor.o($options.filePreviewClose, "32"),
+    bq: common_vendor.o($options.downloadFile, "84"),
     br: common_vendor.p({
       value: $data.filePreview.show,
       ["file-data"]: $data.filePreview.data

@@ -121,7 +121,7 @@
 							key: "attendance_ym",
 							title: "考勤日期",
 							type: "date",
-							dateType: "date",
+							dateType: "month",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM"
 						},
@@ -284,7 +284,7 @@
 							title: "",
 							type: "table-select",
 							placeholder: "选择员工",
-							action: "admin/hrm/attendance/sys/getList",
+							action: "admin/hrm/employees/sys/getList",
 							multiple: false,
 							columns: [{
 									key: "employee_name",
@@ -410,7 +410,7 @@
 								key: "attendance_ym",
 								title: "考勤日期",
 								type: "date",
-								dateType: "date",
+								dateType: "month",
 								valueFormat: "yyyy-MM",
 								format: "yyyy-MM",
 								"width": colWidth
@@ -476,7 +476,7 @@
 								title: "入住员工",
 								type: "table-select",
 								placeholder: "选择员工",
-								action: "admin/hrm/attendance/sys/getList",
+								action: "admin/hrm/employees/sys/getList",
 								oneLine: true,
 								multiple: true,
 								columns: [{
@@ -805,7 +805,7 @@
 							key: "attendance_ym",
 							title: "考勤日期",
 							type: "date",
-							dateType: "date",
+							dateType: "month",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 						}, {

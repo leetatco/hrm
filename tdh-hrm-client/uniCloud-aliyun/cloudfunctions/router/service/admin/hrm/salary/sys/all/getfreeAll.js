@@ -28,7 +28,7 @@ module.exports = {
 		let {
 			uid,
 			cards,
-			attendance_ym_keys
+			attendance_ym
 		} = data;
 		let res = {
 			code: 0,
@@ -42,9 +42,9 @@ module.exports = {
 			return res;
 		}
 
-		if (!attendance_ym_keys || !Array.isArray(attendance_ym_keys) || attendance_ym_keys.length === 0) {
+		if (!attendance_ym) {
 			res.code = -2;
-			res.msg = 'attendance_ym_keys参数必须是非空数组';
+			res.msg = 'attendance_ym_参数必须是非空';
 			return res;
 		}
 		// 参数验证结束	
@@ -60,9 +60,7 @@ module.exports = {
 				card: {
 					$in: cards
 				},
-				attendance_ym: {
-					$in: attendance_ym_keys
-				}
+				attendance_ym: attendance_ym
 			}
 		});
 		return res;

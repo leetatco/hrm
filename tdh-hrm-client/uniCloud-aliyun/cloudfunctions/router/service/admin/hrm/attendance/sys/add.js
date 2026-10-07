@@ -55,6 +55,8 @@ module.exports = {
 			emergency_leave,
 			allowance,
 			attendance_correction,
+			sealed,
+			sealed_date,
 			comment,
 			update_date,
 			update_id
@@ -104,7 +106,9 @@ module.exports = {
 				emergency_leave,
 				allowance,
 				attendance_correction,
-				comment,
+				sealed: false,
+				sealed_date,
+				comment,				
 				update_id: uid,
 				update_date: new Date().getTime()
 			}

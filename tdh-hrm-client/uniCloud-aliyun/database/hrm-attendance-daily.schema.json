@@ -9,10 +9,39 @@
 			"title": "员工工号",
 			"bsonType": "string"
 		},
+		"employee_name": {
+			"title": "员工姓名",
+			"bsonType": "string",
+			"trim": "both"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "员工身份证号码，冗余字段，便于薪资核算",
+			"trim": "both"
+		},
 		"attendance_date": {
 			"title": "考勤日期",
 			"bsonType": "timestamp",
 			"description": "当天零点时间戳（毫秒）"
+		},
+		"attendance_group_id": {
+			"title": "考勤组ID",
+			"bsonType": "string"
+		},
+		"attendance_group_name": {
+			"title": "考勤组名称",
+			"bsonType": "string"
+		},
+		"should_attend_minutes": {
+			"title": "应出勤分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"actual_attend_minutes": {
+			"title": "实际出勤分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
 		},
 		"shift_id": {
 			"title": "当天班次ID",
@@ -90,6 +119,16 @@
 		},
 		"overtime_minutes": {
 			"title": "加班分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"overtime_compensatory_minutes": {
+			"title": "调休加班分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"overtime_paid_minutes": {
+			"title": "计薪加班分钟数",
 			"bsonType": "int",
 			"defaultValue": 0
 		},
@@ -291,6 +330,23 @@
 			"bsonType": "int",
 			"description": "0=异常,1=正常,2=请假,3=出差,4=调休,5=旷工,6=加班"
 		},
+		"sealed": {
+			"title": "是否已封存",
+			"bsonType": "bool",
+			"description": "已封存的数据不允许被重算覆盖",
+			"defaultValue": false
+		},
+		"sealed_date": {
+			"title": "封存日期",
+			"bsonType": "string",
+			"description": "封存到哪一天为止，yyyy-MM-dd",
+			"trim": "both"
+		},
+		"config_snapshot": {
+			"title": "配置快照",
+			"bsonType": "object",
+			"description": "生成日报表时使用的完整配置快照（班次、考勤组、日历、排班）"
+		},
 		"update_date": {
 			"title": "更新时间",
 			"bsonType": "timestamp",
@@ -298,7 +354,7 @@
 				"$env": "now"
 			}
 		},
-		"updat_id": {
+		"update_id": {
 			"title": "更新人",
 			"bsonType": "string"
 		}

@@ -62,6 +62,12 @@
 			"description": "备注信息",
 			"trim": "both"
 		},
+		"version": {
+			"title": "版本号",
+			"bsonType": "int",
+			"description": "每次修改自增，用于追溯日报表使用的配置版本",
+			"defaultValue": 1
+		},
 		"update_date": {
 			"title": "更新时间",
 			"bsonType": "timestamp",

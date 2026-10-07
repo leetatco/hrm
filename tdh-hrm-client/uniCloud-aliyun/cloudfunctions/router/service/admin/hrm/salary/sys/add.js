@@ -33,7 +33,6 @@ module.exports = {
 		let {
 			//考勤日期
 			attendance_ym,
-			attendance_ym_key,
 			//离职月份
 			resign_month,
 			//身份证号码
@@ -113,7 +112,7 @@ module.exports = {
 		let checkRes = await vk.baseDao.findByWhereJson({
 			dbName,
 			whereJson: {
-				attendance_ym_key,
+				attendance_ym,
 				employee_id
 			}
 		});
@@ -128,9 +127,7 @@ module.exports = {
 		res.id = await vk.baseDao.add({
 			dbName,
 			dataJson: {
-				attendance_ym,
-				attendance_ym_key,
-				resign_month,
+				attendance_ym,						
 				employee_id,
 				total_salary,
 				rest_type,

@@ -47,6 +47,19 @@ module.exports = {
 		}
 
 		let dbName = 'hrm-attendance-shift';
+
+		const existRes = await vk.baseDao.findById({
+			dbName,
+			id: _id
+		});
+		if (!existRes) return {
+			code: -1,
+			msg: '记录不存在'
+		};
+
+		const newVersion = (existRes.version || 1) + 1;
+
+
 		await vk.baseDao.updateById({
 			dbName,
 			id: _id,
@@ -58,6 +71,7 @@ module.exports = {
 				department_id,
 				status,
 				remark,
+				version: newVersion,
 				update_id: uid,
 				update_date: new Date().getTime()
 			}

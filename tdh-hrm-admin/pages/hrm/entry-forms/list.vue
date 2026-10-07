@@ -772,6 +772,7 @@
 						key: "employee_id",
 						title: "员工工号",
 						type: "text",
+						disabled: true,
 						width: colWidth,
 						rules: [{
 							required: true,
@@ -1041,11 +1042,21 @@
 							required: true,
 							message: "请选择公司"
 						}],
-						watch: ({
+						watch: async ({
 							value,
 							formData,
 							$set
 						}) => {
+							// 取最大工号
+							let data = await vk.callFunction({
+								url: 'admin/hrm/employees/sys/getMaxEmp',
+								title: '请求中...',
+								data: {
+									company_id: value
+								},
+							});
+							this.$set(formData, "employee_id", data.nextNo || "");
+
 							// 联动：根据选中的公司，修改部门列的请求参数
 							const deptCol = this.transferColumns.find(col => col.key === "department_id");
 							if (deptCol) {
@@ -1581,7 +1592,12 @@
 				};
 
 				const el = await vk.myfn.getResignEmployees(row.card);
+				const employeeMap = await vk.myfn.batchGetEmployeeInfo([row.card]);
+
+				console.log(employeeMap)
+
 				let msg = "";
+				//离职人员信息
 				if (vk.pubfn.isNotNull(el)) {
 					el.forEach(e => {
 						msg +=
@@ -1595,8 +1611,28 @@
 						}
 					})
 				}
-				this.transferDialog.data = defaultData;
-				this.transferDialog.show = true;
+
+				//在职人员信息
+				if (employeeMap && employeeMap.size > 0) {
+					const empInfo = employeeMap.get(row.card)
+					msg = `姓名：${row.employee_name}(${empInfo.employee_id}),已经存在,将执行删除操作！`;
+
+					vk.alert(msg, '提示', '确定', async () => {
+						const delRes = await vk.callFunction({
+							url: 'admin/hrm/entry-forms/sys/delete',
+							data: {
+								_id: this.currentTransferEntryId
+							},
+							title: '删除入职登记记录'
+						});
+						if (delRes.code === 0) {
+							this.refresh();
+						}
+					})
+				} else {
+					this.transferDialog.data = defaultData;
+					this.transferDialog.show = true;
+				}
 			},
 			async submitTransfer() {
 				this.$refs.transferForm.validate(async (valid) => {

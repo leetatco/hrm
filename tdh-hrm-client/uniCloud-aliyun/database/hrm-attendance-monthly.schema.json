@@ -1,6 +1,6 @@
 {
 	"bsonType": "object",
-	"required": ["employee_id", "year", "month"],
+	"required": ["employee_id", "attendance_ym"],
 	"properties": {
 		"_id": {
 			"description": "ID"
@@ -9,13 +9,17 @@
 			"title": "员工工号",
 			"bsonType": "string"
 		},
-		"year": {
-			"title": "年度",
-			"bsonType": "int"
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "员工身份证号码，冗余字段，便于薪资核算",
+			"trim": "both"
 		},
-		"month": {
-			"title": "月份",
-			"bsonType": "int"
+		"attendance_ym": {
+			"title": "考勤月份",
+			"bsonType": "date",
+			"description": "考勤月份，格式 yyyy-MM，如 2026-08",
+			"trim": "both"
 		},
 		"period_start": {
 			"title": "统计周期开始日期",
@@ -35,6 +39,40 @@
 			"title": "实际出勤天数",
 			"bsonType": "double",
 			"defaultValue": 0
+		},
+		"should_minutes": {
+			"title": "应出勤总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"actual_minutes": {
+			"title": "实际出勤总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"pay_days": {
+			"title": "计薪天数",
+			"bsonType": "double",
+			"description": "日薪/时薪员工的计薪天数",
+			"defaultValue": 0
+		},
+		"pay_hours": {
+			"title": "计薪小时数",
+			"bsonType": "double",
+			"description": "时薪员工的计薪小时数",
+			"defaultValue": 0
+		},
+		"salary_type": {
+			"title": "计薪方式",
+			"bsonType": "int",
+			"description": "1=月薪，2=日薪，3=时薪",
+			"enum": [1, 2, 3],
+			"defaultValue": 1
+		},
+		"salary": {
+			"title": "综合工资",
+			"bsonType": "int",
+			"description": "从定薪表冗余过来，便于薪资核算"
 		},
 		"rest_days": {
 			"title": "休息天数",
@@ -61,6 +99,12 @@
 			"bsonType": "int",
 			"defaultValue": 0
 		},
+		"no_punch_count": {
+			"title": "未打卡次数",
+			"bsonType": "int",
+			"description": "当天缺签到或缺签退的次数合计",
+			"defaultValue": 0
+		},
 		"absent_count": {
 			"title": "旷工次数",
 			"bsonType": "int",
@@ -73,6 +117,16 @@
 		},
 		"overtime_minutes": {
 			"title": "加班总分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"overtime_compensatory_minutes": {
+			"title": "调休加班分钟数",
+			"bsonType": "int",
+			"defaultValue": 0
+		},
+		"overtime_paid_minutes": {
+			"title": "计薪加班分钟数",
 			"bsonType": "int",
 			"defaultValue": 0
 		},
@@ -96,6 +150,15 @@
 			"bsonType": "int",
 			"defaultValue": 0
 		},
+		"exempted": {
+			"title": "是否豁免",
+			"bsonType": "bool",
+			"defaultValue": false
+		},
+		"exemption_reason": {
+			"title": "豁免原因",
+			"bsonType": "string"
+		},
 		"remedy_count": {
 			"title": "补卡次数",
 			"bsonType": "int",
@@ -106,6 +169,35 @@
 			"bsonType": "bool",
 			"defaultValue": false
 		},
+		"contract_days": {
+			"title": "合同天数",
+			"bsonType": "double",
+			"description": "从定薪表冗余，主要用于月薪人员",
+			"defaultValue": 0
+		},
+		"diff_days": {
+			"title": "差异天数",
+			"bsonType": "double",
+			"description": "合同天数 - 应出勤天数；大于 0 表示缺公司天数",
+			"defaultValue": 0
+		},
+		"sign_status": {
+			"title": "签单状态",
+			"bsonType": "int",
+			"description": "0=待签单，1=已签单，2=无需签单",
+			"defaultValue": 2
+		},
+		"signature_url": {
+			"title": "签名图片",
+			"bsonType": "string",
+			"description": "手写签名图片存储路径（云存储 fileID），由小程序端签单写入",
+			"trim": "both"
+		},
+		"sign_date": {
+			"title": "签单日期",
+			"bsonType": "timestamp",
+			"description": "小程序端签单时间"
+		},
 		"update_date": {
 			"title": "更新时间",
 			"bsonType": "timestamp",
@@ -113,7 +205,7 @@
 				"$env": "now"
 			}
 		},
-		"updat_id": {
+		"update_id": {
 			"title": "更新人",
 			"bsonType": "string"
 		}
@@ -123,8 +215,7 @@
 		"type": "unique",
 		"key": {
 			"employee_id": 1,
-			"year": 1,
-			"month": 1
+			"attendance_ym": 1
 		}
 	}]
 }

@@ -18,7 +18,9 @@ module.exports = {
 		let {
 			_id,
 			attendance_ym,
-			card,			
+			card,		
+			typhoon_cost,
+			liunian_cost,		
 			reward_cost,
 			punish_cost,
 			grant,
@@ -58,7 +60,9 @@ module.exports = {
 			id:_id,
 			dataJson:{
 				attendance_ym,
-				card,				
+				card,	
+				typhoon_cost,
+				liunian_cost,				
 				reward_cost,
 				punish_cost,
 				grant,

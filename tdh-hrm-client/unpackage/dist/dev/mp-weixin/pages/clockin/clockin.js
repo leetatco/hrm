@@ -6,6 +6,11 @@ const _sfc_main = {
       formData: {
         employee_id: "",
         bssid: "",
+        ssid: "",
+        setting_bssid: "",
+        // 新增：设定打卡点的 bssid
+        setting_ssid: "",
+        // 新增：设定打卡点的 ssid
         type: "",
         img: "",
         clockintime: "",
@@ -13,14 +18,21 @@ const _sfc_main = {
       },
       is_submit: false,
       time: "00:00",
-      bssidKeys: /* @__PURE__ */ new Set(),
-      bssidMap: /* @__PURE__ */ new Map(),
       bssid_current: "",
       ssid_current: "",
+      signalStrength_current: 0,
       is_range: true,
-      is_range_content: "你已在打卡范围内，将按公司卡记录！",
+      is_range_content: "正在检测打卡范围...",
       today: "",
-      avatarDir: "/clockin"
+      avatarDir: "/clockin",
+      // 考勤组与打卡点
+      groupName: "",
+      attendanceGroupId: "",
+      punchLocation: null,
+      requiredSignalStrength: 0,
+      canSubmitByWifi: false,
+      disableSubmit: false,
+      _signalModalShowing: false
     };
   },
   onShow() {
@@ -68,7 +80,7 @@ const _sfc_main = {
           if (err.errMsg && err.errMsg.includes("cancel")) {
             return;
           }
-          common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:184", "上传失败:", err);
+          common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:200", "上传失败:", err);
           common_vendor.index.showToast({
             title: "上传失败",
             icon: "none"
@@ -93,9 +105,8 @@ const _sfc_main = {
         await vk.myfn.deleteFile({
           url: this.formData.img
         });
-        common_vendor.index.__f__("log", "at pages/clockin/clockin.vue:209", "删除云文件:", this.formData.img);
       } catch (e) {
-        common_vendor.index.__f__("warn", "at pages/clockin/clockin.vue:211", "删除云文件失败:", e);
+        common_vendor.index.__f__("warn", "at pages/clockin/clockin.vue:226", "删除云文件失败:", e);
       }
       this.formData.img = "";
       common_vendor.index.showToast({
@@ -119,27 +130,49 @@ const _sfc_main = {
         this.time = `${hour}:${minute}`;
       }, 1e3);
     },
-    // 加载打卡点配置
+    // ========== 加载打卡点（通过公共云函数） ==========
     async loadData(callback) {
-      const res = await vk.callFunction({
-        url: "admin/hrm/clockin/sys/setting/getList",
-        title: "加载中...",
-        data: {
-          pageSize: -1,
-          pageIndex: 1
-        }
-      });
-      if (res.code === 0) {
-        if (res.total === 0) {
-          vk.alert("请先设定打卡点");
+      const employeeId = vk.getVuex("$user.userInfo.username");
+      if (!employeeId) {
+        vk.alert("没有获取到工号");
+        return;
+      }
+      this.formData.employee_id = employeeId;
+      try {
+        const res = await vk.callFunction({
+          url: "admin/hrm/clockin/pub/getClockinLocation",
+          title: "加载打卡点...",
+          data: {
+            employee_id: employeeId
+          }
+        });
+        if (res.code !== 0) {
+          this.disableSubmit = true;
+          this.is_range = false;
+          this.is_range_content = res.msg || "打卡点加载失败";
+          if (typeof callback === "function")
+            callback();
           return;
         }
-        this.ssidKeys = new Set(res.rows.map((item) => item.ssid));
-        this.bssidKeys = new Set(res.rows.map((item) => item.bssid));
-        res.rows.forEach((item) => {
-          this.bssidMap.set(item.bssid, item);
-        });
+        const info = res.data || {};
+        this.groupName = info.attendance_group_name || "";
+        this.attendanceGroupId = info.attendance_group_id || "";
+        if (!info.punch_location) {
+          this.disableSubmit = true;
+          this.is_range = false;
+          this.is_range_content = "未匹配到打卡点，无法打卡";
+          if (typeof callback === "function")
+            callback();
+          return;
+        }
+        this.punchLocation = info.punch_location;
+        this.requiredSignalStrength = info.punch_location.signalStrength || 0;
         this.getCurrentAddress();
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:298", "加载打卡点异常:", e);
+        this.disableSubmit = true;
+        this.is_range = false;
+        this.is_range_content = "打卡点加载异常";
       }
       if (typeof callback === "function")
         callback();
@@ -150,42 +183,105 @@ const _sfc_main = {
         common_vendor.index.stopPullDownRefresh();
       });
     },
-    // 获取当前连接的Wi-Fi
+    // 获取当前连接的 Wi-Fi 及信号强度
     getConnectedWifi() {
       common_vendor.index.startWifi({
         success: () => {
           common_vendor.index.getConnectedWifi({
             success: (res) => {
               this.bssid_current = res.wifi.BSSID || "无";
-              this.ssid_current = res.wifi.SSID;
+              this.ssid_current = res.wifi.SSID || "";
+              this.signalStrength_current = res.wifi.signalStrength || 0;
+              this.getCurrentAddress();
             },
             fail: (err) => {
-              common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:281", "获取当前Wi-Fi失败", err);
+              common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:327", "获取当前Wi-Fi失败", err);
               this.bssid_current = "获取失败";
+              this.ssid_current = "";
+              this.signalStrength_current = 0;
+              this.getCurrentAddress();
             }
           });
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:287", "启动Wi-Fi模块失败", err);
+          common_vendor.index.__f__("error", "at pages/clockin/clockin.vue:336", "启动Wi-Fi模块失败", err);
           this.bssid_current = "无法获取";
+          this.ssid_current = "";
+          this.signalStrength_current = 0;
+          this.getCurrentAddress();
         }
       });
     },
-    // 判断打卡范围
+    // 判断打卡范围（Wi-Fi 匹配 + 信号强度判断）
     getCurrentAddress() {
-      if (this.bssidKeys.has(this.bssid_current)) {
-        this.is_range = true;
-        this.formData.type = "公司卡";
-        this.is_range_content = "✅ 您已在打卡范围内，将按公司卡记录";
-        this.formData.ssid = this.ssid_current;
-        this.formData.bssid = this.bssid_current;
-      } else {
+      if (!this.punchLocation) {
         this.is_range = false;
+        this.canSubmitByWifi = false;
+        this.disableSubmit = true;
+        this.is_range_content = "未匹配到打卡点";
+        return;
+      }
+      const settingBssid = this.punchLocation.bssid || "";
+      const settingSsid = this.punchLocation.ssid || "";
+      this.formData.setting_ssid = settingSsid;
+      this.formData.setting_bssid = settingBssid;
+      const currentBssid = this.bssid_current || "";
+      const currentSsid = this.ssid_current || "";
+      const matchWifi = currentBssid && currentBssid === settingBssid;
+      const required = this.requiredSignalStrength || 0;
+      if (!matchWifi) {
+        this.is_range = false;
+        this.canSubmitByWifi = false;
+        this.disableSubmit = false;
         this.formData.type = "出差卡";
         this.is_range_content = "⚠️ 您已超出打卡范围，将按出差卡记录（需拍照）";
-        this.formData.ssid = "无法获取";
-        this.formData.bssid = "无法获取";
+        this.formData.ssid = currentSsid || "无法获取";
+        this.formData.bssid = currentBssid || "无法获取";
+        return;
       }
+      if (required > 0 && this.signalStrength_current < required) {
+        this.is_range = false;
+        this.canSubmitByWifi = false;
+        this.disableSubmit = false;
+        this.formData.type = "出差卡";
+        this.is_range_content = `⚠️ 信号强度不足（当前 ${this.signalStrength_current}，需要 ${required}）`;
+        this.formData.ssid = currentSsid;
+        this.formData.bssid = currentBssid;
+        this.showSignalModal(required, this.signalStrength_current);
+        return;
+      }
+      this.is_range = true;
+      this.canSubmitByWifi = true;
+      this.disableSubmit = false;
+      this.formData.type = "公司卡";
+      this.is_range_content = "✅ 您已在打卡范围内，将按公司卡记录";
+      this.formData.ssid = currentSsid;
+      this.formData.bssid = currentBssid;
+    },
+    // 信号强度不达标弹窗
+    showSignalModal(required, current) {
+      if (this._signalModalShowing)
+        return;
+      this._signalModalShowing = true;
+      common_vendor.index.showModal({
+        title: "信号强度不足",
+        content: `当前信号强度：${current}
+设定信号强度：${required}
+
+请靠近 Wi-Fi 路由器后重试，或按出差卡拍照提交。`,
+        showCancel: true,
+        confirmText: "重新检测",
+        cancelText: "知道了",
+        success: (res) => {
+          this._signalModalShowing = false;
+          if (res.confirm) {
+            this.getConnectedWifi();
+          }
+        },
+        fail: () => {
+          this._signalModalShowing = false;
+        }
+      });
     },
     // 跳回记录页
     toMain() {
@@ -198,12 +294,19 @@ const _sfc_main = {
       this.formData.employee_id = vk.getVuex("$user.userInfo.username");
       if (!this.formData.employee_id)
         return vk.alert("没有人员工号");
+      if (this.disableSubmit)
+        return vk.alert("当前无法打卡");
       if (!this.formData.bssid)
         return vk.alert("请先设定打卡点");
       if (!this.is_range && !this.formData.img)
         return vk.alert("出差打卡必须拍照上传");
       if (this.is_submit)
         return;
+      if (this.is_range && this.requiredSignalStrength > 0) {
+        if (this.signalStrength_current < this.requiredSignalStrength) {
+          return this.showSignalModal(this.requiredSignalStrength, this.signalStrength_current);
+        }
+      }
       this.is_submit = true;
       this.formData.clockintime = vk.pubfn.timeFormat(/* @__PURE__ */ new Date(), "yyyy-MM-dd hh:mm:ss");
       vk.callFunction({
@@ -242,8 +345,8 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       color: "#2d8cff"
     }),
     b: common_vendor.t($data.today),
-    c: !$data.is_range
-  }, !$data.is_range ? {
+    c: !$data.is_range && !$data.disableSubmit
+  }, !$data.is_range && !$data.disableSubmit ? {
     d: common_vendor.p({
       name: "info-circle-fill",
       size: "32",
@@ -255,55 +358,63 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
       size: "32",
       color: "#2d8cff"
     }),
-    f: common_vendor.t($data.formData.ssid || "未设置"),
-    g: common_vendor.t($data.formData.bssid || "未设置"),
+    f: common_vendor.t($data.formData.setting_ssid || "未设置"),
+    g: common_vendor.t($data.formData.setting_bssid || "未设置"),
     h: common_vendor.t($data.bssid_current || "未连接"),
-    i: common_vendor.p({
+    i: common_vendor.t($data.signalStrength_current),
+    j: $data.requiredSignalStrength > 0
+  }, $data.requiredSignalStrength > 0 ? {
+    k: common_vendor.t($data.requiredSignalStrength)
+  } : {}, {
+    l: $data.requiredSignalStrength > 0 && $data.signalStrength_current < $data.requiredSignalStrength ? 1 : "",
+    m: common_vendor.t($data.groupName || "未匹配"),
+    n: common_vendor.p({
       name: "camera",
       size: "32",
       color: "#2d8cff"
     }),
-    j: !$data.is_range
+    o: !$data.is_range
   }, !$data.is_range ? {} : {}, {
-    k: !$data.formData.img
+    p: !$data.formData.img
   }, !$data.formData.img ? {
-    l: common_vendor.p({
+    q: common_vendor.p({
       name: "camera",
       size: "48",
       color: "#2979ff"
     }),
-    m: common_vendor.o((...args) => $options.chooseAndUploadImage && $options.chooseAndUploadImage(...args), "4c")
+    r: common_vendor.o((...args) => $options.chooseAndUploadImage && $options.chooseAndUploadImage(...args), "44")
   } : {
-    n: $data.formData.img,
-    o: common_vendor.o((...args) => $options.previewImage && $options.previewImage(...args), "90"),
-    p: common_vendor.p({
+    s: $data.formData.img,
+    t: common_vendor.o((...args) => $options.previewImage && $options.previewImage(...args), "bd"),
+    v: common_vendor.p({
       name: "close",
       size: "20",
       color: "#fff"
     }),
-    q: common_vendor.o((...args) => $options.removeImage && $options.removeImage(...args), "ea"),
-    r: common_vendor.o((...args) => $options.chooseAndUploadImage && $options.chooseAndUploadImage(...args), "25")
+    w: common_vendor.o((...args) => $options.removeImage && $options.removeImage(...args), "64"),
+    x: common_vendor.o((...args) => $options.chooseAndUploadImage && $options.chooseAndUploadImage(...args), "d2")
   }, {
-    s: common_vendor.p({
+    y: common_vendor.p({
       name: "compose",
       size: "32",
       color: "#2d8cff"
     }),
-    t: $data.formData.remark,
-    v: common_vendor.o(($event) => $data.formData.remark = $event.detail.value, "31"),
-    w: common_vendor.p({
+    z: $data.formData.remark,
+    A: common_vendor.o(($event) => $data.formData.remark = $event.detail.value, "d1"),
+    B: common_vendor.p({
       type: "location-filled",
       size: "48",
       color: $data.is_range ? "#4caf50" : "#f44336"
     }),
-    x: common_vendor.t($data.is_range_content),
-    y: common_vendor.n($data.is_range ? "text-success" : "text-danger"),
-    z: common_vendor.t($data.formData.type),
-    A: common_vendor.t($data.time),
-    B: common_vendor.o((...args) => $options.submit && $options.submit(...args), "8b"),
-    C: $data.is_submit ? 1 : "",
-    D: !$data.is_range ? 1 : "",
-    E: $data.is_submit
+    C: common_vendor.t($data.is_range_content),
+    D: common_vendor.n($data.is_range ? "text-success" : "text-danger"),
+    E: common_vendor.t($data.formData.type || "未知"),
+    F: common_vendor.t($data.time),
+    G: common_vendor.t($data.disableSubmit ? "不可打卡" : "打卡"),
+    H: common_vendor.o((...args) => $options.submit && $options.submit(...args), "7c"),
+    I: $data.is_submit || $data.disableSubmit ? 1 : "",
+    J: !$data.is_range ? 1 : "",
+    K: $data.is_submit
   }, $data.is_submit ? {} : {});
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-60f3b423"]]);

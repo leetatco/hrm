@@ -123,13 +123,13 @@
 							"width": colWidth
 						},
 						{
-							"key": "employees.department_name",
+							"key": "employees.departments.department_name",
 							"title": "部门",
 							"type": "text",
 							"width": colWidth
 						},
 						{
-							"key": "employees.position_name",
+							"key": "employees.positions.position_name",
 							"title": "职务",
 							"type": "text",
 							"width": colWidth - 100
@@ -224,7 +224,7 @@
 							title: "姓名",
 							type: "table-select",
 							placeholder: "选择员工",
-							action: "admin/hrm/attendance/sys/getList",							
+							action: "admin/hrm/employees/sys/getList",							
 							multiple: false,
 							columns: [{
 									key: "employee_name",
@@ -292,7 +292,7 @@
 								title: "姓名",
 								type: "table-select",
 								placeholder: "选择员工",
-								action: "admin/hrm/attendance/sys/getList",								
+								action: "admin/hrm/employees/sys/getList",								
 								multiple: false,
 								columns: [{
 										key: "employee_name",

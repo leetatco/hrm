@@ -40,6 +40,7 @@ module.exports = {
 			educational_id,
 			stay,
 			card,
+			openid,
 			gender,
 			birth_date,
 			birth_month,
@@ -63,15 +64,19 @@ module.exports = {
 
 		let checkRes = await vk.baseDao.findByWhereJson({
 			dbName,
-			whereJson: {
-				card: card
-			}
+			whereJson: _.or([{
+					card: card,
+				},
+				{
+					mobile: mobile,
+				},
+			])
 		});
 		if (checkRes) {
 			if (_id !== checkRes._id)
 				return {
 					code: -1,
-					msg: "身份证号码重复！",
+					msg: "身份证号码或手机号码重复！",
 					rows: checkRes
 				}
 		}
@@ -90,6 +95,7 @@ module.exports = {
 				educational_id,
 				stay,
 				card,
+				openid,
 				gender,
 				birth_date,
 				birth_month,
@@ -106,7 +112,7 @@ module.exports = {
 				update_id: uid,
 				update_date: new Date().getTime()
 			},
-		});
+		})
 		// 业务逻辑结束-----------------------------------------------------------
 		return res;
 	},

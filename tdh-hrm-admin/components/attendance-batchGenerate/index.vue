@@ -35,24 +35,24 @@
 				},
 				form1: {
 					data: {
-						attendance_group_id: "",
+						attendance_group_ids: "",
 						start_date: "",
 						end_date: ""
 					},
 					props: {
 						action: "admin/hrm/attendance/sys/schedule/batchGenerate",
 						columns: [{
-								key: "attendance_group_id",
+								key: "attendance_group_ids",
 								title: "考勤组",
 								type: "cascader",
-								placeholder: "请选择考勤组（含班次）",
-								required: true,
+								placeholder: "请选择考勤组（含班次）,不选默认全部考勤组",								
 								action: "admin/hrm/attendance/sys/schedule/getCascader",
 								props: {
 									list: "rows",
 									value: "_id",
 									label: "label",
 									children: "children",
+									multiple: true,
 									emitPath: false
 								}
 							},
@@ -73,12 +73,7 @@
 								required: true
 							}
 						],
-						rules: {
-							attendance_group_id: [{
-								required: true,
-								message: "请选择考勤组",
-								trigger: "change"
-							}],
+						rules: {							
 							start_date: [{
 								required: true,
 								message: "请选择开始日期",

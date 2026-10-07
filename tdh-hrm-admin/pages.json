@@ -74,11 +74,8 @@
 					"path": "salary/cost/listwe"
 				},
 				{
-					"path": "salary/cost/listsb"
-				},
-				{
-					"path": "salary/cost/listgs"
-				},
+					"path": "salary/cost/listsocialtax"
+				},				
 				{
 					"path": "salary/cost/listfree"
 				},
@@ -87,10 +84,7 @@
 				},
 				{
 					"path": "salary/cost/listclothes"
-				},
-				{
-					"path": "salary/cost/listcompanysb"
-				},
+				},				
 				{
 					"path": "salary/cost/listloan"
 				},
@@ -108,6 +102,9 @@
 				},
 				{
 					"path": "salary/payslip/listCheck"
+				},
+				{
+					"path": "salary/payslip/listDiffDays"
 				},
 				{
 					"path": "attendance/approve/listhrs"
@@ -185,8 +182,11 @@
 					"path": "attendance/attendance-compensatoryrecord/list"
 				},
 				{
-					"path": "attendance/daily/list"
+					"path": "attendance/attendance-exemption/list"
 				},
+				{
+					"path": "attendance/daily/list"
+				},				
 				{
 					"path": "attendance/month/list"
 				},

@@ -8,17 +8,16 @@
 			</view>
 		</view>
 
-		<!-- 主内容区（可滚动） -->
+		<!-- 主内容区 -->
 		<scroll-view scroll-y class="main-scroll" enhanced :show-scrollbar="false">
-			<!-- Wi-Fi & 定位提示卡片 -->
-			<view class="hint-card" v-if="!is_range">
+			<view class="hint-card" v-if="!is_range && !disableSubmit">
 				<view class="hint-card__inner">
 					<u-icon name="info-circle-fill" size="32" color="#ff9f43"></u-icon>
 					<text class="hint-card__text">打卡前请确保 Wi-Fi 和手机定位已开启</text>
 				</view>
 			</view>
 			<view class="card-list">
-				<!-- Wi-Fi 信息卡片 -->
+				<!-- 网络信息卡片 -->
 				<view class="info-card">
 					<view class="info-card__title">
 						<u-icon name="wifi" size="32" color="#2d8cff"></u-icon>
@@ -26,15 +25,27 @@
 					</view>
 					<view class="info-row">
 						<text class="info-row__label">Wi-Fi名称</text>
-						<text class="info-row__value">{{ formData.ssid || '未设置' }}</text>
+						<text class="info-row__value">{{ formData.setting_ssid || '未设置' }}</text>
 					</view>
 					<view class="info-row">
 						<text class="info-row__label">Wi-Fi地址</text>
-						<text class="info-row__value">{{ formData.bssid || '未设置' }}</text>
+						<text class="info-row__value">{{ formData.setting_bssid || '未设置' }}</text>
 					</view>
 					<view class="info-row">
 						<text class="info-row__label">当前连接</text>
 						<text class="info-row__value">{{ bssid_current || '未连接' }}</text>
+					</view>
+					<view class="info-row">
+						<text class="info-row__label">信号强度</text>
+						<text class="info-row__value"
+							:class="{ 'text-danger': requiredSignalStrength > 0 && signalStrength_current < requiredSignalStrength }">
+							{{ signalStrength_current }}
+							<span v-if="requiredSignalStrength > 0"> / 要求 {{ requiredSignalStrength }}</span>
+						</text>
+					</view>
+					<view class="info-row">
+						<text class="info-row__label">考勤组</text>
+						<text class="info-row__value">{{ groupName || '未匹配' }}</text>
 					</view>
 				</view>
 
@@ -46,13 +57,11 @@
 						<text class="upload-card__required" v-if="!is_range">* 出差打卡必填</text>
 					</view>
 					<view class="upload-card__area">
-						<!-- 未上传：显示拍照按钮 -->
 						<view v-if="!formData.img" class="upload-placeholder" @click="chooseAndUploadImage">
 							<u-icon name="camera" size="48" color="#2979ff" />
 							<text class="upload-placeholder__text">点击拍照</text>
 							<text class="upload-placeholder__sub">出差打卡必须上传照片</text>
 						</view>
-						<!-- 已上传：显示图片 + 删除按钮 -->
 						<view v-else class="upload-preview">
 							<image :src="formData.img" mode="aspectFill" class="upload-preview__img"
 								@click="previewImage" />
@@ -85,25 +94,24 @@
 						<text class="status-card__main" :class="is_range ? 'text-success' : 'text-danger'">
 							{{ is_range_content }}
 						</text>
-						<text class="status-card__type">打卡类型：{{ formData.type }}</text>
+						<text class="status-card__type">打卡类型：{{ formData.type || '未知' }}</text>
 					</view>
 				</view>
 
 				<!-- 打卡按钮区域 -->
 				<view class="clockin-action">
 					<view class="clockin-btn" @click="submit" :class="{
-							'clockin-btn--disabled': is_submit,
+							'clockin-btn--disabled': is_submit || disableSubmit,
 							'clockin-btn--outrange': !is_range
 						}">
 						<view class="clockin-btn__ring">
 							<view class="clockin-btn__time">{{ time }}</view>
-							<view class="clockin-btn__text">打卡</view>
+							<view class="clockin-btn__text">{{ disableSubmit ? '不可打卡' : '打卡' }}</view>
 						</view>
 					</view>
 					<text class="clockin-action__hint" v-if="is_submit">正在提交，请勿重复点击</text>
 				</view>
 
-				<!-- 底部占位（安全区） -->
 				<view class="bottom-placeholder"></view>
 			</view>
 		</scroll-view>
@@ -117,21 +125,31 @@
 				formData: {
 					employee_id: "",
 					bssid: "",
+					ssid: "",
+					setting_bssid: "", // 新增：设定打卡点的 bssid
+					setting_ssid: "", // 新增：设定打卡点的 ssid
 					type: "",
 					img: "",
 					clockintime: "",
-					remark: "",
+					remark: ""
 				},
 				is_submit: false,
 				time: "00:00",
-				bssidKeys: new Set(),
-				bssidMap: new Map(),
 				bssid_current: "",
 				ssid_current: "",
+				signalStrength_current: 0,
 				is_range: true,
-				is_range_content: "你已在打卡范围内，将按公司卡记录！",
+				is_range_content: "正在检测打卡范围...",
 				today: "",
-				avatarDir: '/clockin'
+				avatarDir: '/clockin',
+				// 考勤组与打卡点
+				groupName: "",
+				attendanceGroupId: "",
+				punchLocation: null,
+				requiredSignalStrength: 0,
+				canSubmitByWifi: false,
+				disableSubmit: false,
+				_signalModalShowing: false
 			};
 		},
 		onShow() {
@@ -158,11 +176,9 @@
 					sizeType: ['compressed'],
 					title: '上传中...',
 					onChooseFile: (res) => {
-						// 只保留第一个文件
 						let tempFiles = res.tempFiles.slice(0, 1);
 						const file = tempFiles[0];
 						const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase();
-						// 指定云端路径
 						tempFiles[0].cloudPath = `public${this.avatarDir}/${timestamp}_${random}.${ext}`;
 						return {
 							tempFilePaths: res.tempFilePaths.slice(0, 1),
@@ -179,7 +195,7 @@
 					},
 					fail: (err) => {
 						if (err.errMsg && err.errMsg.includes('cancel')) {
-							return; // 用户取消，静默处理
+							return;
 						}
 						console.error('上传失败:', err);
 						uni.showToast({
@@ -206,7 +222,6 @@
 					await vk.myfn.deleteFile({
 						url: this.formData.img
 					});
-					console.log('删除云文件:', this.formData.img);
 				} catch (e) {
 					console.warn('删除云文件失败:', e);
 				}
@@ -235,29 +250,57 @@
 				}, 1000);
 			},
 
-			// 加载打卡点配置
+			// ========== 加载打卡点（通过公共云函数） ==========
 			async loadData(callback) {
-				const res = await vk.callFunction({
-					url: 'admin/hrm/clockin/sys/setting/getList',
-					title: '加载中...',
-					data: {
-						pageSize: -1,
-						pageIndex: 1
-					}
-				});
-				if (res.code === 0) {
-					if (res.total === 0) {
-						vk.alert("请先设定打卡点");
+				const employeeId = vk.getVuex('$user.userInfo.username');
+				if (!employeeId) {
+					vk.alert("没有获取到工号");
+					return;
+				}
+				this.formData.employee_id = employeeId;
+
+				try {
+					const res = await vk.callFunction({
+						url: 'admin/hrm/clockin/pub/getClockinLocation',
+						title: '加载打卡点...',
+						data: {
+							employee_id: employeeId
+						}
+					});
+
+					if (res.code !== 0) {
+						this.disableSubmit = true;
+						this.is_range = false;
+						this.is_range_content = res.msg || '打卡点加载失败';
+						if (typeof callback === "function") callback();
 						return;
 					}
-					this.ssidKeys = new Set(res.rows.map(item => item.ssid));
-					this.bssidKeys = new Set(res.rows.map(item => item.bssid));
 
-					res.rows.forEach(item => {
-						this.bssidMap.set(item.bssid, item);
-					});
+					const info = res.data || {};
+					this.groupName = info.attendance_group_name || '';
+					this.attendanceGroupId = info.attendance_group_id || '';
+
+					if (!info.punch_location) {
+						this.disableSubmit = true;
+						this.is_range = false;
+						this.is_range_content = '未匹配到打卡点，无法打卡';
+						if (typeof callback === "function") callback();
+						return;
+					}
+
+					this.punchLocation = info.punch_location;
+					this.requiredSignalStrength = info.punch_location.signalStrength || 0;
+
+					// 判断范围
 					this.getCurrentAddress();
+
+				} catch (e) {
+					console.error('加载打卡点异常:', e);
+					this.disableSubmit = true;
+					this.is_range = false;
+					this.is_range_content = '打卡点加载异常';
 				}
+
 				if (typeof callback === "function") callback();
 			},
 
@@ -268,43 +311,121 @@
 				});
 			},
 
-			// 获取当前连接的Wi-Fi
+			// 获取当前连接的 Wi-Fi 及信号强度
 			getConnectedWifi() {
 				uni.startWifi({
 					success: () => {
 						uni.getConnectedWifi({
 							success: res => {
 								this.bssid_current = res.wifi.BSSID || '无';
-								this.ssid_current = res.wifi.SSID;
+								this.ssid_current = res.wifi.SSID || '';
+								// 部分平台支持 signalStrength
+								this.signalStrength_current = res.wifi.signalStrength || 0;
+								this.getCurrentAddress();
 							},
 							fail: err => {
 								console.error('获取当前Wi-Fi失败', err);
 								this.bssid_current = '获取失败';
+								this.ssid_current = '';
+								this.signalStrength_current = 0;
+								this.getCurrentAddress();
 							}
 						});
 					},
 					fail: (err) => {
 						console.error('启动Wi-Fi模块失败', err);
 						this.bssid_current = '无法获取';
+						this.ssid_current = '';
+						this.signalStrength_current = 0;
+						this.getCurrentAddress();
 					}
 				});
 			},
 
-			// 判断打卡范围
+			// 判断打卡范围（Wi-Fi 匹配 + 信号强度判断）
 			getCurrentAddress() {
-				if (this.bssidKeys.has(this.bssid_current)) {
-					this.is_range = true;
-					this.formData.type = "公司卡";
-					this.is_range_content = "✅ 您已在打卡范围内，将按公司卡记录";
-					this.formData.ssid = this.ssid_current;
-					this.formData.bssid = this.bssid_current;
-				} else {
+				if (!this.punchLocation) {
 					this.is_range = false;
+					this.canSubmitByWifi = false;
+					this.disableSubmit = true;
+					this.is_range_content = '未匹配到打卡点';
+					return;
+				}
+
+				// 设定打卡点信息（用于对比和展示）
+				const settingBssid = this.punchLocation.bssid || '';
+				const settingSsid = this.punchLocation.ssid || '';
+				
+				// 不管在不在范围，都记录设定打卡点
+				this.formData.setting_ssid = settingSsid;
+				this.formData.setting_bssid = settingBssid;
+
+				// 当前连接的 Wi-Fi 信息
+				const currentBssid = this.bssid_current || '';
+				const currentSsid = this.ssid_current || '';				
+
+				const matchWifi = currentBssid && currentBssid === settingBssid;
+				const required = this.requiredSignalStrength || 0;
+
+				if (!matchWifi) {
+					// 未连接打卡点 Wi-Fi → 出差卡
+					this.is_range = false;
+					this.canSubmitByWifi = false;
+					this.disableSubmit = false;
 					this.formData.type = "出差卡";
 					this.is_range_content = "⚠️ 您已超出打卡范围，将按出差卡记录（需拍照）";
-					this.formData.ssid = "无法获取";
-					this.formData.bssid = "无法获取";
+					// 记录当前连接的 Wi-Fi（不是设定的）
+					this.formData.ssid = currentSsid || "无法获取";
+					this.formData.bssid = currentBssid || "无法获取";
+					return;
 				}
+
+				// 已连接打卡点 Wi-Fi，判断信号强度
+				if (required > 0 && this.signalStrength_current < required) {
+					this.is_range = false;
+					this.canSubmitByWifi = false;
+					this.disableSubmit = false;
+					this.formData.type = "出差卡";
+					this.is_range_content = `⚠️ 信号强度不足（当前 ${this.signalStrength_current}，需要 ${required}）`;
+					// ★ 关键修改：记录员工实际连接的 Wi-Fi
+					this.formData.ssid = currentSsid;
+					this.formData.bssid = currentBssid;
+					// 弹出提示
+					this.showSignalModal(required, this.signalStrength_current);
+					return;
+				}
+
+				// Wi-Fi 与信号强度均满足
+				this.is_range = true;
+				this.canSubmitByWifi = true;
+				this.disableSubmit = false;
+				this.formData.type = "公司卡";
+				this.is_range_content = "✅ 您已在打卡范围内，将按公司卡记录";
+				// ★ 记录员工实际连接的 Wi-Fi
+				this.formData.ssid = currentSsid;
+				this.formData.bssid = currentBssid;
+			},
+
+			// 信号强度不达标弹窗
+			showSignalModal(required, current) {
+				if (this._signalModalShowing) return;
+				this._signalModalShowing = true;
+				uni.showModal({
+					title: '信号强度不足',
+					content: `当前信号强度：${current}\n设定信号强度：${required}\n\n请靠近 Wi-Fi 路由器后重试，或按出差卡拍照提交。`,
+					showCancel: true,
+					confirmText: '重新检测',
+					cancelText: '知道了',
+					success: (res) => {
+						this._signalModalShowing = false;
+						if (res.confirm) {
+							this.getConnectedWifi();
+						}
+					},
+					fail: () => {
+						this._signalModalShowing = false;
+					}
+				});
 			},
 
 			// 跳回记录页
@@ -318,24 +439,31 @@
 			submit() {
 				this.formData.employee_id = vk.getVuex('$user.userInfo.username');
 				if (!this.formData.employee_id) return vk.alert("没有人员工号");
+				if (this.disableSubmit) return vk.alert("当前无法打卡");
 				if (!this.formData.bssid) return vk.alert("请先设定打卡点");
 				if (!this.is_range && !this.formData.img) return vk.alert("出差打卡必须拍照上传");
 				if (this.is_submit) return;
 
+				// 信号强度二次校验
+				if (this.is_range && this.requiredSignalStrength > 0) {
+					if (this.signalStrength_current < this.requiredSignalStrength) {
+						return this.showSignalModal(this.requiredSignalStrength, this.signalStrength_current);
+					}
+				}
+
 				this.is_submit = true;
-				// 补充打卡时间
 				this.formData.clockintime = vk.pubfn.timeFormat(new Date(), 'yyyy-MM-dd hh:mm:ss');
 
 				vk.callFunction({
 					url: 'admin/hrm/clockin/sys/add',
 					title: '提交中...',
-					data: this.formData,
+					data: this.formData
 				}).then(res => {
 					this.is_submit = false;
 					if (res.code === 0) {
 						vk.alert('打卡成功', '提示', '确定', () => {
 							this.toMain();
-						})
+						});
 					} else {
 						vk.alert(res.msg);
 					}
@@ -364,7 +492,6 @@
 		flex-direction: column;
 	}
 
-	/* 顶部日期 */
 	.date-header {
 		padding: 24rpx 30rpx 0;
 
@@ -385,7 +512,6 @@
 		}
 	}
 
-	/* 滚动区域 */
 	.main-scroll {
 		flex: 1;
 		padding: 20rpx 30rpx 0;
@@ -398,7 +524,6 @@
 		padding-bottom: 40rpx;
 	}
 
-	/* 公用卡片 */
 	.info-card,
 	.upload-card,
 	.remark-card,
@@ -410,7 +535,6 @@
 		transition: transform 0.2s;
 	}
 
-	/* 提示卡片 */
 	.hint-card {
 		margin-bottom: 24rpx;
 		background: #fff9e6;
@@ -473,7 +597,6 @@
 		}
 	}
 
-	/* 上传卡片 */
 	.upload-card__required {
 		font-size: 24rpx;
 		color: $danger-red;
@@ -487,7 +610,6 @@
 		padding: 20rpx 0;
 	}
 
-	/* 未上传状态 */
 	.upload-placeholder {
 		display: flex;
 		flex-direction: column;
@@ -516,7 +638,6 @@
 		}
 	}
 
-	/* 已上传预览 */
 	.upload-preview {
 		position: relative;
 		width: 100%;
@@ -556,7 +677,6 @@
 		}
 	}
 
-	/* 备注卡片 */
 	.remark-card__input {
 		background: #f5f7fa;
 		border-radius: 16rpx;
@@ -577,7 +697,6 @@
 		font-size: 28rpx;
 	}
 
-	/* 状态卡片 */
 	.status-card {
 		display: flex;
 		align-items: center;
@@ -623,7 +742,6 @@
 		color: $danger-red;
 	}
 
-	/* 打卡按钮区域 */
 	.clockin-action {
 		display: flex;
 		flex-direction: column;
@@ -686,7 +804,6 @@
 		color: #99a9bf;
 	}
 
-	/* 底部占位 */
 	.bottom-placeholder {
 		height: calc(40rpx + env(safe-area-inset-bottom));
 	}
