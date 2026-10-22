@@ -177,7 +177,8 @@
 								"title": "图片文件",
 								"type": "image",
 								"limit": 1,
-								"cloudDirectory": "/open-banner",
+								"cloudDirectory": "open-banner",
+								"provider": "extStorage",
 								"width": colWidth,
 								onRemove: (file, fileList) => {
 									vk.myfn.deleteFile(file, fileList)
@@ -249,7 +250,7 @@
 			};
 		},
 		// 监听 - 页面每次【加载时】执行(如：前进)
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
 		},

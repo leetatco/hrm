@@ -7,29 +7,57 @@ module.exports = {
 		let {
 			data = {}, util
 		} = event;
-		let { vk, _, $ } = util;
-		let res = { code: 0, msg: 'ok' };
+		let {
+			vk,
+			_,
+			$
+		} = util;
+		let res = {
+			code: 0,
+			msg: 'ok'
+		};
 
 		const dbName = 'hrm-attendance-calendar';
 
 		// 分页参数（树形结构一般不分页，但保留接口兼容）
 		let {
-			uid			
+			uid,
+			formData
 		} = data;
-		
+
 		data.pageSize = -1;
 		data.pageIndex = 1;
+
+		const ym = formData.calendar_ym;
+		delete formData.calendar_ym;
+
+		let whereJson = {
+			...formData
+		}
+
+		if (ym) {
+			whereJson.calendar_date = new RegExp(ym)
+		}
 
 		// 查询所有数据
 		let listRes = await vk.baseDao.getTableData({
 			dbName,
 			data,
-			sortArr: [
-				{ name: 'year', type: 'desc' },
-				{ name: 'calendar_name', type: 'asc' },
-				{ name: 'calendar_date', type: 'asc' }
+			whereJson,			
+			sortArr: [{
+					name: 'year',
+					type: 'desc'
+				},
+				{
+					name: 'calendar_name',
+					type: 'asc'
+				},
+				{
+					name: 'calendar_date',
+					type: 'asc'
+				}
 			]
-		});		
+		});
 
 		const list = listRes.rows || [];
 

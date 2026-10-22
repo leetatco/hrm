@@ -32,6 +32,7 @@ module.exports = {
 		let {
 			employee_id,
 			bssid,
+			position,
 			type,
 			remark,
 			img,
@@ -49,6 +50,7 @@ module.exports = {
 			dataJson: {
 				employee_id,
 				bssid,
+				position,
 				type,
 				remark,
 				img,

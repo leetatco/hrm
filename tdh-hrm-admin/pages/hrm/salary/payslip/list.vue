@@ -107,14 +107,6 @@
 					],
 					// 表格字段显示规则
 					columns: [{
-							"key": "attendance_ym",
-							"title": "时间",
-							"type": "date",
-							"dateType": "date",
-							"fixed": true,
-							"valueFormat": "yyyy-MM",
-							"format": "yyyy-MM"
-						}, {
 							"key": "total_salary",
 							"title": "综合",
 							"type": "number",
@@ -131,7 +123,7 @@
 							"width": colWidth - 100
 						},
 						{
-							"key": "attendance_ym_key",
+							"key": "attendance_ym",
 							"title": "月份",
 							"type": "text",
 							"fixed": true,
@@ -276,7 +268,7 @@
 						},
 						{
 							"key": "agency_fee",
-							"title": "培训费",
+							"title": "介绍费",
 							"type": "text",
 							"width": colWidth - 100
 						},
@@ -435,63 +427,24 @@
 				queryForm1: {
 					// 查询表单数据源，可在此设置默认值
 					formData: {
-						attendance_ym: nowym,
+						attendance_ym: [nowym],
 						status: 0
 					},
 					// 查询表单的字段规则 fieldName:指定数据库字段名,不填默认等于key
 					columns: [{
 							key: "attendance_ym",
-							title: "时间",
-							type: "date",
-							dateType: "month",
-							valueFormat: "yyyy-MM",
-							format: "yyyy-MM",
-							"width": colWidth
-						}, {
-							key: "attendance_ym_key",
 							title: "月份",
 							type: "date",
-							dateType: "month",
+							dateType: "months",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
-							width: colWidth
-						}, {
-							key: "card",
-							title: "",
-							type: "table-select",
-							placeholder: "选择员工",
-							action: "admin/hrm/salary/sys/payslip/getList",
-							multiple: false,
-							columns: [{
-									key: "employee_name",
-									title: "员工姓名",
-									type: "text",
-									nameKey: true
-								},
-								{
-									key: "card",
-									title: "身份证号码",
-									type: "text",
-									idKey: true
-
-								}
-							],
-							queryColumns: [{
-									key: "employee_name",
-									title: "员工姓名",
-									type: "text",
-									width: 150,
-									mode: "%%"
-								},
-								{
-									key: "card",
-									title: "身份证号码",
-									type: "text",
-									width: 150,
-									mode: "%%"
-								}
-
-							]
+							mode: "[]"
+						},
+						{
+							key: "employee_name",
+							title: "姓名",
+							type: "text",
+							mode: "%%"
 						},
 						{
 							key: "department_name",
@@ -556,16 +509,6 @@
 						columns: [{
 								key: "attendance_ym",
 								title: "时间",
-								type: "date",
-								dateType: "month",
-								disabled: false,
-								valueFormat: "yyyy-MM",
-								format: "yyyy-MM",
-								"width": colWidth
-							},
-							{
-								key: "attendance_ym_key",
-								title: "月份",
 								type: "date",
 								dateType: "month",
 								disabled: false,
@@ -685,7 +628,7 @@
 							},
 							{
 								"key": "agency_fee",
-								"title": "培训费",
+								"title": "介绍费",
 								"type": "number",
 								min: -10000,
 								controls: true,
@@ -937,7 +880,7 @@
 						"title": "制",
 						"type": "text"
 					},
-					attendance_ym_key: {
+					attendance_ym: {
 						"title": "月份",
 						"type": "text"
 					},
@@ -1022,7 +965,7 @@
 						"type": "number"
 					},
 					agency_fee: {
-						"title": "培训费",
+						"title": "介绍费",
 						"type": "number"
 					},
 					other_cost: {
@@ -1104,11 +1047,6 @@
 				};
 
 				try {
-					if (vk.pubfn.isNull(this.queryForm1.formData.attendance_ym)) {
-						return vk.alert(`时间不能为空！`);
-					}
-
-					const attendance_ym = this.queryForm1.formData.attendance_ym;
 
 					this.$iexcel.importExcel(file.raw, typeObj, async (res) => {
 						if (!res || res.length === 0) {
@@ -1126,7 +1064,8 @@
 							keys = [];
 						for (const item of res) {
 							if (item.card) cards.push(item.card);
-							const key = vk.myfn.toFormatDate(item.attendance_ym_key);
+							const key = vk.myfn.toFormatDate(item.attendance_ym);
+							item.attendance_ym = key;
 							if (key) keys.push(key);
 						}
 
@@ -1148,14 +1087,14 @@
 							return vk.alert(`${attendance_ym}月工资条明细删除失败！`);
 						}
 
+
+
 						// 3. 准备要处理的数据
 						const validData = [];
 						const errorData = [];
 
 						for (const item of res) {
-
-							item.attendance_ym = attendance_ym;
-
+							console.log(item)
 							//状态
 							const STATUS_MAP = {
 								'未签名': 0,
@@ -1163,7 +1102,6 @@
 								'其他': 2
 							};
 							item.status = STATUS_MAP[item.status] ? STATUS_MAP[item.status] : 0;
-
 
 							// 验证必要字段
 							if (!item.attendance_ym) {
@@ -1181,9 +1119,6 @@
 								continue;
 							}
 
-							//处理月份
-							item.attendance_ym_key = vk.myfn.toFormatDate(item.attendance_ym_key);
-
 							//处理保留两位小数
 							item.real_salary = vk.pubfn.toDecimal(item.real_salary, 2);
 
@@ -1198,6 +1133,8 @@
 
 							validData.push(item);
 						}
+
+						console.log(validData);
 
 						if (errorData.length > 0) {
 							let errorMsg = errorData.slice(0, 5).map(err =>
@@ -1310,6 +1247,9 @@
 			},
 			// 搜索
 			async search() {
+				if (this.queryForm1.formData.attendance_ym.length > 0) {
+					this.queryForm1.formData.attendance_ym = [...this.queryForm1.formData.attendance_ym].sort()
+				}
 				this.$refs.table1.search();
 			},
 			// 刷新
@@ -1483,7 +1423,7 @@
 						},
 						{
 							"key": "agency_fee",
-							"title": "培训费",
+							"title": "介绍费",
 							"type": "text"
 						},
 						{
@@ -1613,9 +1553,8 @@
 			async exportExcelAll() {
 				// 1. 校验时间和月份
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
-				const attendance_ym_key = this.queryForm1.formData.attendance_ym_key;
-				if (vk.pubfn.isNull(attendance_ym) && vk.pubfn.isNull(attendance_ym_key)) {
-					return vk.alert('时间和月份不能同时为空！');
+				if (vk.pubfn.isNull(attendance_ym)) {
+					return vk.alert('月份不能为空！');
 				}
 
 				uni.showLoading({
@@ -1650,13 +1589,8 @@
 							width: 10
 						},
 						{
-							header: '时间',
-							key: 'attendance_ym',
-							width: 15
-						},
-						{
 							header: '月份',
-							key: 'attendance_ym_key',
+							key: 'attendance_ym',
 							width: 15
 						},
 						{
@@ -1770,7 +1704,7 @@
 							width: 15
 						},
 						{
-							header: '培训费',
+							header: '介绍费',
 							key: 'agency_fee',
 							width: 15
 						},
@@ -1884,7 +1818,6 @@
 						worksheet.addRow({
 							index: idx + 1,
 							attendance_ym: item.attendance_ym,
-							attendance_ym_key: item.attendance_ym_key,
 							employee_name: item.employee_name,
 							signature_url: item.signature_url, // 先占位，后面清空
 							card: item.card,
@@ -2021,7 +1954,7 @@
 					const blob = new Blob([buffer], {
 						type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					});
-					FileSaver.saveAs(blob, `${attendance_ym || attendance_ym_key}月份工资条（含签名）.xlsx`);
+					FileSaver.saveAs(blob, `${attendance_ym}月份工资条（含签名）.xlsx`);
 
 					uni.hideLoading();
 

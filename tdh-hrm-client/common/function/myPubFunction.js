@@ -187,5 +187,27 @@ myfn.formatMinutes = (min) => {
 	return `${m}分钟`;
 };
 
+// 一个简单的 URL 参数提取方法
+myfn.getUrlParam = (url, name) => {
+	if (!url || !name) return null;
+	// 只处理 ? 之后的部分，hash 中的参数也可一并处理
+	const query = url.split('?')[1] || '';
+	// 去掉 # 及其之后的内容，避免污染参数值
+	const search = query.split('#')[0];
+	if (!search) return null;
+	const pairs = search.split('&');
+	for (let i = 0; i < pairs.length; i++) {
+		const pair = pairs[i];
+		if (!pair) continue;
+		const eqIndex = pair.indexOf('=');
+		// 形如 key 无值的情况
+		const key = decodeURIComponent(eqIndex > -1 ? pair.slice(0, eqIndex) : pair);
+		if (key === name) {
+			const value = eqIndex > -1 ? pair.slice(eqIndex + 1) : '';
+			return decodeURIComponent(value);
+		}
+	}
+	return null;
+}
 
 export default myfn;

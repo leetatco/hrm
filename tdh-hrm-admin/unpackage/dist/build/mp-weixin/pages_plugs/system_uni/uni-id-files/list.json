@@ -1,0 +1,11 @@
+{
+  "usingComponents": {
+    "add-category": "/pages_plugs/system_uni/uni-id-files/form/addCategory",
+    "update-category": "/pages_plugs/system_uni/uni-id-files/form/updateCategory",
+    "update-file-category": "/pages_plugs/system_uni/uni-id-files/form/updateFileCategory",
+    "update-file-name": "/pages_plugs/system_uni/uni-id-files/form/updateFileName",
+    "update-video": "/pages_plugs/system_uni/uni-id-files/form/updateVideo",
+    "preview": "/pages_plugs/system_uni/uni-id-files/form/preview",
+    "upload-progress": "/pages_plugs/system_uni/uni-id-files/form/uploadProgress"
+  }
+}

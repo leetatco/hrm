@@ -36,7 +36,7 @@ module.exports = {
 			//离职月份
 			resign_month,
 			//身份证号码
-			employee_id,
+			card,
 			//综合工资
 			total_salary,
 			//休息类型
@@ -113,7 +113,7 @@ module.exports = {
 			dbName,
 			whereJson: {
 				attendance_ym,
-				employee_id
+				card
 			}
 		});
 		if (checkRes) {
@@ -128,7 +128,7 @@ module.exports = {
 			dbName,
 			dataJson: {
 				attendance_ym,						
-				employee_id,
+				card,
 				total_salary,
 				rest_type,
 				salary_type,

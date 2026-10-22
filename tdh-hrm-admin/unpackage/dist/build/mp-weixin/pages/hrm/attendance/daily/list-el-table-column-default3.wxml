@@ -1,0 +1,1 @@
+<el-tag vue-id="11483d81-87" type="{{scope.row.miss_reason==='work_need'?'success':'info'}}" size="small" class="data-v-08cd671d" bind:__l="__l" vue-slots="{{['default']}}">{{''+(scope.row.miss_reason==='work_need'?'因公签卡':'其他原因')+''}}</el-tag>

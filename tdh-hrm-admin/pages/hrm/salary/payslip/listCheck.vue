@@ -13,6 +13,9 @@
 				<el-button type="primary" size="small" icon="el-icon-edit-outline"
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-view')" @click="exportExcelAll"> 导出全部
 				</el-button>
+				<!-- <el-button type="primary" size="small" icon="el-icon-edit-outline"
+					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-view')" @click="updateAll"> 全部更新
+				</el-button> -->
 			</el-row>
 		</view>
 		<!-- 自定义按钮区域结束 -->
@@ -88,15 +91,6 @@
 					// 表格字段显示规则
 					columns: [{
 							"key": "attendance_ym",
-							"title": "时间",
-							"type": "date",
-							"dateType": "date",
-							"fixed": true,
-							"valueFormat": "yyyy-MM",
-							"format": "yyyy-MM"
-						},
-						{
-							"key": "attendance_ym_key",
 							"title": "月份",
 							"type": "text",
 							"fixed": true,
@@ -203,63 +197,24 @@
 				queryForm1: {
 					// 查询表单数据源，可在此设置默认值
 					formData: {
-						attendance_ym: nowym,
+						attendance_ym: [nowym],
 						status: 1
 					},
 					// 查询表单的字段规则 fieldName:指定数据库字段名,不填默认等于key
 					columns: [{
 							key: "attendance_ym",
-							title: "时间",
-							type: "date",
-							dateType: "month",
-							valueFormat: "yyyy-MM",
-							format: "yyyy-MM",
-							width: colWidth
-						}, {
-							key: "attendance_ym_key",
 							title: "月份",
 							type: "date",
-							dateType: "month",
+							dateType: "months",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
-							width: colWidth
-						}, {
-							key: "card",
-							title: "",
-							type: "table-select",
-							placeholder: "选择员工",
-							action: "admin/hrm/salary/sys/payslip/getList",
-							multiple: false,
-							columns: [{
-									key: "employee_name",
-									title: "员工姓名",
-									type: "text",
-									nameKey: true
-								},
-								{
-									key: "card",
-									title: "身份证号码",
-									type: "text",
-									idKey: true
-
-								}
-							],
-							queryColumns: [{
-									key: "employee_name",
-									title: "员工姓名",
-									type: "text",
-									width: 150,
-									mode: "%%"
-								},
-								{
-									key: "card",
-									title: "身份证号码",
-									type: "text",
-									width: 150,
-									mode: "%%"
-								}
-
-							]
+							mode: "[]"
+						}, 
+						{
+							key: "employee_name",
+							title: "姓名",
+							type: "text",
+							mode: "%%"
 						},
 						{
 							key: "department_name",
@@ -322,22 +277,20 @@
 						action: "",
 						// 表单字段显示规则
 						columns: [{
-							key: "attendance_ym_key",
+							key: "attendance_ym",
 							title: "月份",
 							type: "date",
 							dateType: "month",
 							disabled: true,
 							valueFormat: "yyyy-MM",
-							format: "yyyy-MM",
-							"width": colWidth
-
+							format: "yyyy-MM"
 						}, {
 							key: "card",
 							title: "姓名",
 							type: "table-select",
 							disabled: true,
 							placeholder: "选择员工",
-							action: "admin/hrm/salary/sys/payslip/getList",
+							action: "admin/hrm/employees/sys/getList",
 							multiple: false,
 							columns: [{
 									key: "employee_name",
@@ -457,6 +410,9 @@
 			},
 			// 搜索
 			async search() {
+				if (this.queryForm1.formData.attendance_ym.length > 0) {
+					this.queryForm1.formData.attendance_ym = [...this.queryForm1.formData.attendance_ym].sort()
+				}
 				this.$refs.table1.search();
 			},
 			// 刷新
@@ -495,13 +451,43 @@
 				}
 			},
 
+			async updateAll() {
+				const attendance_ym = this.queryForm1.formData.attendance_ym;
+				const listData = await this.fetchAllData(attendance_ym);
+				if (listData.length === 0) {
+					return vk.alert('无数据可导出');
+				}
+
+				listData.forEach((item, idx) => {
+					item.signature_url = item.signature_url?.replace(
+						"mp-172c1e9f-d637-4510-916b-3f73d0c2de3c.cdn.bspapp.com",
+						"tdhstorage.cntdh.net/public"
+					);
+
+				})
+
+				// console.log(listData)
+
+
+				let data = await vk.callFunction({
+					url: 'admin/hrm/salary/sys/payslip/all/updateAll',
+					title: '请求中...',
+					data: {
+						items: listData
+					}
+				});
+				if (data.code === 0) {
+					vk.alert(data.msg);
+				}
+
+			},
+
 			// 导出xls表格文件（全部数据）
 			async exportExcelAll() {
 				// 1. 校验月份和时间
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
-				const attendance_ym_key = this.queryForm1.formData.attendance_ym_key;
-				if (vk.pubfn.isNull(attendance_ym) && vk.pubfn.isNull(attendance_ym_key)) {
-					return vk.alert('时间和月份不能同时为空！');
+				if (vk.pubfn.isNull(attendance_ym)) {
+					return vk.alert('月份不能为空！');
 				}
 
 				uni.showLoading({
@@ -542,7 +528,7 @@
 						},
 						{
 							header: '月份',
-							key: 'attendance_ym_key',
+							key: 'attendance_ym',
 							width: 15
 						},
 						{
@@ -604,7 +590,6 @@
 						worksheet.addRow({
 							index: idx + 1,
 							attendance_ym: item.attendance_ym,
-							attendance_ym_key: item.attendance_ym_key,
 							employee_name: item.employee_name,
 							signature_url: item.signature_url, // 先占位，后面清空
 							card: item.card,
@@ -623,8 +608,7 @@
 					let failCount = 0;
 
 					if (imageUrls.length > 0) {
-						const BATCH_SIZE = 60; // 低于云函数 maxCount(100)，留有余量
-						const total = imageUrls.length;
+						const BATCH_SIZE = 60; // 低于云函数 maxCount(100)，留有余量const total = imageUrls.length;
 						const batches = [];
 						for (let i = 0; i < total; i += BATCH_SIZE) {
 							batches.push(imageUrls.slice(i, i + BATCH_SIZE));
@@ -708,7 +692,7 @@
 					const blob = new Blob([buffer], {
 						type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					});
-					FileSaver.saveAs(blob, `${attendance_ym || attendance_ym_key}月份工资条（含签名）.xlsx`);
+					FileSaver.saveAs(blob, `${attendance_ym}月份工资条（含签名）.xlsx`);
 
 					uni.hideLoading();
 

@@ -1,0 +1,78 @@
+.Rboy-box.data-v-734f1bcd {
+  display: flex;
+  align-items: center;
+}
+.Rboy-box .Rboy-obverse.data-v-734f1bcd {
+  border-radius: 10rpx;
+  width: 100%;
+  height: 310rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* ===== 改动：del_btn 改成 flex 容器，居中 u-icon ===== */
+}
+.Rboy-box .Rboy-obverse .obverseimg.data-v-734f1bcd {
+  width: 100%;
+  height: 250rpx;
+}
+.Rboy-box .Rboy-obverse .bottom.data-v-734f1bcd {
+  text-align: center;
+  height: calc(310rpx - 250rpx);
+  background-color: #B7D7FF;
+  color: #3B5FD2;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.Rboy-box .Rboy-obverse .del_btn.data-v-734f1bcd {
+  position: absolute;
+  top: 5rpx;
+  right: 5rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+.Rboy-box .Rboy-reverse.data-v-734f1bcd {
+  border-radius: 10rpx;
+  width: 100%;
+  height: 310rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* ===== 改动：del_btn 改成 flex 容器，居中 u-icon ===== */
+}
+.Rboy-box .Rboy-reverse .reverseimg.data-v-734f1bcd {
+  width: 100%;
+  height: 250rpx;
+}
+.Rboy-box .Rboy-reverse .bottom.data-v-734f1bcd {
+  text-align: center;
+  height: calc(310rpx - 250rpx);
+  background-color: #B7D7FF;
+  color: #3B5FD2;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.Rboy-box .Rboy-reverse .del_btn.data-v-734f1bcd {
+  position: absolute;
+  top: 5rpx;
+  right: 5rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+}

@@ -62,6 +62,16 @@
 	let vk = uni.vk;
 	let originalForms = {};
 	const colWidth = 200;
+	let nowy = new Date(vk.pubfn.getOffsetTime(new Date(), {
+		mode: "before", // after 之后 before 之前
+	})).getFullYear();
+
+	let nowm = new Date(vk.pubfn.getOffsetTime(new Date(), {
+		mode: "before", // after 之后 before 之前
+	})).getMonth();
+
+	let nowm1 = nowm > 9 ? nowm : `0${nowm}`;
+	const nowym = vk.myfn.normalizeMonth(`${nowy}-${nowm1}`);
 	export default {
 		data() {
 			return {
@@ -187,14 +197,16 @@
 				},
 				queryForm1: {
 					formData: {
-						year: new Date().getFullYear()
+						calendar_ym: nowym
 					},
 					columns: [{
-							key: "year",
-							title: "年份",
-							type: "number",
-							width: colWidth - 100,
-							mode: "="
+							key: "calendar_ym",
+							title: "年月",
+							type: "date",
+							dateType: "month",
+							valueFormat: "yyyy-MM",
+							width: colWidth - 50,
+							mode: "%%"
 						},
 						{
 							key: "calendar_name",

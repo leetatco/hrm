@@ -1,0 +1,12 @@
+{
+  "usingComponents": {
+    "listsocialtax-vk-data-form-last_month_sb": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-last_month_sb",
+    "listsocialtax-vk-data-form-last_month_dk": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-last_month_dk",
+    "listsocialtax-vk-data-form-this_month_sb": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-this_month_sb",
+    "listsocialtax-vk-data-form-this_month_dk": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-this_month_dk",
+    "listsocialtax-vk-data-form-company_social": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-company_social",
+    "listsocialtax-vk-data-form-company_fund": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-company_fund",
+    "listsocialtax-vk-data-form-last_month_gjj": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-last_month_gjj",
+    "listsocialtax-vk-data-form-dkgs": "/pages/hrm/salary/cost/listsocialtax-vk-data-form-dkgs"
+  }
+}

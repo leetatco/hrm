@@ -126,7 +126,31 @@
   padding: 30rpx 0;
   justify-content: flex-end;
 }
+.form-dialog .readonly-text.data-v-c444286b {
+  font-size: 28rpx;
+  color: #1a1e25;
+}
 
+/* ==================== 新增：身份证上传容器 ==================== */
+.idcard-upload.data-v-c444286b {
+  width: 90%;
+  /* 两个卡片横排，宽度不够自动换行 */
+  /* 组件内部写死了 345rpx，窄屏下收缩到 320rpx，避免溢出 */
+}
+.idcard-upload.data-v-c444286b .Rboy-box {
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+.idcard-upload.data-v-c444286b .Rboy-obverse,
+.idcard-upload.data-v-c444286b .Rboy-reverse {
+  width: 100% !important;
+}
+.idcard-upload.data-v-c444286b .obverseimg,
+.idcard-upload.data-v-c444286b .reverseimg {
+  width: 100% !important;
+}
+
+/* ============================================================== */
 /* 文件上传相关样式 - 修复文件名超出屏幕问题 */
 .file-upload-container.data-v-c444286b {
   width: 100%;

@@ -1,0 +1,1 @@
+<block wx:if="{{scope.row.morning_range}}"><text class="data-v-08cd671d">{{"上午\n\t\t\t\t\t\t\t\t"+scope.row.morning_range[0]+"~"+scope.row.morning_range[1]+"；"}}</text></block><block wx:if="{{scope.row.afternoon_range}}"><text class="data-v-08cd671d">{{"下午\n\t\t\t\t\t\t\t\t"+scope.row.afternoon_range[0]+"~"+scope.row.afternoon_range[1]}}</text></block>

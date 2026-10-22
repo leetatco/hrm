@@ -63,7 +63,13 @@ module.exports = {
 			card_location,
 			emergency_contact,
 			emergency_mobile,
-			internal_id,
+			id_card_front,
+			id_card_back,
+			expected_salary,
+			internal_name,
+			interviewer_name,
+			salary_name,
+			probation_period,
 			handover_person_id,
 			marital_status,
 			no_crime,
@@ -73,67 +79,101 @@ module.exports = {
 			file_attachments,
 			type_id,
 			resign_desc,
-			rest_type,
-			expected_salary,
+			rest_type,			
 			status,
 			update_date,
 			update_id
 		} = data;
-				
+
 		// 参数验证开始
 		if (vk.pubfn.isNull(_id) && vk.pubfn.isNull(employee_id)) {
-		  return { code: -1, msg: 'id或工号不能为空' };
+			return {
+				code: -1,
+				msg: 'id或工号不能为空'
+			};
 		}
-		
+
 		// 检查工号是否重复（新增时检查）
 		let checkRes = await vk.baseDao.findByWhereJson({
-		  dbName,
-		  whereJson: { employee_id }
+			dbName,
+			whereJson: {
+				employee_id
+			}
 		});
-		
+
 		if (checkRes) {
-		  // 如果有 _id 且不是同一条记录，则工号重复
-		  if (_id && _id !== checkRes._id) {
-		    return { code: -1, msg: "员工工号重复！", rows: checkRes };
-		  }
-		  // 如果没有 _id（新增），说明工号已存在
-		  if (!_id) {
-		    return { code: -1, msg: "员工工号已存在！", rows: checkRes };
-		  }
-		  // 有 _id 且是同一记录，继续更新
+			// 如果有 _id 且不是同一条记录，则工号重复
+			if (_id && _id !== checkRes._id) {
+				return {
+					code: -1,
+					msg: "员工工号重复！",
+					rows: checkRes
+				};
+			}
+			// 如果没有 _id（新增），说明工号已存在
+			if (!_id) {
+				return {
+					code: -1,
+					msg: "员工工号已存在！",
+					rows: checkRes
+				};
+			}
+			// 有 _id 且是同一记录，继续更新
 		}
-		
+
 		// 如果传了身份证号，也检查是否重复（可选）
 		if (card) {
-		  let cardCheck = await vk.baseDao.findByWhereJson({
-		    dbName,
-		    whereJson: { card, status: 1 }
-		  });
-		  if (cardCheck) {
-		    if (_id && _id !== cardCheck._id) {
-		      return { code: -1, msg: "身份证号已被使用！", rows: cardCheck };
-		    }
-		    if (!_id) {
-		      return { code: -1, msg: "身份证号已存在！", rows: cardCheck };
-		    }
-		  }
-		}	
-		
+			let cardCheck = await vk.baseDao.findByWhereJson({
+				dbName,
+				whereJson: {
+					card,
+					status: 1
+				}
+			});
+			if (cardCheck) {
+				if (_id && _id !== cardCheck._id) {
+					return {
+						code: -1,
+						msg: "身份证号已被使用！",
+						rows: cardCheck
+					};
+				}
+				if (!_id) {
+					return {
+						code: -1,
+						msg: "身份证号已存在！",
+						rows: cardCheck
+					};
+				}
+			}
+		}
+
 		// 如果传了手机号码，也检查是否重复（可选）
 		if (mobile) {
-		  let mobileCheck = await vk.baseDao.findByWhereJson({
-		    dbName,
-		    whereJson: { mobile, status: 1 }
-		  });
-		  if (mobileCheck) {
-		    if (_id && _id !== mobileCheck._id) {
-		      return { code: -1, msg: "手机号已被使用！", rows: mobileCheck };
-		    }
-		    if (!_id) {
-		      return { code: -1, msg: "手机号已存在！", rows: mobileCheck };
-		    }
-		  }
-		}	
+			let mobileCheck = await vk.baseDao.findByWhereJson({
+				dbName,
+				whereJson: {
+					mobile,
+					status: 1
+				}
+			});
+			if (mobileCheck) {
+				if (_id && _id !== mobileCheck._id) {
+					return {
+						code: -1,
+						msg: "手机号已被使用！",
+						rows: mobileCheck
+					};
+				}
+				if (!_id) {
+					return {
+						code: -1,
+						msg: "手机号已存在！",
+						rows: mobileCheck
+					};
+				}
+			}
+		}
 
 		// 参数验证结束		
 		// 执行 数据库 updateById 命令
@@ -172,7 +212,13 @@ module.exports = {
 				card_location,
 				emergency_contact,
 				emergency_mobile,
-				internal_id,
+				id_card_front,
+				id_card_back,
+				expected_salary,
+				internal_name,
+				interviewer_name,
+				salary_name,
+				probation_period,
 				handover_person_id,
 				marital_status,
 				no_crime,
@@ -182,8 +228,7 @@ module.exports = {
 				file_attachments,
 				type_id,
 				resign_desc,
-				rest_type,
-				expected_salary,
+				rest_type,				
 				status,
 				update_id: uid,
 				update_date: new Date().getTime()

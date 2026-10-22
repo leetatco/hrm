@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "list-vk-data-table-query-company_id": "/pages/hrm/attendance/attendance-group/list-vk-data-table-query-company_id",
+    "list-vk-data-table-query-department_ids": "/pages/hrm/attendance/attendance-group/list-vk-data-table-query-department_ids"
+  }
+}

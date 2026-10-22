@@ -1,11 +1,8 @@
 module.exports = {
 	/**
-	 * 修改数据
-	 * @url admin/hrm/attendance/sys/all/updateAll 前端调用的url参数地址
-	 * data 请求参数 说明
-	 * res 返回参数说明
-	 * @params {Number} code 错误码，0表示成功
-	 * @params {String} msg 详细信息
+	 * 批量修改数据（每条记录按自己的 _id 更新）
+	 * @url admin/hrm/attendance/sys/all/updateAll
+	 * data: { items: [{ _id, ...其他字段 }] }
 	 */
 	main: async (event) => {
 		let {
@@ -27,47 +24,89 @@ module.exports = {
 			code: 0,
 			msg: 'ok'
 		};
-		let dbName = "hrm-salary-payslip"; // 表名
+		let dbName = "hrm-salary-payslip";
+
 		// 业务逻辑开始-----------------------------------------------------------
-		// 获取前端传过来的参数
 		let {
-			items = [],
-				enable_fd1,
-				enable_fd2,
-				update_date,
-				update_id
+			items = []
 		} = data;
-		// 参数验证开始				
+
+		// 参数验证
 		if (!items || !Array.isArray(items) || items.length === 0) {
-			res.code = -1;
-			res.msg = 'items参数必须是有效的非空数组';
-			return res;
+			return {
+				code: -1,
+				msg: 'items参数必须是有效的非空数组'
+			};
 		}
 
-		// 提取所有_id值
-		let ids = items.map(item => item._id).filter(Boolean);
-
-		if (ids.length === 0) {
-			res.code = -1;
-			res.msg = 'ids参数中的_id值不能为空';
-			return res;
-		}
-		// 参数验证结束		
-		// 执行 数据库 update 命令
-		await vk.baseDao.update({
-			dbName,
-			whereJson: {
-				_id: _.in(ids)
-			},
-			dataJson: {
-				enable_fd1,
-				enable_fd2,
-				update_id: uid,
-				update_date: new Date().getTime()
+		// 校验每条记录都有 _id
+		for (const item of items) {
+			if (!item || !item._id) {
+				return {
+					code: -1,
+					msg: 'items中的每条记录都必须包含 _id'
+				};
 			}
+		}
+
+		const nowTime = new Date().getTime();
+
+		// 构造要更新的数据
+		const tasks = items.map(item => {
+			const updateData = {
+				...item,
+				update_id: uid,
+				update_date: nowTime
+			};
+			delete updateData._id;
+			return {
+				_id: item._id,
+				updateData
+			};
 		});
+
+		// ★ 并发 + 分批处理
+		const BATCH_SIZE = 200; // 每批 50 条并发
+		let successCount = 0;
+		const errors = [];
+
+		for (let i = 0; i < tasks.length; i += BATCH_SIZE) {
+			const batch = tasks.slice(i, i + BATCH_SIZE);
+
+			const results = await Promise.all(
+				batch.map(task =>
+					vk.baseDao.updateById({
+						dbName,
+						id: task._id,
+						dataJson: task.updateData
+					}).then(() => ({
+						success: true,
+						_id: task._id
+					})).catch(err => ({
+						success: false,
+						item: task,
+						error: err.message
+					}))
+				)
+			);
+
+			results.forEach(r => {
+				if (r.success) {
+					successCount++;
+				} else {
+					errors.push({
+						item: r.item,
+						error: r.error
+					});
+				}
+			});
+		}
+
+		res.msg = `成功更新 ${successCount} 条，失败 ${errors.length} 条`;
+		if (errors.length > 0) {
+			res.errors = errors;
+		}
 		// 业务逻辑结束-----------------------------------------------------------
 		return res;
 	}
-
-}
+};

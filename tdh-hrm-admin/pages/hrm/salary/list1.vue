@@ -15,14 +15,14 @@
 				<el-upload style="display: inline-block;margin-left: 20rpx;margin-right: 20rpx;" accept=".xlsx, .xls"
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-add')" :auto-upload="false" :limit="1"
 					:show-file-list="false" :on-change="handleChange" :file-list="fileList" action="">
-					<el-button type="success" size="small" icon="el-icon-upload2">导入excel</el-button>
+					<!-- <el-button type="success" size="small" icon="el-icon-upload2">导入excel</el-button> -->
 				</el-upload>
 				<el-button type="primary" size="small" icon="el-icon-edit-outline"
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-export')" @click="exportExcelAll"> 导出全部
 				</el-button>
-				<el-button type="primary" size="small" icon="el-icon-tickets" @click="exportExcelModel"
+				<!-- <el-button type="primary" size="small" icon="el-icon-tickets" @click="exportExcelModel"
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-add')"> 下载模版
-				</el-button>
+				</el-button> -->
 				<el-button type="danger" size="small" icon="el-icon-delete" @click="deleteAll" v-if="$hasRole('admin')">
 					删除考勤日期数据
 				</el-button>
@@ -1658,7 +1658,7 @@
 					item.no_punch_count = 0;
 					item.absent_count = 0;
 				} else {
-					// 普通员工：用实际考勤数据
+					// 普通员工：用实际考勤数据					
 					item.work_days = item.should_days || 0;
 					item.real_days = item.actual_days || 0;
 					item.late_early_minutes = (item.late_minutes || 0) + (item.early_minutes || 0);
@@ -1721,24 +1721,27 @@
 				item.this_month_dk = st.this_month_dk || 0;
 				item.last_month_sb = st.last_month_sb || 0;
 				item.last_month_dk = st.last_month_dk || 0;
-				item.personal_fund = st.personal_fund || 0;
+				// item.personal_fund = st.personal_fund || 0;
 				item.last_month_gjj = st.last_month_gjj || 0;
 				item.dkgs = st.dkgs || 0;
 				item.company_sb = st.company_social || 0;
 				item.company_gjj = st.company_fund || 0;
 
-				// 费用
+				// 水电、工衣费用
 				item.we_cost = item.weData ? (item.weData.share_cost || 0) : 0;
 				item.clothes_cost = item.clothesData ? (item.clothesData.clothes_cost || 0) : 0;
 
+				// 其他费用(奖励、惩罚、人事其他费用)
 				const cost = item.costData || {};
 				let reward_cost = cost.reward_cost || 0;
 				let punish_cost = cost.punish_cost || 0;
 				let other_cost = cost.other_cost || 0;
 				item.other_cost = reward_cost + other_cost - punish_cost;
 
+				// 介绍费
 				item.agency_fee = cost.agency_fee || 0;
 
+				//补助费(补助金、台风、留年)
 				let grant = cost.grant || 0;
 				let typhoon_cost = cost.typhoon_cost || 0;
 				let liunian_cost = cost.liunian_cost || 0;
@@ -1752,12 +1755,14 @@
 
 			// ========== 工资计算（带兜底） ==========
 			calculateSalary(item) {
-				// 日薪/时薪：base_salary = total_salary, work_days = 1
+				// 2=日薪/3=时薪：base_salary = total_salary, work_days = 1,real_days=
 				if ((item.salarys ? item.salarys.salary_type : item.salary_type) !== 1) {
 					if (vk.pubfn.isNotNull(item.salary_type)) {
 						item.base_salary = item.total_salary || 0;
 						item.work_days = 1;
-						item.real_days = 1;
+						if (item.salary_type == 3) {
+							item.real_days = vk.pubfn.toDecimal((item.actual_minutes ?? 0) / 60, 1);
+						}
 					}
 				}
 
@@ -2163,12 +2168,16 @@
 						{
 							key: "hire_date",
 							title: "入职日期",
-							type: "number"
+							type: "date",
+							dateType: "date",
+							valueFormat: "yyyy-MM-dd"
 						},
 						{
 							key: "resign_date",
 							title: "离职日期",
-							type: "text"
+							type: "date",
+							dateType: "date",
+							valueFormat: "yyyy-MM-dd"
 						},
 						{
 							key: "base_salary",

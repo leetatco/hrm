@@ -8,7 +8,7 @@ const _sfc_main = {
       data: {},
       // 表单请求数据
       form1: {
-        agreement: true,
+        agreement: false,
         mobile: "",
         password: "",
         password2: "",
@@ -50,7 +50,7 @@ const _sfc_main = {
   methods: {
     // 页面数据初始化函数
     init(options = {}) {
-      common_vendor.index.__f__("log", "at pages/login/register.vue:112", "init: ", options);
+      common_vendor.index.__f__("log", "at pages/login/register.vue:121", "init: ", options);
     },
     pageTo(path) {
       vk.navigateTo(path);
@@ -70,7 +70,13 @@ const _sfc_main = {
       if (that.isRotate) {
         return false;
       }
-      const { agreement, mobile, code, password, password2 } = that.form1;
+      const {
+        agreement,
+        mobile,
+        code,
+        password,
+        password2
+      } = that.form1;
       if (!agreement) {
         vk.toast("请阅读并同意用户服务及隐私协议", "none");
         return;
@@ -135,22 +141,22 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return {
     a: $data.logoImage,
     b: $data.form1.mobile,
-    c: common_vendor.o(($event) => $data.form1.mobile = $event.detail.value, "5a"),
+    c: common_vendor.o(($event) => $data.form1.mobile = $event.detail.value, "0f"),
     d: $data.form1.password,
-    e: common_vendor.o(($event) => $data.form1.password = $event.detail.value, "bf"),
+    e: common_vendor.o(($event) => $data.form1.password = $event.detail.value, "6f"),
     f: $data.form1.password2,
-    g: common_vendor.o(($event) => $data.form1.password2 = $event.detail.value, "14"),
+    g: common_vendor.o(($event) => $data.form1.password2 = $event.detail.value, "08"),
     h: $data.form1.code,
-    i: common_vendor.o(($event) => $data.form1.code = $event.detail.value, "95"),
+    i: common_vendor.o(($event) => $data.form1.code = $event.detail.value, "6c"),
     j: common_vendor.p({
       seconds: "60",
       mobile: $data.form1.mobile,
       type: "register",
       ["custom-style"]: "font-size: 28rpx;"
     }),
-    k: common_vendor.o((...args) => $options.loginBySms && $options.loginBySms(...args), "9c"),
+    k: common_vendor.o((...args) => $options.loginBySms && $options.loginBySms(...args), "77"),
     l: $data.form1.agreement,
-    m: common_vendor.o((...args) => $options.checkboxChange && $options.checkboxChange(...args), "c7")
+    m: common_vendor.o((...args) => $options.checkboxChange && $options.checkboxChange(...args), "23")
   };
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-838b72c9"]]);

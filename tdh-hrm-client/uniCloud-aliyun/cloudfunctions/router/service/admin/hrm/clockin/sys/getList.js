@@ -29,6 +29,7 @@ module.exports = {
 			uid,
 			todayStart,
 			todayEnd,
+			formData,
 			username
 		} = data;
 		let res = {
@@ -38,20 +39,33 @@ module.exports = {
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = 'hrm-clockin'; // 表名
 		let whereJson = {};
-		
+
 		// 只有当 username 有值时才加 employee_id 条件
 		if (username) {
-		    whereJson.employee_id = userInfo.username;
+			whereJson.employee_id = userInfo.username;
 		}
-		// console.log("userInfo.username:",userInfo.username)
+
+		if (formData?.clockintime) {
+			// 当天 23:59:59
+			const endTime = new Date(formData.clockintime[1]).setHours(23, 59, 59, 0);
+			formData.clockintime[1] = endTime;
+		};
+
 		// 时间条件
 		if (todayStart && todayEnd) {
-		    whereJson.clockintime = _.gte(todayStart).lte(todayEnd);
+			whereJson.clockintime = _.gte(todayStart).lte(todayEnd);
 		}
 		res = await vk.baseDao.getTableData({
 			dbName,
 			data,
 			whereJson,
+			sortArr: [{
+				name: "employee_id",
+				type: "asc"
+			}, {
+				name: "clockintime",
+				type: "asc"
+			}],
 			// 副表
 			foreignDB: [{
 					dbName: "hrm-clockin-set",

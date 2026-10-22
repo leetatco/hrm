@@ -1,0 +1,1 @@
+<block wx:if="{{$root.m1}}"><el-input-number vue-id="1ef394b7-5" size="mini" precision="{{0}}" min="{{1}}" value="{{row.job_level}}" data-event-opts="{{[['^change',[['joblevelChange',['$event','$0'],['row']]]],['^input',[['__set_model',['$0','job_level','$event',[]],['row']]]]]}}" bind:change="__e" bind:input="__e" class="data-v-997e25f2" bind:__l="__l"></el-input-number></block>

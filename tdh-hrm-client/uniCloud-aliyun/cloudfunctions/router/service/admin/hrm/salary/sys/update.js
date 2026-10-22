@@ -33,8 +33,7 @@ module.exports = {
 		let {
 			_id,
 			attendance_ym,			
-			resign_month,
-			employee_id,
+			resign_month,			
 			card,
 			total_salary,
 			salary_type,
@@ -101,8 +100,7 @@ module.exports = {
 			dbName,
 			id: _id,
 			dataJson: {
-				attendance_ym,				
-				employee_id,
+				attendance_ym,					
 				card,
 				total_salary,
 				salary_type,

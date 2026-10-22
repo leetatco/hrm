@@ -1,0 +1,1 @@
+{{''+(scope.row.miss_type==='clock_in'?'上班签到卡':'下班签退卡')+''}}

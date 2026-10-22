@@ -1,1 +1,1 @@
-{"version":3,"file":"assets.js","sources":["static/logo.png"],"sourcesContent":["export default \"__VITE_ASSET__b6116d1d__\""],"names":[],"mappings":";AAAA,MAAe,aAAA;;"}
+{"version":3,"file":"assets.js","sources":["static/logo.png","components/Rboy-upload-sfz/images/idcard-front.png","components/Rboy-upload-sfz/images/idcard-back.png"],"sourcesContent":["export default \"__VITE_ASSET__b6116d1d__\"","export default \"__VITE_ASSET__d54905f5__\"","export default \"__VITE_ASSET__60bdaf65__\""],"names":[],"mappings":";AAAA,MAAe,aAAA;ACAf,MAAe,UAAA;ACAf,MAAe,UAAA;;;;"}

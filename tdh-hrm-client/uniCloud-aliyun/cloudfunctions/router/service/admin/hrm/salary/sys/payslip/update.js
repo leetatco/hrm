@@ -32,8 +32,7 @@ module.exports = {
 		// 获取前端传过来的参数
 		let {
 			_id,
-			attendance_ym,
-			attendance_ym_key,
+			attendance_ym,			
 			resign_month,
 			employee_id,
 			card,
@@ -86,8 +85,7 @@ module.exports = {
 			dbName,
 			id: _id,
 			dataJson: {
-				attendance_ym,
-				attendance_ym_key,
+				attendance_ym,				
 				resign_month,
 				employee_id,
 				card,

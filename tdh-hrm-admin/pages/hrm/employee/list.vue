@@ -149,6 +149,22 @@
 							"type": "text",
 							"width": colWidth
 						},
+						// ===== 新增：身份证正反面 =====
+						{
+							"key": "id_card_front",
+							"title": "身份证正面",
+							"type": "image",
+							"width": colWidth,
+							"show": ["detail", "row"]
+						},
+						{
+							"key": "id_card_back",
+							"title": "身份证反面",
+							"type": "image",
+							"width": colWidth,
+							"show": ["detail", "row"]
+						},
+						// ===== 新增结束 =====
 						{
 							"key": "bank_card",
 							"title": "银行卡号",
@@ -246,7 +262,7 @@
 							"type": "number",
 							"width": colWidth - 150,
 							formatter: function(val, row, column, index) {
-								return row.gender == 1 ? '是' : '否';
+								return row.stay == 1 ? '是' : '否';
 							}
 						},
 						{
@@ -275,7 +291,7 @@
 							"type": "number",
 							"width": colWidth - 50,
 							formatter: function(val, row, column, index) {
-								return row.gender == 1 ? '是' : '否';
+								return row.registration == 1 ? '是' : '否';
 							}
 						},
 						{
@@ -323,11 +339,31 @@
 							"width": colWidth - 50
 						},
 						{
-							"key": "internals.employee_name",
+							"key": "internal_name",
 							"title": "内部介绍人",
 							"type": "text",
 							"width": colWidth - 100
 						},
+						// ===== 新增：面试人/定薪人/试用期 =====
+						{
+							"key": "interviewer_name",
+							"title": "面试人",
+							"type": "text",
+							"width": colWidth - 100
+						},
+						{
+							"key": "salary_name",
+							"title": "定薪人",
+							"type": "text",
+							"width": colWidth - 100
+						},
+						{
+							"key": "probation_period",
+							"title": "试用期",
+							"type": "text",
+							"width": colWidth - 100
+						},
+						// ===== 新增结束 =====
 						{
 							"key": "marital_status",
 							"title": "婚姻情况",
@@ -358,16 +394,6 @@
 							"type": "text",
 							"width": colWidth - 100
 						},
-						// {
-						// 	"key": "rest_type",
-						// 	"title": "休息类型",
-						// 	"type": "number",
-						// 	formatter: (val, row, column, index) => {
-						// 		if (val == 1) return '单休';
-						// 		if (val == 2) return '双休';
-						// 		if (val == 3) return '大小周';
-						// 	}
-						// },
 						{
 							"key": "status",
 							"title": "用户状态",
@@ -386,7 +412,7 @@
 						},
 						{
 							"key": "comment",
-							"title": "备注",
+							"title": "家庭成员",
 							"type": "text",
 							"show": ["detail"],
 							"width": colWidth
@@ -399,7 +425,7 @@
 						},
 						{
 							"key": "expected_salary",
-							"title": "意向工资",
+							"title": "期望薪资",
 							"type": "text",
 							"show": ["row"],
 							"formatter": (val, row, column, index) => {
@@ -553,23 +579,6 @@
 							}],
 							"mode": "="
 						},
-						// {
-						// 	"key": "rest_type",
-						// 	"title": "休息类别",
-						// 	"type": "select",
-						// 	"width": colWidth - 50,
-						// 	"data": [{
-						// 		"value": 1,
-						// 		"label": "单休"
-						// 	}, {
-						// 		"value": 2,
-						// 		"label": "双休"
-						// 	}, {
-						// 		"value": 3,
-						// 		"label": "大小周"
-						// 	}],
-						// 	"mode": "="
-						// },
 						{
 							"key": "company_id",
 							"title": "所属公司",
@@ -618,17 +627,29 @@
 								pageSize: 1000
 							}
 						},
-						//{"key":"card","title":"身份证号码","type":"text","width":200,"mode":"="},
-						//{"key":"birth_date","title":"出生日期","type":"datetimerange","width":200,"mode":"="},
-						//{"key":"mobile","title":"手机号码","type":"text","width":200,"mode":"="},
-						//{"key":"avatar","title":"头像地址","type":"text","width":200,"mode":"="},
-						//{"key":"avatar_file","title":"头像文件","type":"image","width":200,"mode":"="},
-						//{"key":"hire_date","title":"入职日期","type":"datetimerange","width":200,"mode":"="},
-						//{"key":"resign_date","title":"离职日期","type":"datetimerange","width":200,"mode":"="},
-						//{"key":"position_id","title":"职位名称","type":"text","width":200,"mode":"="},
-						//{"key":"department_id","title":"所属部门","type":"text","width":200,"mode":"="},
-						//{"key":"update_date","title":"更新时间","type":"datetimerange","width":200,"mode":"="},
-						//{"key":"update_id","title":"更新人","type":"text","width":200,"mode":"="}
+						// ===== 新增：介绍人/面试人/定薪人 =====
+						{
+							"key": "internal_name",
+							"title": "内部介绍人",
+							"type": "text",
+							"width": colWidth - 100,
+							"mode": "%%"
+						},
+						{
+							"key": "interviewer_name",
+							"title": "面试人",
+							"type": "text",
+							"width": colWidth - 100,
+							"mode": "%%"
+						},
+						{
+							"key": "salary_name",
+							"title": "定薪人",
+							"type": "text",
+							"width": colWidth - 100,
+							"mode": "%%"
+						}
+						// ===== 新增结束 =====
 					]
 				},
 				form1: {
@@ -714,7 +735,8 @@
 										this.$set(this.form1.data, "birth_date", les.data.birthday);
 									}
 								}
-							},
+							},							
+							// ===== 新增结束 =====
 							{
 								"key": "bank_card",
 								"title": "银行卡号",
@@ -893,7 +915,6 @@
 									let item = vk.pubfn.getListItem(this.form1.props.columns, "key",
 										"manager_id");
 									this.$set(this.form1.data, item.key, option.department_manager_id);
-									// console.log(value,option);
 								}
 							},
 							{
@@ -909,7 +930,7 @@
 										title: "员工工号",
 										type: "text",
 										idKey: true
-									}, // idKey:true 代表此字段为主键字段，若设置show:["none"],则可以在表格中隐藏该字段的显示
+									},
 									{
 										key: "employee_name",
 										title: "员工姓名",
@@ -1077,66 +1098,31 @@
 								"width": colWidth
 							},
 							{
-								key: "internal_id",
-								title: "内部介绍人",
-								type: "table-select",
-								placeholder: "选择内部介绍人",
-								width: colWidth,
-								action: "admin/hrm/employees/sys/getList",
-								multiple: false,
-								columns: [{
-										key: "employee_id",
-										title: "员工工号",
-										type: "text",
-										idKey: true
-									}, // idKey:true 代表此字段为主键字段，若设置show:["none"],则可以在表格中隐藏该字段的显示
-									{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										nameKey: true
-									},
-								],
-								queryColumns: [{
-										key: "employee_id",
-										title: "员工工号",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "status",
-										title: "状态",
-										type: "number",
-										mode: "=",
-										show: ["none"]
-									}
-								],
-								formData: () => {
-									return {
-										status: 1
-									}
-								}
+								"key": "internal_name",
+								"title": "内部介绍人",
+								"type": "text",
+								"width": colWidth
+							},
+							// ===== 新增：面试人/定薪人/试用期 =====
+							{
+								"key": "interviewer_name",
+								"title": "面试人",
+								"type": "text",
+								"width": colWidth
 							},
 							{
-								"key": "card_location",
-								"title": "户口所在地",
-								"type": "textarea",
-								"maxlength": "99",
-								"showWordLimit": true,
-								"width": colWidth,
-								"autosize": {
-									minRows: 3,
-									maxRows: 10
-								}
+								"key": "salary_name",
+								"title": "定薪人",
+								"type": "text",
+								"width": colWidth
 							},
+							{
+								"key": "probation_period",
+								"title": "试用期",
+								"type": "text",
+								"width": colWidth
+							},
+							// ===== 新增结束 =====							
 							{
 								"key": "marital_status",
 								"title": "婚姻状况",
@@ -1149,6 +1135,18 @@
 									"value": 2,
 									"label": "未婚"
 								}]
+							},
+							{
+								"key": "card_location",
+								"title": "户口所在地",
+								"type": "textarea",
+								"maxlength": "99",
+								"showWordLimit": true,
+								"width": colWidth,
+								"autosize": {
+									minRows: 3,
+									maxRows: 10
+								}
 							},
 							{
 								"key": "no_crime",
@@ -1177,23 +1175,6 @@
 									"label": "离职"
 								}]
 							},
-							// {
-							// 	"key": "rest_type",
-							// 	"title": "休息类型",
-							// 	"type": "select",
-							// 	"width": colWidth,
-							// 	"defaultValue": 1,
-							// 	"data": [{
-							// 		"value": 1,
-							// 		"label": "单休"
-							// 	}, {
-							// 		"value": 2,
-							// 		"label": "双休"
-							// 	}, {
-							// 		"value": 3,
-							// 		"label": "大小周"
-							// 	}]
-							// },
 							{
 								key: "type_id",
 								title: "离职类型",
@@ -1213,7 +1194,7 @@
 							},
 							{
 								"key": "expected_salary",
-								"title": "意向工资",
+								"title": "期望薪资",
 								"precision": 0,
 								"type": "number",
 								"width": colWidth
@@ -1231,7 +1212,7 @@
 										title: "员工工号",
 										type: "text",
 										idKey: true
-									}, // idKey:true 代表此字段为主键字段，若设置show:["none"],则可以在表格中隐藏该字段的显示
+									},
 									{
 										key: "employee_name",
 										title: "员工姓名",
@@ -1277,6 +1258,27 @@
 									vk.myfn.deleteFile(file)
 								}
 							},
+							// ===== 新增：身份证正反面 =====
+							{
+								key: "id_card_front",
+								title: "身份证正面",
+								type: "avatar",
+								cloudDirectory: "employee/idcard",
+								width: colWidth,
+								onRemove: (file, fileList) => {
+									vk.myfn.deleteFile(file)
+								}
+							},
+							{
+								key: "id_card_back",
+								title: "身份证反面",
+								type: "avatar",
+								cloudDirectory: "employee/idcard",
+								width: colWidth,
+								onRemove: (file, fileList) => {
+									vk.myfn.deleteFile(file)
+								}
+							},
 							{
 								key: "file_attachments",
 								title: "证明文件",
@@ -1307,7 +1309,7 @@
 							},
 							{
 								key: "comment",
-								title: "备注",
+								title: "家庭成员",
 								type: "textarea",
 								maxlength: "99",
 								showWordLimit: true,
@@ -1352,8 +1354,8 @@
 											cardNo: value,
 											cardBinCheck: true
 										},
-										contentType: 'json', // 指定以application/json发送data内的数据
-										dataType: 'json' // 指定返回值为text格式
+										contentType: 'json',
+										dataType: 'json'
 									})
 									if (vk.pubfn.isNull(res.bank)) {
 										callback(new Error('银行卡号不正确'));
@@ -1429,6 +1431,33 @@
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
 							}],
+							// ===== 新增：介绍人/面试人/定薪人/试用期/期望薪资（按需改 required） =====
+							internal_name: [{
+								required: false,
+								message: "内部介绍人不能为空",
+								trigger: ['blur', 'change']
+							}],
+							interviewer_name: [{
+								required: false,
+								message: "面试人不能为空",
+								trigger: ['blur', 'change']
+							}],
+							salary_name: [{
+								required: false,
+								message: "定薪人不能为空",
+								trigger: ['blur', 'change']
+							}],
+							probation_period: [{
+								required: false,
+								message: "试用期不能为空",
+								trigger: ['blur', 'change']
+							}],
+							expected_salary: [{
+								required: false,
+								message: "期望薪资不能为空",
+								trigger: ['blur', 'change']
+							}],
+							// ===== 新增结束 =====
 							employee_id: [{
 								required: true,
 								message: "该项不能为空",
@@ -1443,7 +1472,7 @@
 									required: true,
 									message: "该项不能为空",
 									trigger: ['blur', 'change']
-								}, // 必须是手机号格式
+								},
 								{
 									validator: vk.pubfn.validator("mobile"),
 									message: '手机号格式错误',
@@ -1460,7 +1489,6 @@
 									message: "该项不能为空",
 									trigger: ['blur', 'change']
 								},
-								// 身份证
 								{
 									validator: vk.pubfn.validator("card"),
 									message: '身份证格式错误',
@@ -1591,10 +1619,6 @@
 			},
 			// 绑定文件点击事件
 			bindFileClickEvents() {
-				// 注意：这里需要确保DOM已经渲染完成
-				// 由于表格是动态渲染的，我们可能需要使用事件委托，或者在表格渲染完成后绑定事件
-
-				// 方案一：使用事件委托（推荐）
 				const handleFileClick = (e) => {
 					const target = e.target;
 					if (target.classList.contains('file-preview-link')) {
@@ -1968,10 +1992,28 @@
 						title: "紧急联络人电话",
 						type: "text"
 					},
-					internal_id: {
-						title: "内部介绍人工号",
+					internal_name: {
+						title: "内部介绍人",
 						type: "text"
 					},
+					// ===== 新增：面试人/定薪人/试用期/期望薪资 =====
+					interviewer_name: {
+						title: "面试人",
+						type: "text"
+					},
+					salary_name: {
+						title: "定薪人",
+						type: "text"
+					},
+					probation_period: {
+						title: "试用期",
+						type: "text"
+					},
+					expected_salary: {
+						title: "期望薪资",
+						type: "number"
+					},
+					// ===== 新增结束 =====
 					marital_status: {
 						title: "婚姻情况",
 						type: "text"
@@ -1985,7 +2027,7 @@
 						type: "text"
 					},
 					comment: {
-						title: "备注",
+						title: "家庭成员",
 						type: "text"
 					},
 					type_id: {
@@ -2181,6 +2223,18 @@
 							"title": "身份证号码",
 							"type": "text"
 						},
+						// ===== 新增：身份证正反面 =====
+						{
+							"key": "id_card_front",
+							"title": "身份证正面",
+							"type": "text"
+						},
+						{
+							"key": "id_card_back",
+							"title": "身份证反面",
+							"type": "text"
+						},
+						// ===== 新增结束 =====
 						{
 							"key": "bank_card",
 							"title": "银行卡号",
@@ -2330,10 +2384,32 @@
 							"type": "text"
 						},
 						{
-							"key": "internals.employee_id",
+							"key": "internal_name",
 							"title": "内部介绍人",
 							"type": "text"
 						},
+						// ===== 新增：面试人/定薪人/试用期/期望薪资 =====
+						{
+							"key": "interviewer_name",
+							"title": "面试人",
+							"type": "text"
+						},
+						{
+							"key": "salary_name",
+							"title": "定薪人",
+							"type": "text"
+						},
+						{
+							"key": "probation_period",
+							"title": "试用期",
+							"type": "text"
+						},
+						{
+							"key": "expected_salary",
+							"title": "期望薪资",
+							"type": "text"
+						},
+						// ===== 新增结束 =====
 						{
 							"key": "marital_status",
 							"title": "婚姻情况",
@@ -2357,7 +2433,7 @@
 						},
 						{
 							"key": "comment",
-							"title": "备注",
+							"title": "家庭成员",
 							"type": "text"
 						},
 						{
@@ -2370,16 +2446,6 @@
 							"title": "交接人",
 							"type": "text"
 						},
-						// {
-						// 	"key": "rest_type",
-						// 	"title": "休息类型",
-						// 	"type": "number",
-						// 	formatter: (val, row, column, index) => {
-						// 		if (val == 1) return '单休';
-						// 		if (val == 2) return '双休';
-						// 		if (val == 3) return '大小周';
-						// 	}
-						// },
 						{
 							"key": "status",
 							"title": "用户状态",
@@ -2390,7 +2456,7 @@
 						}
 					],
 					pageIndex: 1,
-					pageSize: 1, // 此值为-1，代表导出所有数据
+					pageSize: 1,
 				});
 			},
 
@@ -2429,6 +2495,18 @@
 							"title": "身份证号码",
 							"type": "text"
 						},
+						// ===== 新增：身份证正反面 =====
+						{
+							"key": "id_card_front",
+							"title": "身份证正面",
+							"type": "text"
+						},
+						{
+							"key": "id_card_back",
+							"title": "身份证反面",
+							"type": "text"
+						},
+						// ===== 新增结束 =====
 						{
 							"key": "bank_card",
 							"title": "银行卡号",
@@ -2578,10 +2656,32 @@
 							"type": "text"
 						},
 						{
-							"key": "internals.employee_name",
+							"key": "internal_name",
 							"title": "内部介绍人",
 							"type": "text"
 						},
+						// ===== 新增：面试人/定薪人/试用期/期望薪资 =====
+						{
+							"key": "interviewer_name",
+							"title": "面试人",
+							"type": "text"
+						},
+						{
+							"key": "salary_name",
+							"title": "定薪人",
+							"type": "text"
+						},
+						{
+							"key": "probation_period",
+							"title": "试用期",
+							"type": "text"
+						},
+						{
+							"key": "expected_salary",
+							"title": "期望薪资",
+							"type": "text"
+						},
+						// ===== 新增结束 =====
 						{
 							"key": "marital_status",
 							"title": "婚姻情况",
@@ -2605,7 +2705,7 @@
 						},
 						{
 							"key": "comment",
-							"title": "备注",
+							"title": "家庭成员",
 							"type": "text"
 						},
 						{
@@ -2618,16 +2718,6 @@
 							"title": "交接人",
 							"type": "text"
 						},
-						// {
-						// 	"key": "rest_type",
-						// 	"title": "休息类型",
-						// 	"type": "number",
-						// 	formatter: (val, row, column, index) => {
-						// 		if (val == 1) return '单休';
-						// 		if (val == 2) return '双休';
-						// 		if (val == 3) return '大小周';
-						// 	}
-						// },
 						{
 							"key": "status",
 							"title": "用户状态",
@@ -2638,7 +2728,7 @@
 						}
 					],
 					pageIndex: 1,
-					pageSize: -1, // 此值为-1，代表导出所有数据
+					pageSize: -1,
 				});
 			}
 		},

@@ -436,11 +436,12 @@ const _sfc_main = {
         return;
       }
       if (userRes.total === 0) {
-        common_vendor.index.showToast({
-          title: "账号不存在或未在人事系统建立",
-          icon: "none"
+        vk.confirm(userRes.msg, "提示", "返回首页", "取消", (res) => {
+          if (res.confirm) {
+            this.goHome();
+          }
         });
-        this.inputModalVisible = true;
+        this.inputModalVisible = false;
         return;
       }
       const userInfo = userRes.rows[0];
@@ -628,7 +629,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
         marginRight: "12rpx"
       }
     }),
-    I: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "fe"),
+    I: common_vendor.o((...args) => $options.getPhoneNumber && $options.getPhoneNumber(...args), "1c"),
     J: common_vendor.o($options.onInputPopupClose, "2c"),
     K: common_vendor.o(($event) => $data.inputModalVisible = $event, "15"),
     L: common_vendor.p({

@@ -257,13 +257,35 @@ const _sfc_main = {
         });
       });
     },
-    // ================= 提交签名（横屏导出） =================			
+    // ================= 提交签名（横屏导出） =================						
     async submitSign() {
       if (this.isEmpty()) {
         this.$refs.toast.showToast("请先签名");
         return;
       }
       try {
+        if (this.lastSignatureUrl) {
+          this.$refs.toast.showLoading("正在提交...");
+          const saveRes2 = await vk.callFunction({
+            url: "admin/hrm/salary/sys/payslip/update",
+            data: {
+              _id: this._id,
+              signature_url: this.lastSignatureUrl,
+              // 直接使用已有签名地址
+              status: 1
+            }
+          });
+          this.$refs.toast.hide();
+          if (saveRes2.code === 0) {
+            this.$refs.toast.showToast("提交成功");
+            setTimeout(() => {
+              common_vendor.index.navigateBack();
+            }, 1500);
+          } else {
+            this.$refs.toast.showToast(saveRes2.msg || "提交失败");
+          }
+          return;
+        }
         this.$refs.toast.showLoading("正在生成并提交...");
         const tempPath = await this.getTempFilePath();
         const imgInfo = await new Promise((resolve, reject) => {
@@ -360,7 +382,7 @@ const _sfc_main = {
       } catch (e) {
         this.$refs.toast.hide();
         this.$refs.toast.showToast("操作失败");
-        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:476", e);
+        common_vendor.index.__f__("error", "at pages/payslip/sign.vue:494", e);
       }
     },
     getPickerColor(color) {
@@ -643,7 +665,7 @@ const _sfc_main = {
           this.ctx.draw(true);
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/payslip/sign.vue:771", "加载历史签名失败", err);
+          common_vendor.index.__f__("error", "at pages/payslip/sign.vue:789", "加载历史签名失败", err);
         }
       });
     },

@@ -12,11 +12,13 @@
 		<!-- 操作按钮 -->
 		<view class="btn-group">
 			<el-row>
+				<el-button type="success" v-if="$hasRole('admin') || $hasPermission('clockin-record-add')" size="small"
+					icon="el-icon-edit" @click="importHKDates">导入打卡机数据</el-button>
+				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
+					v-if="$hasRole('admin') || $hasPermission('clockin-record-add')" @click="addBtn">添加打卡记录</el-button>
 				<el-button type="primary" size="small" icon="el-icon-download"
 					v-if="$hasRole('admin') || $hasPermission('clockin-record-export')"
 					@click="exportExcel">导出全部</el-button>
-				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('clockin-record-add')" @click="addBtn">添加打卡记录</el-button>
 			</el-row>
 		</view>
 
@@ -102,7 +104,7 @@
 							]
 						},
 						{
-							key: "wifis.address",
+							key: "position",
 							title: "打卡地点",
 							type: "text",
 							width: colWidth
@@ -195,7 +197,7 @@
 						},
 						{
 							key: "clockintime",
-							title: "打卡时间",
+							title: "打卡日期",
 							type: "datetimerange",
 							width: colWidth + 120,
 							mode: "[]"
@@ -277,81 +279,88 @@
 										label: "出差卡"
 									}
 								]
-							},							
-							{
-								key: "bssid",
-								title: "允许打卡地点",
-								type: "table-select",
-								placeholder: "请选择打卡地点",
-								width: colWidth,
-								multiple: false,
-								action: "admin/hrm/clockin/sys/setting/getList",
-								columns: [{
-										key: "bssid",
-										title: "WiFi名称",
-										type: "text",
-										idKey: true,
-										show: ["detail", "update", "add"]
-									},
-									{
-										key: "company_name",
-										title: "公司别",
-										type: "text",
-										width: 100
-									},
-									{
-										key: "department_name",
-										title: "部门名称",
-										type: "text",
-										width: 120
-									},
-									{
-										key: "address",
-										title: "位置",
-										type: "text",
-										nameKey: true
-									},									
-									{
-										key: "ssid",
-										title: "WiFi Mac",
-										type: "text"
-									}
-								],
-								queryColumns: [{
-										key: "company_name",
-										title: "公司名称",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "department_name",
-										title: "部门名称",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "address",
-										title: "位置",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "bssid",
-										title: "WiFi名称",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									}
-								],
-								formData: (row) => {
-									return {
-										flatten: true
-									};
-								}
 							},
+							{
+								key: "position",
+								title: "允许打卡地点",
+								type: "text",
+								width: colWidth,
+								placeholder: "请输入打卡地点"
+							},
+							// {
+							// 	key: "bssid",
+							// 	title: "允许打卡地点",
+							// 	type: "table-select",
+							// 	placeholder: "请选择打卡地点",
+							// 	width: colWidth,
+							// 	multiple: false,
+							// 	action: "admin/hrm/clockin/sys/setting/getList",
+							// 	columns: [{
+							// 			key: "bssid",
+							// 			title: "WiFi名称",
+							// 			type: "text",
+							// 			idKey: true,
+							// 			show: ["detail", "update", "add"]
+							// 		},
+							// 		{
+							// 			key: "company_name",
+							// 			title: "公司别",
+							// 			type: "text",
+							// 			width: 100
+							// 		},
+							// 		{
+							// 			key: "department_name",
+							// 			title: "部门名称",
+							// 			type: "text",
+							// 			width: 120
+							// 		},
+							// 		{
+							// 			key: "address",
+							// 			title: "位置",
+							// 			type: "text",
+							// 			nameKey: true
+							// 		},
+							// 		{
+							// 			key: "ssid",
+							// 			title: "WiFi Mac",
+							// 			type: "text"
+							// 		}
+							// 	],
+							// 	queryColumns: [{
+							// 			key: "company_name",
+							// 			title: "公司名称",
+							// 			type: "text",
+							// 			width: 150,
+							// 			mode: "%%"
+							// 		},
+							// 		{
+							// 			key: "department_name",
+							// 			title: "部门名称",
+							// 			type: "text",
+							// 			width: 150,
+							// 			mode: "%%"
+							// 		},
+							// 		{
+							// 			key: "address",
+							// 			title: "位置",
+							// 			type: "text",
+							// 			width: 150,
+							// 			mode: "%%"
+							// 		},
+							// 		{
+							// 			key: "bssid",
+							// 			title: "WiFi名称",
+							// 			type: "text",
+							// 			width: 150,
+							// 			mode: "%%"
+							// 		}
+							// 	],
+							// 	formData: (row) => {
+							// 		return {
+							// 			flatten: true
+							// 		};
+							// 	}
+							// },
 							{
 								key: "img",
 								title: "考勤图片",
@@ -479,6 +488,44 @@
 				const minutes = String(date.getMinutes()).padStart(2, '0');
 				const seconds = String(date.getSeconds()).padStart(2, '0');
 				return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+			},
+
+			//拉海康打卡机数据
+			async importHKDates() {
+				const clockintime = this.queryForm1.formData.clockintime || [];
+				if (vk.pubfn.isNull(clockintime)) {
+					return vk.alert('打卡日期不能为空！');
+				}
+				// 1. 从海康拉取
+				const hikRes = await vk.callFunction({
+					url: 'admin/hrm/clockin/pub/hikOpenApi',
+					title: "正在导入数据...",
+					data: {
+						action: 'getOriginRecords',
+						beginDate: vk.pubfn.timeFormat(new Date(clockintime[0]), 'yyyy-MM-dd'),
+						endDate: vk.pubfn.timeFormat(new Date(clockintime[1]), 'yyyy-MM-dd'),
+						personNos: ['CY048645147']
+					}
+				});
+				// 2. 组装好的记录直接传给 batchAdd
+				if (hikRes.code === 0 && hikRes.rows.length > 0) {
+
+					const addRes = await vk.callFunction({
+						url: 'admin/hrm/clockin/sys/batchAdd',
+						data: {
+							items: hikRes.rows,
+							beginDate: vk.pubfn.timeFormat(new Date(clockintime[0]), 'yyyy-MM-dd'),
+							endDate: vk.pubfn.timeFormat(new Date(clockintime[1]), 'yyyy-MM-dd')
+						}
+					});
+					if (addRes.code === 0) {
+						vk.alert(addRes.msg);
+						this.search();
+					} else {
+						vk.alert('导入失败');
+					}
+					console.log(addRes.msg); // "删除旧数据，新增 120 条"
+				}
 			}
 		}
 	};

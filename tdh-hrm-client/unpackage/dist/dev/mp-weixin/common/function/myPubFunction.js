@@ -122,5 +122,26 @@ myfn.formatMinutes = (min) => {
     return `${h}小时`;
   return `${m}分钟`;
 };
+myfn.getUrlParam = (url, name) => {
+  if (!url || !name)
+    return null;
+  const query = url.split("?")[1] || "";
+  const search = query.split("#")[0];
+  if (!search)
+    return null;
+  const pairs = search.split("&");
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    if (!pair)
+      continue;
+    const eqIndex = pair.indexOf("=");
+    const key = decodeURIComponent(eqIndex > -1 ? pair.slice(0, eqIndex) : pair);
+    if (key === name) {
+      const value = eqIndex > -1 ? pair.slice(eqIndex + 1) : "";
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+};
 exports.myfn = myfn;
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/common/function/myPubFunction.js.map

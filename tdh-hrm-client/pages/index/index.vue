@@ -176,6 +176,7 @@
 	export default {
 		data() {
 			return {
+				company_id: '',
 				pageLoading: true,
 				statusBarHeight: 20,
 				popupStyle: {
@@ -264,7 +265,16 @@
 				return this.menuList.slice(0, 8);
 			}
 		},
-		async onLoad() {
+		async onLoad(options) {
+			// 扫码进入时，微信会把原始链接放在 options.q 里
+			if (options.q) {
+				// 1. 解码获取原始链接
+				const qrUrl = decodeURIComponent(options.q);
+				// 2. 从链接中提取你需要的业务参数
+				this.company_id = vk.myfn.getUrlParam(qrUrl, 'company_id') || '';
+				uni.setStorageSync('company_id', this.company_id);				
+			}
+
 			const sysInfo = uni.getSystemInfoSync();
 			this.statusBarHeight = sysInfo.statusBarHeight || 20;
 
@@ -351,6 +361,7 @@
 					const res = await this.vk.callFunction({
 						url: url,
 						data: {
+							company_id: this.company_id,
 							status: 'enabled',
 							sort: this.menuSort,
 							pageSize: -1,

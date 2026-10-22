@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "list-vk-data-table-sort": "/pages_plugs/system/permission/list-vk-data-table-sort",
+    "update-category": "/pages_plugs/system/permission/form/updateCategory",
+    "update-level": "/pages_plugs/system/permission/form/updateLevel"
+  }
+}

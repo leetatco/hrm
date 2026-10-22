@@ -27,20 +27,34 @@ module.exports = {
 		} = util;
 		let {
 			uid,
-			mobile
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
+		
+		//是否需要过滤公司别
+		let whereJson = {};
+		let lastWhereJson = {};
+		if (company_ids.length > 0) {
+			whereJson = {
+				...(filterWhereJson || {}),
+				...(otherWhereJson || {})
+			};
+			lastWhereJson = {
+				'employees.company_id': _.in(company_ids)
+			};
+		}
+		
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = 'hrm-entry-forms'; // 表名
 		res = await vk.baseDao.getTableData({
 			dbName,
-			data,
-			whereJson: {
-				mobile
-			},
+			data,	
+			whereJson,		
 			// 副表
 			foreignDB: [{
 				dbName: "hrm-bank",

@@ -300,13 +300,12 @@
 						},
 						{
 							key: "attendance_ym",
-							title: "考勤月份",
+							title: "考勤日期",
 							type: "date",
-							dateType: "month",
+							dateType: "months",
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
-							width: colWidth,
-							mode: "="
+							mode: '[]'
 						},
 						{
 							key: "sign_status",
@@ -405,6 +404,9 @@
 				vk.pubfn.resetForm(originalForms, this);
 			},
 			async search() {
+				if (this.queryForm1.formData.attendance_ym.length > 0) {
+					this.queryForm1.formData.attendance_ym = [...this.queryForm1.formData.attendance_ym].sort()
+				}
 				this.$refs.table1.search();
 			},
 			refresh() {
@@ -420,7 +422,9 @@
 				this.table1.multipleSelection = list;
 			},
 
-			updateBtn({ item }) {
+			updateBtn({
+				item
+			}) {
 				this.form1.props.action = 'admin/hrm/attendance/sys/monthlyAttendance/update';
 				this.form1.props.formType = 'update';
 				this.form1.props.title = '编辑签单状态';
@@ -431,7 +435,10 @@
 				};
 			},
 
-			deleteBtn({ item, deleteFn }) {},
+			deleteBtn({
+				item,
+				deleteFn
+			}) {},
 
 			onDetail(item) {
 				this.detailDialog.data = {
@@ -478,12 +485,16 @@
 			},
 
 			async exportExcelAll() {
-				const { attendance_ym } = this.queryForm1.formData;
+				const {
+					attendance_ym
+				} = this.queryForm1.formData;
 				if (vk.pubfn.isNull(attendance_ym)) {
 					return vk.alert('考勤月份不能为空！');
 				}
 
-				uni.showLoading({ title: '正在获取数据...' });
+				uni.showLoading({
+					title: '正在获取数据...'
+				});
 
 				try {
 					const listData = await this.fetchAllData();
@@ -497,7 +508,10 @@
 
 					const workbook = new ExcelJS.Workbook();
 					const worksheet = workbook.addWorksheet('合同天数差异签单', {
-						views: [{ state: 'frozen', ySplit: 1 }]
+						views: [{
+							state: 'frozen',
+							ySplit: 1
+						}]
 					});
 
 					const columnDefs = [{
@@ -608,7 +622,9 @@
 
 						for (let i = 0; i < batches.length; i++) {
 							const current = Math.min((i + 1) * BATCH_SIZE, total);
-							uni.showLoading({ title: `下载签名 ${current}/${total}` });
+							uni.showLoading({
+								title: `下载签名 ${current}/${total}`
+							});
 							const res = await vk.callFunction({
 								url: 'common/sys/getImagesBase64/index',
 								data: {
@@ -634,7 +650,9 @@
 					}
 
 					// ========== 嵌入图片 ==========
-					uni.showLoading({ title: '正在写入签名...' });
+					uni.showLoading({
+						title: '正在写入签名...'
+					});
 
 					const embedTasks = listData.map((item, idx) => {
 						return new Promise((resolve) => {
@@ -648,8 +666,14 @@
 								});
 								// 签名在第 6 列（F），索引 5
 								worksheet.addImage(imageId, {
-									tl: { col: 5.2, row: idx + 1 },
-									ext: { width: 80, height: 30 }
+									tl: {
+										col: 5.2,
+										row: idx + 1
+									},
+									ext: {
+										width: 80,
+										height: 30
+									}
 								});
 								worksheet.getCell(`F${idx + 2}`).value = '';
 							} catch (err) {
@@ -661,7 +685,9 @@
 					await Promise.all(embedTasks);
 
 					// ========== 生成文件 ==========
-					uni.showLoading({ title: '正在生成文件...' });
+					uni.showLoading({
+						title: '正在生成文件...'
+					});
 					const buffer = await workbook.xlsx.writeBuffer();
 					const blob = new Blob([buffer], {
 						type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

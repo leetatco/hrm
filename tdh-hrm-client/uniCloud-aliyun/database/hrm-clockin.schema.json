@@ -12,10 +12,10 @@
 			"description": "ID，系统自动生成"
 		},
 		"employee_id": {
-		  "title": "员工工号",
-		  "bsonType": "string",
-		  "description": "关联员工表 employee_id",
-		  "trim": "both"
+			"title": "员工工号",
+			"bsonType": "string",
+			"description": "关联员工表 employee_id",
+			"trim": "both"
 		},
 		"position": {
 			"bsonType": "string",
@@ -40,6 +40,108 @@
 			"bsonType": "string",
 			"description": "打卡时间",
 			"trim": "both"
+		},
+		"hik_info": {
+			"title": "海康打卡信息",
+			"bsonType": "object",
+			"description": "海康原始打卡数据，用于追踪和排查",
+			"properties": {
+				"personNo": {
+					"title": "成员编号",
+					"bsonType": "string",
+					"description": "海康人员编号，如 CY046576103"
+				},
+				"jobNumber": {
+					"title": "工号",
+					"bsonType": "string",
+					"description": "海康工号，如 007003"
+				},
+				"personName": {
+					"title": "成员名称",
+					"bsonType": "string",
+					"description": "海康人员姓名"
+				},
+				"departmentNo": {
+					"title": "部门编号",
+					"bsonType": "string",
+					"description": "海康部门编号"
+				},
+				"departmentName": {
+					"title": "部门名称",
+					"bsonType": "string",
+					"description": "海康部门名称"
+				},
+				"attendanceName": {
+					"title": "考勤组名称",
+					"bsonType": "string",
+					"description": "海康考勤组名称"
+				},
+				"attendanceDate": {
+					"title": "考勤日期",
+					"bsonType": "string",
+					"description": "海康考勤日期，如 2026-10-14"
+				},
+				"workday": {
+					"title": "星期",
+					"bsonType": "string",
+					"description": "星期几"
+				},
+				"shiftId": {
+					"title": "班次ID",
+					"bsonType": "int",
+					"description": "海康班次ID"
+				},
+				"shiftInfo": {
+					"title": "班次信息",
+					"bsonType": "string",
+					"description": "海康班次描述"
+				},
+				"clockTime": {
+					"title": "原始打卡时间",
+					"bsonType": "string",
+					"description": "海康原始打卡时间，如 2026-10-14 06:39"
+				},
+				"deviceSerial": {
+					"title": "设备序列号",
+					"bsonType": "string",
+					"description": "海康打卡设备序列号"
+				},
+				"deviceName": {
+					"title": "设备名称",
+					"bsonType": "string",
+					"description": "海康打卡设备名称"
+				},
+				"wayOfClock": {
+					"title": "打卡方式",
+					"bsonType": "string",
+					"description": "如 门禁打卡、补卡"
+				},
+				"clockStatusDesc": {
+					"title": "打卡状态",
+					"bsonType": "string",
+					"description": "如 正常、迟到、早退"
+				},
+				"isFillRecord": {
+					"title": "是否补卡",
+					"bsonType": "int",
+					"description": "0=正常打卡，1=补卡"
+				},
+				"photo": {
+					"title": "打卡照片",
+					"bsonType": "string",
+					"description": "海康返回的打卡照片地址"
+				},
+				"teamNo": {
+					"title": "团队编号",
+					"bsonType": "string",
+					"description": "海康团队编号"
+				},
+				"address": {
+					"title": "打卡地址",
+					"bsonType": "string",
+					"description": "海康打卡地址"
+				}
+			}
 		},
 		"update_date": {
 			"title": "更新时间",

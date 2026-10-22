@@ -1,0 +1,1 @@
+<el-tag vue-id="11483d81-56" type="{{scope.row.overtime_type==='paid'?'success':'warning'}}" size="small" class="data-v-08cd671d" bind:__l="__l" vue-slots="{{['default']}}">{{''+(scope.row.overtime_type==='paid'?'计薪':'调休')+''}}</el-tag>

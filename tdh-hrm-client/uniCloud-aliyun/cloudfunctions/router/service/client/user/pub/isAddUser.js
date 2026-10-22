@@ -33,78 +33,84 @@ module.exports = {
 		const employeeInfo = await hrmService.getEmployeeInfoByUsername(username);
 
 		if (!employeeInfo || vk.pubfn.isNull(employeeInfo.card) || employeeInfo.status == 2) {
-			res.msg = `员工信息不存在: ${mobile},如果没有填写入职登记，请点首页-->入职登记-->新建，填写相关个人资料再点保存，完成后再联系人事部！`;
+			res.msg = `员工档案不存在: ${mobile}，没有填写入职申请，请点返回首页或登录页左上角🏠图标-->点入职申请-->新建，填写相关个人资料点保存按钮，完成后联系人事部建档！`;
 			return res;
 		}
 
 		// 2. 查询 uni-id-users 是否已有该用户（用 mobile 或 username）
 		let dbName = "uni-id-users";
 		let userRes = await vk.baseDao.selects({
-		    dbName,
-		    whereJson: _.or([
-		        { mobile: mobile ? mobile : 'null' },
-		        { username: employeeInfo.employee_id ? employeeInfo.employee_id : 'null' },
-		        { 'wx_openid.mp-weixin': wx_openid }
-		    ]),
-		    getOne: true // 只取一条
+			dbName,
+			whereJson: _.or([{
+					mobile: mobile ? mobile : 'null'
+				},
+				{
+					username: employeeInfo.employee_id ? employeeInfo.employee_id : 'null'
+				},
+				{
+					'wx_openid.mp-weixin': wx_openid
+				}
+			]),
+			getOne: true // 只取一条
 		});
-		
+
 		if (userRes.code !== 0) {
-		    res.code = userRes.code;
-		    res.msg = userRes.msg || "查询用户失败";
-		    return res;
+			res.code = userRes.code;
+			res.msg = userRes.msg || "查询用户失败";
+			return res;
 		}
-		
+
 		// 如果查到了用户，需要区分是哪种匹配情况
 		if (userRes.rows) {
-		    const user = userRes.rows;
-		
-		    // 情况1：完全匹配（手机号+工号+微信都匹配同一个用户）=> 允许登录，返回用户信息
-		    const isMobileMatch = mobile && user.mobile === mobile;
-		    const isUsernameMatch = employeeInfo.employee_id && user.username === employeeInfo.employee_id;
-		    const isWxMatch = wx_openid && user.wx_openid && user.wx_openid['mp-weixin'] === wx_openid;
-		
-		    // 如果手机号、工号、微信三者至少有一项匹配，且没有冲突，则认为该用户已存在，直接返回
-		    // 但注意：如果只是微信匹配，但手机号/工号不匹配，且该用户已有其他手机号/工号，则说明微信被占用
-		    if (isMobileMatch && isUsernameMatch) {
-		        // 完全匹配：手机号和工号都一致，视为同一个用户，直接返回
-		        userInfo = user;
-		        // 附加 employeeInfo
-		        userInfo.employeeInfo = employeeInfo;
-		        res.total = 1;
-		        res.rows = [userInfo];
-		        return res;
-		    }
-		
-		    // 情况2：部分字段冲突，需要报错
-		    // 2.1 手机号已被其他用户占用（且当前手机号不为空）
-		    if (mobile && user.mobile === mobile && user.username !== employeeInfo.employee_id) {
-		        res.code = -1;
-		        res.msg = `手机号 ${mobile} 已被其他用户注册!`;
-		        return res;
-		    }
-		
-		    // 2.2 工号已被其他用户占用（且当前工号不为空）
-		    if (employeeInfo.employee_id && user.username === employeeInfo.employee_id && user.mobile !== mobile) {
-		        res.code = -1;
-		        res.msg = `工号 ${employeeInfo.employee_id} 已被其他用户注册，请确认工号是否正确!`;
-		        return res;
-		    }
-		
-		    // 2.3 微信已被其他用户绑定（且当前微信不为空）
-		    if (wx_openid && user.wx_openid && user.wx_openid['mp-weixin'] === wx_openid && 
-		        user.mobile !== mobile && user.username !== employeeInfo.employee_id) {
-		        res.code = -1;
-		        res.msg = `该微信账号已绑定其他用户(${wx_openid})!`;
-		        return res;
-		    }
-		
-		    // 如果以上冲突都不存在，但用户确实存在（理论上不会到这里），则视为正常返回
-		    userInfo = user;
-		    userInfo.employeeInfo = employeeInfo;
-		    res.total = 1;
-		    res.rows = [userInfo];
-		    return res;
+			const user = userRes.rows;
+
+			// 情况1：完全匹配（手机号+工号+微信都匹配同一个用户）=> 允许登录，返回用户信息
+			const isMobileMatch = mobile && user.mobile === mobile;
+			const isUsernameMatch = employeeInfo.employee_id && user.username === employeeInfo.employee_id;
+			const isWxMatch = wx_openid && user.wx_openid && user.wx_openid['mp-weixin'] === wx_openid;
+
+			// 如果手机号、工号、微信三者至少有一项匹配，且没有冲突，则认为该用户已存在，直接返回
+			// 但注意：如果只是微信匹配，但手机号/工号不匹配，且该用户已有其他手机号/工号，则说明微信被占用
+			if (isMobileMatch && isUsernameMatch) {
+				// 完全匹配：手机号和工号都一致，视为同一个用户，直接返回
+				userInfo = user;
+				// 附加 employeeInfo
+				userInfo.employeeInfo = employeeInfo;
+				res.total = 1;
+				res.rows = [userInfo];
+				return res;
+			}
+
+			// 情况2：部分字段冲突，需要报错
+			// 2.1 手机号已被其他用户占用（且当前手机号不为空）
+			if (mobile && user.mobile === mobile && user.username !== employeeInfo.employee_id) {
+				res.code = -1;
+				res.msg = `手机号 ${mobile} 已被其他用户注册!`;
+				return res;
+			}
+
+			// 2.2 工号已被其他用户占用（且当前工号不为空）
+			if (employeeInfo.employee_id && user.username === employeeInfo.employee_id && user.mobile !==
+				mobile) {
+				res.code = -1;
+				res.msg = `工号 ${employeeInfo.employee_id} 已被其他用户注册，请确认工号是否正确!`;
+				return res;
+			}
+
+			// 2.3 微信已被其他用户绑定（且当前微信不为空）
+			if (wx_openid && user.wx_openid && user.wx_openid['mp-weixin'] === wx_openid &&
+				user.mobile !== mobile && user.username !== employeeInfo.employee_id) {
+				res.code = -1;
+				res.msg = `该微信账号已绑定其他用户(${wx_openid})!`;
+				return res;
+			}
+
+			// 如果以上冲突都不存在，但用户确实存在（理论上不会到这里），则视为正常返回
+			userInfo = user;
+			userInfo.employeeInfo = employeeInfo;
+			res.total = 1;
+			res.rows = [userInfo];
+			return res;
 		}
 
 		// 3. 若用户不存在则自动创建		

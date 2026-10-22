@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "list-vk-data-table-query-company_id": "/pages/hrm/department/list-vk-data-table-query-company_id",
+    "list-vk-data-table-query-department_id": "/pages/hrm/department/list-vk-data-table-query-department_id",
+    "list-vk-data-table-sort": "/pages/hrm/department/list-vk-data-table-sort"
+  }
+}

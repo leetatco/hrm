@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "addUpdate-vk-data-form-url": "/pages_plugs/system/app-upgrade-center/form/addUpdate-vk-data-form-url"
+  },
+  "component": true
+}

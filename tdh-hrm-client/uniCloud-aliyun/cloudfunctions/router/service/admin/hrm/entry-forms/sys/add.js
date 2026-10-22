@@ -39,6 +39,7 @@ module.exports = {
 			educational_id,
 			stay,
 			card,
+			company_id,
 			openid,
 			birth_date,
 			birth_month,
@@ -52,19 +53,25 @@ module.exports = {
 			no_crime,
 			comment,
 			avatar,
+			id_card_front,
+			id_card_back,
+			expected_salary,
+			internal_name,
+			interviewer_name,
+			salary_name,
+			probation_period,
 			file_attachments,
 		} = data;
 		let dbName = 'hrm-entry-forms'; // 表名
 		// 参数验证开始
 		let checkRes = await vk.baseDao.findByWhereJson({
-			dbName,			
-			whereJson: _.or([
-			  {
-			    card: card,
-			  },
-			  {
-			    mobile: mobile,
-			  },
+			dbName,
+			whereJson: _.or([{
+					card: card,
+				},
+				{
+					mobile: mobile,
+				},
 			]);
 		});
 		if (checkRes) {
@@ -87,6 +94,7 @@ module.exports = {
 				educational_id,
 				stay,
 				card,
+				company_id,
 				openid,
 				birth_date,
 				birth_month,
@@ -100,6 +108,13 @@ module.exports = {
 				no_crime,
 				comment,
 				avatar,
+				id_card_front,
+				id_card_back,
+				expected_salary,
+				internal_name,
+				interviewer_name,
+				salary_name,
+				probation_period,
 				file_attachments,
 				update_id: uid,
 				update_date: new Date().getTime()

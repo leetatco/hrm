@@ -18,7 +18,7 @@
 					:split-button="false" trigger="click" @command="batchBtn">
 					<el-button type="danger" size="small" style="margin-left: 20rpx;"
 						:disabled="table1.multipleSelection.length === 0">
-						批量审核<i class="el-icon-arrow-down el-icon--right"></i>
+						批量处理<i class="el-icon-arrow-down el-icon--right"></i>
 					</el-button>
 					<el-dropdown-menu slot="dropdown">
 						<el-dropdown-item :command="1">通过</el-dropdown-item>
@@ -32,7 +32,8 @@
 		<!-- 表格组件开始 -->
 		<vk-data-table ref="table1" :action="table1.action" :columns="table1.columns" :query-form-param="queryForm1"
 			:right-btns="table1.rightBtns" :selection="true" :row-no="false" :pagination="true" @update="updateBtn"
-			@delete="deleteBtn" @current-change="currentChange" @selection-change="selectionChange"></vk-data-table>
+			@delete="deleteBtn" @current-change="currentChange" @selection-change="selectionChange" :show-summary="true"
+			:summary-method="summaryMethod" :page-sizes="pageSizes"></vk-data-table>
 		<!-- 表格组件结束 -->
 
 		<!-- 添加或编辑的弹窗开始 -->
@@ -69,7 +70,9 @@
 		data() {
 			// 页面数据变量
 			return {
+				pageSizes: [1, 5, 10, 20, 50, 100, 500, 1000],
 				fileList: [],
+				sumList: [],
 				// 页面是否请求中或加载中
 				loading: false,
 				// init请求返回的数据
@@ -239,12 +242,12 @@
 							"key": "gross_salary",
 							"title": "应发工资",
 							"type": "number",
-							"width": colWidth - 100
+							"width": colWidth - 50
 						},
 						{
 							"key": "overtime_cost",
 							"title": "加班费",
-							"type": "text",
+							"type": "number",
 							"width": colWidth - 100
 						},
 						{
@@ -269,7 +272,7 @@
 							"key": "other_cost",
 							"title": "其他",
 							"type": "text",
-							"width": colWidth - 100
+							"width": colWidth - 50
 						},
 						{
 							"key": "we_cost",
@@ -305,13 +308,13 @@
 							"key": "this_month_sb",
 							"title": "本月社保",
 							"type": "number",
-							"width": colWidth - 100
+							"width": colWidth - 50
 						},
 						{
 							"key": "this_month_dk",
 							"title": "本月代扣部份",
 							"type": "number",
-							"width": colWidth - 100
+							"width": colWidth - 50
 						},
 						{
 							"key": "dkgs",
@@ -323,7 +326,7 @@
 							"key": "real_salary",
 							"title": "实发工资",
 							"type": "number",
-							"width": colWidth - 100
+							"width": colWidth - 50
 						},
 						{
 							"key": "comment",
@@ -744,6 +747,8 @@
 								"type": "number",
 								min: -10000,
 								controls: true,
+								precision: 2,
+								step: 0.01,
 								"width": colWidth
 							},
 							{
@@ -855,8 +860,8 @@
 								"type": "switch",
 								"width": colWidth
 							}, {
-								"key": "enable_fd1",
-								"title": "财务审核一级",
+								"key": "enable_fd2",
+								"title": "财务审核二级",
 								"type": "switch",
 								"width": colWidth
 							}, {
@@ -902,6 +907,7 @@
 		onLoad(options = {}) {			
 			this.options = options;
 			this.init(options);
+			this.getSumList();
 		},
 		// 监听 - 页面【首次渲染完成时】执行。注意如果渲染速度快，会在页面进入动画完成前触发
 		onReady() {
@@ -917,6 +923,141 @@
 		},
 		// 函数
 		methods: {
+			//得到所有的合计数据
+			async getSumList() {
+				const attendance_ym = this.queryForm1.formData.attendance_ym || nowym;
+				let res = await vk.callFunction({
+					url: 'admin/hrm/salary/pub/getSumList',
+					title: '请求中...',
+					data: {
+						attendance_ym
+					},
+				});
+				if (res.code == 0) {
+					this.sumList = res.rows
+				}
+			},
+
+			//合计行
+			summaryMethod({
+				columns,
+				data
+			}) {
+				const totalSummary = this.sumList[0] || {};
+				const means = ['']; // 第一列空白占位
+				// 定义需要合计的字段及其单位、精度
+				const totalOption = [{
+						key: 'work_days',
+						unit: '',
+						precision: 2
+					},
+					{
+						key: 'real_days',
+						unit: '',
+						precision: 2
+					},
+					{
+						key: 'gross_salary',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'overtime_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'free_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'grant',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'agency_fee',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'other_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'we_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'clothes_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'earlytime_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'missed_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'loan_cost',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'this_month_sb',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'this_month_dk',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'dkgs',
+						unit: '元',
+						precision: 2
+					},
+					{
+						key: 'real_salary',
+						unit: '元',
+						precision: 2
+					},
+				];
+
+				for (let columnIndex = 0; columnIndex < columns.length; columnIndex++) {
+					const column = columns[columnIndex];
+					if (columnIndex === 0) {
+						means.push('合计');
+					} else {
+						const columnItem = totalOption.find(item => item.key === column.property);
+						if (!columnItem) {
+							means.push(''); // 非合计字段留空
+							continue;
+						}
+						const {
+							key,
+							precision = 2,
+							unit
+						} = columnItem;
+						// 从总计对象中取值，若不存在则设为0
+						let totalValue = totalSummary[key] || 0;
+
+						totalValue = vk.pubfn.toDecimal(totalValue, precision);
+						// 可添加货币样式
+						means[columnIndex] = `<span style="color: red">${totalValue}${unit}</span>`;
+					}
+				}
+				return [means];
+			},
 			//导入xls表格文件
 			async handleChange(file) {
 				// 定义字段类型
@@ -1003,7 +1144,7 @@
 					},
 					overtime_cost: {
 						"title": "加班费",
-						"type": "text"
+						"type": "number"
 					},
 					free_cost: {
 						"title": "放假补助",
@@ -1744,7 +1885,8 @@
 				vk.pubfn.resetForm(originalForms, this);
 			},
 			// 搜索
-			search() {
+			async search() {
+				await this.getSumList();
 				this.$refs.table1.search();
 			},
 			// 刷新
@@ -1793,7 +1935,7 @@
 					},
 				});
 			},
-			async batchApprove(enable_fd1,enable_fd2) {
+			async batchApprove(enable_fd1, enable_fd2) {
 				try {
 					let res = await vk.callFunction({
 						url: 'admin/hrm/salary/sys/all/updateAll',
@@ -1817,10 +1959,10 @@
 			batchBtn(index) {
 				switch (index) {
 					case 1:
-						this.batchApprove(true,true);
+						this.batchApprove(true, true);
 						break;
 					case 2:
-						this.batchApprove(false,false);
+						this.batchApprove(false, false);
 						break;
 					default:
 						break;
@@ -1934,7 +2076,7 @@
 						{
 							"key": "overtime_cost",
 							"title": "加班费",
-							"type": "text"
+							"type": "number"
 						},
 						{
 							"key": "free_cost",
@@ -2156,7 +2298,7 @@
 						{
 							"key": "overtime_cost",
 							"title": "加班费",
-							"type": "text"
+							"type": "number"
 						},
 						{
 							"key": "free_cost",

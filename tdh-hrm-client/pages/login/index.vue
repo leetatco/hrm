@@ -116,7 +116,7 @@
 			<view class="bind-popup">
 				<view class="bind-popup-header">
 					<text class="bind-popup-title">绑定账号</text>
-					<text class="bind-popup-desc">请绑定您的手机号以完成登录</text>					
+					<text class="bind-popup-desc">请绑定您的手机号以完成登录</text>
 				</view>
 				<view class="bind-popup-body">
 					<button class="wechat-phone-btn" open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">
@@ -577,7 +577,8 @@
 						username: account,
 						wx_openid: this.wxOpenid
 					}
-				});
+				});				
+
 				if (userRes.code !== 0) {
 					uni.showToast({
 						title: userRes.msg || '验证失败',
@@ -586,12 +587,16 @@
 					this.inputModalVisible = true;
 					return;
 				}
+
+				//人员档案资料没有建立
 				if (userRes.total === 0) {
-					uni.showToast({
-						title: '账号不存在或未在人事系统建立',
-						icon: 'none'
+					vk.confirm(userRes.msg, '提示', '返回首页', '取消', (res) => {
+						if (res.confirm) {
+							// 点击确定按钮后的回调							
+							this.goHome();
+						}
 					});
-					this.inputModalVisible = true;
+					this.inputModalVisible = false;
 					return;
 				}
 				const userInfo = userRes.rows[0];

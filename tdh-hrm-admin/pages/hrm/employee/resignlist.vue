@@ -321,7 +321,7 @@
 							"width": colWidth - 50
 						},
 						{
-							"key": "internals.employee_name",
+							"key": "internal_name",
 							"title": "内部介绍人",
 							"type": "text",
 							"width": colWidth - 100
@@ -397,7 +397,7 @@
 						},
 						{
 							"key": "expected_salary",
-							"title": "意向工资",
+							"title": "期望薪资",
 							"type": "text",
 							"show": ["row"],
 							"showRule": (formData) => {
@@ -1038,53 +1038,10 @@
 								"width": colWidth
 							},
 							{
-								key: "internal_id",
+								key: "internal_name",
 								title: "内部介绍人",
-								type: "table-select",
-								placeholder: "选择内部介绍人",
-								width: colWidth,
-								action: "admin/hrm/employees/sys/getList",
-								multiple: false,
-								columns: [{
-										key: "employee_id",
-										title: "员工工号",
-										type: "text",
-										idKey: true
-									}, // idKey:true 代表此字段为主键字段，若设置show:["none"],则可以在表格中隐藏该字段的显示
-									{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										nameKey: true
-									},
-								],
-								queryColumns: [{
-										key: "employee_id",
-										title: "员工工号",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "employee_name",
-										title: "员工姓名",
-										type: "text",
-										width: 150,
-										mode: "%%"
-									},
-									{
-										key: "status",
-										title: "状态",
-										type: "number",
-										mode: "=",
-										show: ["none"]
-									}
-								],
-								formData: () => {
-									return {
-										status: 1
-									}
-								}
+								type: "text",
+								width: colWidth
 							},
 							{
 								"key": "card_location",
@@ -1174,7 +1131,7 @@
 							},
 							{
 								"key": "expected_salary",
-								"title": "意向工资",
+								"title": "期望薪资",
 								"precision": 0,
 								"type": "number",
 								"width": colWidth
@@ -1516,7 +1473,7 @@
 			};
 		},
 		// 监听 - 页面每次【加载时】执行(如：前进)
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
 		},
@@ -2144,7 +2101,7 @@
 							"type": "text"
 						},
 						{
-							"key": "internals.employee_name",
+							"key": "internal_name",
 							"title": "内部介绍人",
 							"type": "text"
 						},

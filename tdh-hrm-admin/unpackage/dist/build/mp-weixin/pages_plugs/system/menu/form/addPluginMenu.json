@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "addPluginMenu-vk-data-form-menus": "/pages_plugs/system/menu/form/addPluginMenu-vk-data-form-menus"
+  }
+}

@@ -8,8 +8,6 @@
 		<!-- 自定义按钮区域开始 -->
 		<view>
 			<el-row>
-				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('hrm-employee-add')" @click="addBtn">添加入职登记</el-button>
 				<el-button type="primary" size="small" icon="el-icon-edit-outline"
 					v-if="$hasRole('admin') || $hasPermission('hrm-employee-add')" @click="exportExcelAll">导出全部
 				</el-button>
@@ -107,6 +105,53 @@
 							type: "text",
 							width: colWidth - 50
 						},
+						// ===== 新增：身份证正反面 =====
+						{
+							key: "id_card_front",
+							title: "身份证正面",
+							type: "image",
+							width: colWidth,
+							show: ["detail", "row"]
+						},
+						{
+							key: "id_card_back",
+							title: "身份证反面",
+							type: "image",
+							width: colWidth,
+							show: ["detail", "row"]
+						},
+						// ===== 新增：介绍人/面试人/定薪人/试用期/期望薪资 =====
+						{
+							key: "internal_name",
+							title: "介绍人",
+							type: "text",
+							width: colWidth - 100
+						},
+						{
+							key: "interviewer_name",
+							title: "面试人",
+							type: "text",
+							width: colWidth - 100
+						},
+						{
+							key: "salary_name",
+							title: "定薪人",
+							type: "text",
+							width: colWidth - 100
+						},
+						{
+							key: "probation_period",
+							title: "试用期",
+							type: "text",
+							width: colWidth - 100
+						},
+						{
+							key: "expected_salary",
+							title: "期望薪资",
+							type: "text",
+							width: colWidth - 100
+						},
+						// ===== 新增结束 =====
 						{
 							key: "gender",
 							title: "性别",
@@ -210,7 +255,7 @@
 						},
 						{
 							key: "comment",
-							title: "备注",
+							title: "家庭成员",
 							type: "text",
 							width: colWidth,
 							show: ["detail"]
@@ -231,23 +276,15 @@
 							formatter: (val, row, column, index) => {
 								if (val && val.length > 0) {
 									let html = '';
-
-									// 为当前行生成唯一ID
 									const rowId = row._id || row.employee_id || `row-${index}`;
-
 									val.forEach((url, idx) => {
 										if (!url) return;
-
 										const fileName = url.split('/').pop() || '证明文件';
 										const fileExtension = fileName.split('.').pop().toLowerCase();
 										const isImage = /(jpg|jpeg|png|gif|bmp|webp)$/i.test(
 											fileExtension);
-
-										// 生成唯一的文件ID
 										const fileId = `${rowId}-file-${idx}`;
-
 										if (isImage) {
-											// 图片文件
 											html += `<a href="javascript:void(0);" 
 						                               id="${fileId}"
 						                               class="file-preview-link"
@@ -259,7 +296,6 @@
 						                             ${fileName}
 						                           </a>`;
 										} else {
-											// 非图片文件
 											html += `<a href="${url}" 
 						                               download="${fileName}" 
 						                               target="_blank" 
@@ -267,17 +303,12 @@
 						                             ${fileName}
 						                           </a>`;
 										}
-
-										// 如果不是最后一个文件，添加分隔符
 										if (idx < val.length - 1) {
 											html += '，';
 										}
 									});
-
-									// 添加文件数量提示
 									html +=
 										`<span style="margin-left: 5px; color: #909399; font-size: 12px;">(${val.length}个文件)</span>`;
-
 									return html;
 								}
 								return '<span style="color: #909399;">无</span>';
@@ -324,11 +355,48 @@
 							width: colWidth - 50,
 							mode: "="
 						},
+						// ===== 新增：介绍人/面试人/定薪人/试用期/期望薪资搜索 =====
+						{
+							key: "internal_name",
+							title: "介绍人",
+							type: "text",
+							width: colWidth - 100,
+							mode: "%%"
+						},
+						{
+							key: "interviewer_name",
+							title: "面试人",
+							type: "text",
+							width: colWidth - 100,
+							mode: "%%"
+						},
+						{
+							key: "salary_name",
+							title: "定薪人",
+							type: "text",
+							width: colWidth - 100,
+							mode: "%%"
+						},
+						{
+							key: "probation_period",
+							title: "试用期",
+							type: "text",
+							width: colWidth - 100,
+							mode: "%%"
+						},
+						{
+							key: "expected_salary",
+							title: "期望薪资",
+							type: "number",
+							width: colWidth - 100,
+							mode: "="
+						},
+						// ===== 新增结束 =====
 						{
 							key: "gender",
 							title: "性别",
 							type: "select",
-							width: colWidth - 150,
+							width: colWidth - 130,
 							mode: "=",
 							data: [{
 								value: 1,
@@ -359,7 +427,7 @@
 							key: "educational_id",
 							title: "学历",
 							type: "remote-select",
-							width: colWidth - 150,
+							width: colWidth - 100,
 							mode: "=",
 							action: "admin/hrm/educational/sys/getList",
 							props: {
@@ -401,6 +469,44 @@
 									this.$set(this.form1.data, "birth_date", les.data.birthday);
 								}
 							},
+							// ===== 新增：身份证正反面 =====
+							{
+								key: "id_card_front",
+								title: "身份证正面",
+								type: "avatar",
+								disabled: true,
+								cloudDirectory: "entry-forms/idcard",
+								width: colWidth,
+								onRemove: (file, fileList) => {
+									vk.myfn.deleteFile(file, fileList)
+								}
+							},
+							{
+								key: "id_card_back",
+								title: "身份证反面",
+								type: "avatar",
+								disabled: true,
+								cloudDirectory: "entry-forms/idcard",
+								width: colWidth,
+								onRemove: (file, fileList) => {
+									vk.myfn.deleteFile(file, fileList)
+								}
+							},
+							// ===== 新增：介绍人/面试人/定薪人/试用期/期望薪资 =====
+							{
+								key: "internal_name",
+								title: "介绍人",
+								type: "text",
+								width: colWidth
+							},
+							{
+								key: "expected_salary",
+								title: "期望薪资",
+								type: "number",
+								precision: 0, // int 类型，只保留整数
+								width: colWidth
+							},
+							// ===== 新增结束 =====
 							{
 								key: "mobile",
 								title: "手机号码",
@@ -541,16 +647,6 @@
 								width: colWidth
 							},
 							{
-								key: "card_location",
-								title: "户口所在地",
-								type: "textarea",
-								width: colWidth,
-								autosize: {
-									minRows: 2,
-									maxRows: 4
-								}
-							},
-							{
 								key: "emergency_mobile",
 								title: "紧急联系人电话",
 								type: "text",
@@ -570,6 +666,16 @@
 								}]
 							},
 							{
+								key: "card_location",
+								title: "户口所在地",
+								type: "textarea",
+								width: colWidth,
+								autosize: {
+									minRows: 2,
+									maxRows: 4
+								}
+							},
+							{
 								key: "no_crime",
 								title: "无犯罪证明",
 								type: "radio",
@@ -583,8 +689,26 @@
 								}]
 							},
 							{
+								key: "interviewer_name",
+								title: "面试人",
+								type: "text",
+								width: colWidth
+							},
+							{
+								key: "salary_name",
+								title: "定薪人",
+								type: "text",
+								width: colWidth
+							},
+							{
+								key: "probation_period",
+								title: "试用期",
+								type: "text",
+								width: colWidth
+							},
+							{
 								key: "comment",
-								title: "备注",
+								title: "家庭成员",
 								type: "textarea",
 								width: colWidth + 430,
 								autosize: {
@@ -636,6 +760,33 @@
 									trigger: 'blur'
 								}
 							],
+							// ===== 新增：介绍人/面试人/定薪人/试用期/期望薪资校验 =====
+							internal_name: [{
+								required: false,
+								message: "介绍人不能为空",
+								trigger: ['blur', 'change']
+							}],
+							interviewer_name: [{
+								required: false,
+								message: "面试人不能为空",
+								trigger: ['blur', 'change']
+							}],
+							salary_name: [{
+								required: false,
+								message: "定薪人不能为空",
+								trigger: ['blur', 'change']
+							}],
+							probation_period: [{
+								required: false,
+								message: "试用期不能为空",
+								trigger: ['blur', 'change']
+							}],
+							expected_salary: [{
+								required: false,
+								message: "期望薪资不能为空",
+								trigger: ['blur', 'change']
+							}],
+							// ===== 新增结束 =====
 							mobile: [{
 									required: true,
 									message: "手机号码不能为空",
@@ -974,7 +1125,7 @@
 					},
 					{
 						key: "comment",
-						title: "备注",
+						title: "家庭成员",
 						type: "textarea",
 						width: colWidth,
 						autosize: {
@@ -986,8 +1137,57 @@
 						key: "avatar",
 						title: "头像",
 						type: "avatar",
+						disabled: true,
 						width: colWidth
 					},
+					{
+						key: "expected_salary",
+						title: "期望薪资",
+						type: "number",
+						precision: 0,
+						width: colWidth
+					},
+					// ===== 新增：身份证正反面 + 介绍人/面试人/定薪人/试用期/期望薪资 =====
+					{
+						key: "id_card_front",
+						title: "身份证正面",
+						type: "avatar",
+						disabled: true,
+						width: colWidth
+					},
+					{
+						key: "id_card_back",
+						title: "身份证反面",
+						disabled: true,
+						type: "avatar",
+						width: colWidth
+					},
+
+					{
+						key: "internal_name",
+						title: "介绍人",
+						type: "text",
+						width: colWidth
+					},
+					{
+						key: "interviewer_name",
+						title: "面试人",
+						type: "text",
+						width: colWidth
+					},
+					{
+						key: "salary_name",
+						title: "定薪人",
+						type: "text",
+						width: colWidth
+					},
+					{
+						key: "probation_period",
+						title: "试用期",
+						type: "text",
+						width: colWidth
+					},
+					// ===== 新增结束 =====
 					{
 						key: "center_id",
 						title: "六大中心",
@@ -1060,13 +1260,10 @@
 							// 联动：根据选中的公司，修改部门列的请求参数
 							const deptCol = this.transferColumns.find(col => col.key === "department_id");
 							if (deptCol) {
-								// 更新部门列的 actionData，请求时会携带 company_id
 								deptCol.actionData = {
 									company_id: value
 								};
-								// 清空已选的部门
 								this.$set(formData, "department_id", "");
-								// 强制视图更新（可选，部分组件需要）
 								this.$forceUpdate();
 							}
 						}
@@ -1090,16 +1287,14 @@
 							pageSize: -1,
 							pageIndex: 1,
 							company_id: ""
-						}, // 初始为空，由公司联动填充
+						},
 						width: colWidth,
-						// 可根据需要添加 watch 实现其他联动（比如自动填充上级主管）
 						watch: ({
 							value,
 							formData,
 							option,
 							$set
 						}) => {
-							// 示例：如果部门数据中有部门负责人字段，可自动填充到 manager_id							
 							if (option && option.department_manager_id) {
 								this.$set(formData, "manager_id", option.department_manager_id);
 							}
@@ -1139,7 +1334,7 @@
 								title: "员工工号",
 								type: "text",
 								idKey: true
-							}, // idKey:true 代表此字段为主键字段，若设置show:["none"],则可以在表格中隐藏该字段的显示
+							},
 							{
 								key: "employee_name",
 								title: "员工姓名",
@@ -1231,7 +1426,7 @@
 					},
 					{
 						key: "registration",
-						title: "档案是否登记",
+						title: "档案是否申请",
 						type: "radio",
 						data: [{
 							value: 1,
@@ -1257,7 +1452,7 @@
 						width: colWidth
 					}
 				];
-				// 初始化验证规则（可简化，这里直接引用已有的 rules 对象）
+				// 初始化验证规则
 				this.transferRules = {
 					center_id: [{
 						required: true,
@@ -1312,7 +1507,6 @@
 						message: '身份证格式错误',
 						trigger: 'blur'
 					}],
-					// 其他字段可根据需要补充
 				};
 			},
 			resetForm() {
@@ -1334,7 +1528,7 @@
 				this.resetForm();
 				this.form1.props.action = 'admin/hrm/entry-forms/sys/add';
 				this.form1.props.formType = 'add';
-				this.form1.props.title = '添加入职登记';
+				this.form1.props.title = '添加入职申请';
 				this.form1.props.show = true;
 			},
 			updateBtn({
@@ -1342,7 +1536,7 @@
 			}) {
 				this.form1.props.action = 'admin/hrm/entry-forms/sys/update';
 				this.form1.props.formType = 'update';
-				this.form1.props.title = '编辑入职登记';
+				this.form1.props.title = '编辑入职申请';
 				this.form1.props.show = true;
 				this.form1.data = item;
 			},
@@ -1375,6 +1569,28 @@
 						title: "手机号码",
 						type: "text"
 					},
+					// ===== 新增：介绍人/面试人/定薪人/试用期/期望薪资 =====
+					internal_name: {
+						title: "介绍人",
+						type: "text"
+					},
+					interviewer_name: {
+						title: "面试人",
+						type: "text"
+					},
+					salary_name: {
+						title: "定薪人",
+						type: "text"
+					},
+					probation_period: {
+						title: "试用期",
+						type: "text"
+					},
+					expected_salary: {
+						title: "期望薪资",
+						type: "text"
+					},
+					// ===== 新增结束 =====
 					bank_card: {
 						title: "银行卡号",
 						type: "text"
@@ -1424,13 +1640,18 @@
 						type: "text"
 					},
 					comment: {
-						title: "备注",
+						title: "家庭成员",
 						type: "text"
 					}
 				};
 				this.$iexcel.importExcel(file.raw, typeObj, async (res) => {
 					let count = 0;
 					for (const item of res) {
+						// ===== 新增：期望薪资 int 类型转换 =====
+						if (item.expected_salary) {
+							item.expected_salary = Number(item.expected_salary);
+						}
+						// ===== 新增结束 =====
 						let addRes = await vk.callFunction({
 							url: 'admin/hrm/entry_forms/sys/add',
 							data: item
@@ -1443,7 +1664,7 @@
 			},
 			exportExcelModel() {
 				this.$refs.table1.exportExcel({
-					fileName: '入职登记表模版',
+					fileName: '入职申请表模版',
 					columns: [{
 							key: "employee_name",
 							title: "员工姓名",
@@ -1459,6 +1680,33 @@
 							title: "手机号码",
 							type: "text"
 						},
+						// ===== 新增 =====
+						{
+							key: "internal_name",
+							title: "介绍人",
+							type: "text"
+						},
+						{
+							key: "interviewer_name",
+							title: "面试人",
+							type: "text"
+						},
+						{
+							key: "salary_name",
+							title: "定薪人",
+							type: "text"
+						},
+						{
+							key: "probation_period",
+							title: "试用期",
+							type: "text"
+						},
+						{
+							key: "expected_salary",
+							title: "期望薪资",
+							type: "text"
+						},
+						// ===== 新增结束 =====
 						{
 							key: "bank_card",
 							title: "银行卡号",
@@ -1524,7 +1772,7 @@
 						},
 						{
 							key: "comment",
-							title: "备注",
+							title: "家庭成员",
 							type: "text"
 						}
 					],
@@ -1534,7 +1782,7 @@
 			},
 			exportExcelAll() {
 				this.$refs.table1.exportExcel({
-					fileName: '入职登记表全部数据',
+					fileName: '入职申请表全部数据',
 					title: '正在导出数据...',
 					columns: this.table1.columns.filter(c => !c.show || c.show.includes('list')),
 					pageIndex: 1,
@@ -1575,10 +1823,19 @@
 					comment: row.comment,
 					avatar: row.avatar,
 					file_attachments: row.file_attachments,
+					// ===== 新增：身份证正反面 + 介绍人/面试人/定薪人/试用期/期望薪资 =====
+					id_card_front: row.id_card_front,
+					id_card_back: row.id_card_back,
+					internal_name: row.internal_name,
+					interviewer_name: row.interviewer_name,
+					salary_name: row.salary_name,
+					probation_period: row.probation_period,
+					expected_salary: row.expected_salary,
+					// ===== 新增结束 =====
 					employee_id: "",
-					center_id: "",
+					center_id: "3",
 					point_id: "",
-					company_id: "",
+					company_id: row.company_id || "",
 					department_id: "",
 					position_id: "",
 					manager_id: "",
@@ -1593,8 +1850,6 @@
 
 				const el = await vk.myfn.getResignEmployees(row.card);
 				const employeeMap = await vk.myfn.batchGetEmployeeInfo([row.card]);
-
-				console.log(employeeMap)
 
 				let msg = "";
 				//离职人员信息
@@ -1623,13 +1878,28 @@
 							data: {
 								_id: this.currentTransferEntryId
 							},
-							title: '删除入职登记记录'
+							title: '删除入职申请记录'
 						});
 						if (delRes.code === 0) {
 							this.refresh();
 						}
 					})
 				} else {
+					let departmentItem = vk.pubfn.getListItem(this.transferColumns, "key", "department_id");
+					departmentItem.actionData.company_id = defaultData.company_id;
+
+					// 取最大工号
+					if (vk.pubfn.isNotNull(defaultData.company_id)) {
+						let data = await vk.callFunction({
+							url: 'admin/hrm/employees/sys/getMaxEmp',
+							title: '请求中...',
+							data: {
+								company_id: defaultData.company_id
+							},
+						});
+						this.$set(defaultData, "employee_id", data.nextNo || "");
+					}
+
 					this.transferDialog.data = defaultData;
 					this.transferDialog.show = true;
 				}
@@ -1639,6 +1909,15 @@
 					if (!valid) return;
 					try {
 						this.transferDialog.loading = true;
+						// ===== 新增：期望薪资 int 类型兜底转换 =====
+						if (this.transferDialog.data.expected_salary === '' || this.transferDialog.data
+							.expected_salary === null) {
+							this.transferDialog.data.expected_salary = null;
+						} else {
+							this.transferDialog.data.expected_salary = Number(this.transferDialog.data
+								.expected_salary);
+						}
+						// ===== 新增结束 =====
 						const addRes = await vk.callFunction({
 							url: 'admin/hrm/employees/sys/add',
 							data: this.transferDialog.data,
@@ -1647,7 +1926,7 @@
 						if (addRes.code === 0) {
 							this.$message.success('成功转为员工档案');
 							this.transferDialog.show = false;
-							const msg = "是否删除入职登记记录？"
+							const msg = "是否删除入职申请记录？"
 							vk.confirm(msg, '提示', '确认', '取消', async (res) => {
 								if (res.confirm) {
 									const delRes = await vk.callFunction({
@@ -1655,13 +1934,13 @@
 										data: {
 											_id: this.currentTransferEntryId
 										},
-										title: '删除入职登记记录'
+										title: '删除入职申请记录'
 									});
 									if (delRes.code === 0) {
 										this.refresh();
 									} else {
 										this.$message.warning(
-											'员工档案已添加，但入职登记记录删除失败，请手动处理');
+											'员工档案已添加，但入职申请记录删除失败，请手动处理');
 										this.refresh();
 									}
 								}

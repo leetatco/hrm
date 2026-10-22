@@ -349,7 +349,7 @@
 				});
 			},
 
-			// ================= 提交签名（横屏导出） =================			
+			// ================= 提交签名（横屏导出） =================						
 			async submitSign() {
 				if (this.isEmpty()) {
 					this.$refs.toast.showToast('请先签名');
@@ -357,6 +357,29 @@
 				}
 			
 				try {
+					// ================= 如果已有签名，直接使用已有签名地址，不再重新上传 =================
+					if (this.lastSignatureUrl) {
+						this.$refs.toast.showLoading('正在提交...');
+						const saveRes = await vk.callFunction({
+							url: 'admin/hrm/salary/sys/payslip/update',
+							data: {
+								_id: this._id,
+								signature_url: this.lastSignatureUrl, // 直接使用已有签名地址
+								status: 1
+							},
+						});
+						this.$refs.toast.hide();
+						if (saveRes.code === 0) {
+							this.$refs.toast.showToast('提交成功');
+							setTimeout(() => {
+								uni.navigateBack();
+							}, 1500);
+						} else {
+							this.$refs.toast.showToast(saveRes.msg || '提交失败');
+						}
+						return;
+					}
+			
 					this.$refs.toast.showLoading('正在生成并提交...');
 					const tempPath = await this.getTempFilePath();
 					const imgInfo = await new Promise((resolve, reject) => {
@@ -410,7 +433,7 @@
 			
 					// ================= 使用 uni-cloud-ext-storage 上传到七牛云 =================
 					const cloudPath = `public/signature/${this.attendance_ym}_${Date.now()}.png`;
-					
+			
 					// 1. 获取上传参数
 					const uploadOptionsRes = await vk.callFunction({
 						url: 'common/pub/getUploadFileOptions/index', // 根据你的云函数路径调整
@@ -418,20 +441,18 @@
 							cloudPath: cloudPath
 						}
 					});
-					
+			
 					if (uploadOptionsRes.code !== 0) {
 						throw new Error(uploadOptionsRes.msg || '获取上传参数失败');
 					}
-					
+			
 					const uploadOptions = uploadOptionsRes.rows;
-					
-					// console.log(uploadOptions);
-					
+			
 					// 2. 使用 uni.uploadFile 上传到七牛云
 					const uploadResult = await new Promise((resolve, reject) => {
 						uni.uploadFile({
 							...uploadOptions.uploadFileOptions,
-							filePath: rotatedFilePath,							
+							filePath: rotatedFilePath,
 							success: (res) => {
 								if (res.statusCode === 200) {
 									resolve(res);
@@ -442,21 +463,18 @@
 							fail: reject
 						});
 					});
-					
-					// console.log("uploadResult:",uploadResult)
-					
+			
 					// 3. 构建文件访问URL
-					// 七牛云上传成功后，文件可以通过域名+路径访问
 					const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
-					const fileID = cloudPath; // 或者使用 uploadOptions.fileID（如果有）
-					
+					const fileID = cloudPath;
+			
 					// 4. 保存签名信息到数据库
 					const saveRes = await vk.callFunction({
 						url: 'admin/hrm/salary/sys/payslip/update',
 						data: {
 							_id: this._id,
 							signature_url: fileUrl, // 存储完整的访问URL
-							file_id: fileID,        // 存储文件路径标识
+							file_id: fileID, // 存储文件路径标识
 							status: 1
 						},
 					});

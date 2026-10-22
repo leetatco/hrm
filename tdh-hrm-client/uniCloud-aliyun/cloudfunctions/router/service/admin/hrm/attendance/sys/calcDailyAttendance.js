@@ -294,6 +294,8 @@ async function preloadGroupAndShift(util, preload) {
 	const shiftIds = [...new Set(groupRes.rows.map(g => g.shift_id).filter(Boolean))];
 	const ruleIds = [...new Set(groupRes.rows.map(g => g.punch_rule_id).filter(Boolean))];
 
+	console.log(groupRes, ruleIds, shiftIds)
+
 	const [shiftRes, ruleRes] = await Promise.all([
 		shiftIds.length > 0 ? vk.baseDao.select({
 			dbName: 'hrm-attendance-shift',
@@ -714,7 +716,6 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 
 		// ========== 优先处理加班（加班优先于外出） ==========
 		if (overtimeMinutesFromRecord > 0) {
-			// 加班分支（外出单作为打卡凭证参与匹配）
 			const overtimeSegments = [];
 			overtimeRecords.forEach(r => {
 				if (r.morning_range && r.morning_range.length === 2) {
@@ -733,6 +734,12 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 				}
 			});
 
+			// 加班时段应有出勤分钟数
+			let overtimeShouldMinutes = 0;
+			for (const seg of overtimeSegments) {
+				overtimeShouldMinutes += toMinutes(seg.end_time) - toMinutes(seg.start_time);
+			}
+
 			const outingRangesForOt = outingRecords
 				.filter(r => r.start_time && r.end_time)
 				.map(r => ({
@@ -745,16 +752,59 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 				inBefore, inAfter, outBefore, outAfter, params
 			);
 
-			let otAttendanceStatus = 6;
-			if (otResult.allMissing && leaveMinutes === 0 && tripMinutes === 0 &&
-				compMinutes === 0 && outingMinutes === 0) {
-				otAttendanceStatus = 5;
-			} else if (otResult.hasMissing) {
-				otAttendanceStatus = 0;
-			} else {
-				otAttendanceStatus = 6;
+			// ===== 计算实际出勤分钟数和缺卡分钟数 =====
+			let actualWorkMinutes = 0;
+			let absentFromMissing = 0;
+
+			for (const seg of otResult.segmentResults) {
+				const segStart = toMinutes(seg.start_time);
+				const segEnd = toMinutes(seg.end_time);
+				const segTotalMinutes = segEnd - segStart;
+
+				// 计算该段实际出勤
+				if (seg.clock_in && seg.clock_out) {
+					const inMin = toMinutes(seg.clock_in);
+					const outMin = toMinutes(seg.clock_out);
+					if (outMin > inMin) {
+						actualWorkMinutes += (outMin - inMin);
+					}
+				} else if (seg.clock_in && !seg.clock_out) {
+					// 只有签到，算到下班时间（或者算 0，取决于规则，这里保守算 0）
+					// actualWorkMinutes += 0; 
+				}
+
+				// 计算该段缺卡时长
+				if (seg.missing_in && seg.missing_out) {
+					absentFromMissing += segTotalMinutes;
+				} else if (seg.missing_in || seg.missing_out) {
+					// 缺一半（签退或签到），简单按半个时段算旷工
+					absentFromMissing += Math.floor(segTotalMinutes / 2);
+				}
 			}
-						
+
+			// ===== 状态判定 =====
+			const absentThreshold = params.absent_threshold_minutes || 30;
+			let absentMinutes = 0;
+			let otAttendanceStatus = 6;
+
+			const allMissingAndNoLeave = otResult.allMissing &&
+				leaveMinutes === 0 && tripMinutes === 0 &&
+				compMinutes === 0 && outingMinutes === 0;
+
+			if (allMissingAndNoLeave) {
+				absentMinutes = overtimeShouldMinutes; // 全缺，旷工=加班总时长
+			} else if (otResult.hasMissing) {
+				absentMinutes = absentFromMissing;
+			}
+
+			if (absentMinutes >= absentThreshold) {
+				otAttendanceStatus = 5; // 旷工
+			} else if (otResult.hasMissing) {
+				otAttendanceStatus = 0; // 异常
+			} else {
+				otAttendanceStatus = 6; // 加班
+			}
+
 			const record = buildRecord({
 				employeeId,
 				employeeName,
@@ -764,11 +814,11 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 				attendanceGroupName,
 				shift: null,
 				segments: otResult.segmentResults,
-				shouldAttendMinutes: 0,
-				actualAttendMinutes: 0,
+				shouldAttendMinutes: overtimeShouldMinutes, // ★ 应出勤 = 加班时段总长
+				actualAttendMinutes: actualWorkMinutes, // ★ 实际出勤 = 真实在岗时长
 				lateMinutes: otResult.totalLate,
 				earlyMinutes: otResult.totalEarly,
-				absentMinutes: otResult.allMissing ? 8 * 60 : 0,
+				absentMinutes, // ★ 动态旷工时长
 				overtimeMinutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
 				overtimeCompensatoryMinutes,
 				overtimePaidMinutes,
@@ -1072,9 +1122,27 @@ function matchSegments(clockRows, segments, remedyList, outingRanges, inBefore, 
 	const segmentResults = [];
 	const usedPunchIndexes = new Set();
 
+	// 打印输入
+	console.log('[matchSegments] 输入 clockRows=', clockRows.map(c => extractHHmmFromTimestamp(c.clockintime)),
+		'segments=', segments, '窗口=', {
+			inBefore,
+			inAfter,
+			outBefore,
+			outAfter
+		});
+
 	for (const seg of segments) {
+
 		const segStartMin = toMinutes(seg.start_time);
 		const segEndMin = toMinutes(seg.end_time);
+		const inWindow = [segStartMin - inBefore, segStartMin + inAfter];
+		const outWindow = [segEndMin - outBefore, segEndMin + outAfter];
+		console.log(
+			`[matchSegments] 段=${seg.name} ${seg.start_time}-${seg.end_time} 签到窗口=[${inWindow[0]},${inWindow[1]}] 签退窗口=[${outWindow[0]},${outWindow[1]}]`
+		);
+
+		// const segStartMin = toMinutes(seg.start_time);
+		// const segEndMin = toMinutes(seg.end_time);
 		let inPunch = null,
 			outPunch = null;
 		let bestInDiff = Infinity,
@@ -1105,6 +1173,11 @@ function matchSegments(clockRows, segments, remedyList, outingRanges, inBefore, 
 		}
 
 		if (!inPunch) {
+
+			console.log(
+				`[matchSegments] 段=${seg.name} 未命中签到卡！检查：打卡[${clockRows.map(c => extractHHmmFromTimestamp(c.clockintime))}] 是否在窗口[${inWindow}]内，usedIndexes=${[...usedPunchIndexes]}`
+				);
+
 			for (const rem of remedyList) {
 				if (rem.used || rem.miss_type !== 'clock_in') continue;
 				const remMin = toMinutes(rem.miss_time);
@@ -1116,6 +1189,7 @@ function matchSegments(clockRows, segments, remedyList, outingRanges, inBefore, 
 			}
 		}
 		if (!outPunch) {
+			console.log(`[matchSegments] 段=${seg.name} 未命中签退卡！窗口=[${outWindow}]`);
 			for (const rem of remedyList) {
 				if (rem.used || rem.miss_type !== 'clock_out') continue;
 				const remMin = toMinutes(rem.miss_time);

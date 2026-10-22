@@ -137,7 +137,7 @@ class HrmService {
 			});
 
 			if (!employee) {
-				throw new Error(`员工信息不存在: ${username},请联系人事部档案管理人员！`);
+				return employee;
 			}
 			return this.formatEmployeeInfo(employee);
 		} catch (error) {

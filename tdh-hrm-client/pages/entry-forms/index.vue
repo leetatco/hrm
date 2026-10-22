@@ -62,7 +62,7 @@
 					</view>
 
 					<view class="empty-wrapper" v-if="!loading && list.length === 0">
-						<u-empty mode="data" text="暂无入职登记记录">
+						<u-empty mode="data" text="暂无入职申请记录">
 							<u-button type="primary" shape="circle" @click="addEntry"
 								:custom-style="buttonStyle.primary">立即新建</u-button>
 						</u-empty>
@@ -89,14 +89,21 @@
 						<u-form-item label="身份证号" prop="card" required>
 							<u-input v-model="formData.card" placeholder="请输入" @blur="onCardBlur" />
 						</u-form-item>
+
+						<!-- ======================= 新增：身份证正反面上传 ======================= -->
+						<u-form-item label="身份证照片" prop="id_card_front" required>
+							<view class="idcard-upload">
+								<RboyUploadSfz :obverseUrl="formData.id_card_front" :reverseUrl="formData.id_card_back"
+									@selectChange="onIdCardSelect" @del="onIdCardDel" />
+							</view>
+						</u-form-item>
+						<!-- ==================================================================== -->
+
 						<u-form-item label="手机号" prop="mobile" required>
 							<u-input v-model="formData.mobile" placeholder="请输入" />
 						</u-form-item>
 						<u-form-item label="性别" prop="gender">
-							<u-radio-group v-model="formData.gender" disabled>
-								<u-radio :name="1">男</u-radio>
-								<u-radio :name="2">女</u-radio>
-							</u-radio-group>
+							<text class="readonly-text">{{ formData.gender == 1 ? '男' : '女' }}</text>
 						</u-form-item>
 						<u-form-item label="出生日期" prop="birth_date">
 							<u-input v-model="formData.birth_date" disabled placeholder="自动识别" />
@@ -154,8 +161,14 @@
 								<u-radio :name="2">无</u-radio>
 							</u-radio-group>
 						</u-form-item>
-						<u-form-item label="备注" prop="comment">
+						<u-form-item label="家庭成员" prop="comment">
 							<u-input v-model="formData.comment" type="textarea" />
+						</u-form-item>
+						<u-form-item label="期望薪资" prop="expected_salary">
+							<u-input v-model="formData.expected_salary" type="number" placeholder="请输入期望薪资" />
+						</u-form-item>
+						<u-form-item label="介绍人" prop="internal_name">
+							<u-input v-model="formData.internal_name" placeholder="请输入介绍人" />
 						</u-form-item>
 
 						<!-- 头像上传 - 手动上传模式 -->
@@ -172,7 +185,7 @@
 						</u-form-item>
 
 						<!-- 证明文件：手动上传模式 -->
-						<u-form-item label="证明文件" prop="file_attachments">
+						<u-form-item label="证明文件(健康证、学历证、技工证等)" prop="file_attachments">
 							<view class="file-upload-container">
 								<uni-file-picker :value="attachFiles" @input="(val) => onAttachInput(val)"
 									file-mediatype="all" :auto-upload="false" :limit="9"
@@ -196,7 +209,7 @@
 				</scroll-view>
 				<view class="popup-btns">
 					<u-button @click="closeFormDialog">取消</u-button>
-					<u-button type="primary" @click="submitForm" :loading="submitting">保存</u-button>
+					<u-button type="primary" @click="submitForm">保存</u-button>
 				</view>
 			</view>
 		</u-popup>
@@ -210,11 +223,14 @@
 <script>
 	import uInputSelectVue from '@/components/u-input-select/u-input-select.vue';
 	import FilePreviewDialog from '@/components/file-preview-dialog/file-preview-dialog.vue';
+	// ===== 新增引入身份证上传组件 =====
+	import RboyUploadSfz from '@/components/Rboy-upload-sfz/Rboy-upload-sfz.vue';
 
 	export default {
 		components: {
 			uInputSelectVue,
-			FilePreviewDialog
+			FilePreviewDialog,
+			RboyUploadSfz // 新增注册
 		},
 		data() {
 			return {
@@ -225,6 +241,7 @@
 					}
 				},
 				searchMobile: '',
+				company_id: '',
 				list: [],
 				loading: false,
 				refreshing: false,
@@ -253,6 +270,7 @@
 					no_crime: 2,
 					employee_name: '',
 					card: '',
+					company_id: '',
 					openid: '',
 					mobile: '',
 					gender: 1,
@@ -272,7 +290,12 @@
 					emergency_mobile: '',
 					comment: '',
 					avatar: '',
-					file_attachments: []
+					file_attachments: [],
+					// ===== 新增：身份证正反面 =====
+					id_card_front: '',
+					id_card_back: '',
+					expected_salary: '', // 期望薪资
+					internal_name: '', // 介绍人
 				},
 				formRules: {
 					employee_name: {
@@ -289,6 +312,11 @@
 							trigger: 'blur'
 						}
 					],
+					// ===== 新增：身份证正面校验（仅做必填提示，真正的拦截在 submitForm 里） =====
+					id_card_front: {
+						required: true,
+						message: '请上传身份证正面'
+					},
 					mobile: [{
 							required: true,
 							message: '请输入手机号'
@@ -342,7 +370,6 @@
 						message: '请选择无犯罪证明'
 					}
 				},
-				submitting: false,
 				avatarFileList: [], // 头像文件列表（uni-file-picker 用）
 				attachFiles: [], // 证明文件列表
 				selectVisible: {
@@ -374,8 +401,9 @@
 				}
 			};
 		},
-		async onLoad() {
-			await Promise.all([this.loadOptions(), this.loadList(true)])
+		async onLoad(options) {
+			this.company_id = uni.getStorageSync('company_id') || '';
+			await Promise.all([this.loadOptions(), this.loadList(true)]);
 		},
 		onReady() {
 			this.$refs.entryForm.setRules(this.formRules);
@@ -439,7 +467,7 @@
 				this.selectVisible[fieldKey] = false;
 			},
 			async loadList(reset = true) {
-				const userCenter = await vk.userCenter.code2SessionWeixin();
+				const userCenter = await vk.userCenter.code2SessionWeixin({needLogin: false});
 				this.formData.openid = userCenter.openid;
 				if (reset) this.pagination.pageIndex = 1;
 				if (reset && !this.loading) this.loading = true;
@@ -498,7 +526,7 @@
 				return vk.pubfn.timeFormat(ts, fmt);
 			},
 			async onCardBlur() {
-				const userCenter = await vk.userCenter.code2SessionWeixin();
+				const userCenter = await vk.userCenter.code2SessionWeixin({needLogin: false});
 				this.formData.openid = userCenter.openid;
 				this.formData.card = this.formData.card.toLocaleUpperCase();
 				const res = vk.myfn.test1(this.formData.card);
@@ -532,13 +560,14 @@
 				}
 			},
 			addEntry() {
-				this.formDialog.title = '新建入职登记';
+				this.formDialog.title = '新建入职申请';
 				this.formData = {
 					stay: 1,
 					marital_status: 2,
 					no_crime: 2,
 					employee_name: '',
 					card: '',
+					company_id: this.company_id,
 					openid: '',
 					mobile: '',
 					gender: 1,
@@ -558,7 +587,12 @@
 					emergency_mobile: '',
 					comment: '',
 					avatar: '',
-					file_attachments: []
+					file_attachments: [],
+					// ===== 新增：重置身份证字段 =====
+					id_card_front: '',
+					id_card_back: '',
+					expected_salary: '',
+					internal_name: '',
 				};
 				this.avatarFileList = [];
 				this.attachFiles = [];
@@ -568,8 +602,13 @@
 				});
 			},
 			editEntry(item) {
-				this.formDialog.title = '编辑入职登记';
+				this.formDialog.title = '编辑入职申请';
 				this.formData = JSON.parse(JSON.stringify(item));
+				this.formData.company_id = this.company_id || this.formData.company_id;
+				// ===== 兜底：旧数据可能没有这两个字段 =====
+				if (!this.formData.id_card_front) this.formData.id_card_front = '';
+				if (!this.formData.id_card_back) this.formData.id_card_back = '';
+
 				const bank = this.bankOptions.find(b => b.value == this.formData.bank_id);
 				this.formData.bank_id_label = bank ? bank.label : this.formData.bank_id;
 				const edu = this.eduOptions.find(e => e.value == this.formData.educational_id);
@@ -602,12 +641,30 @@
 			async submitForm() {
 				this.$refs.entryForm.validate(async valid => {
 					if (!valid) return;
-					this.submitting = true;
+
+					// ===== 新增：身份证正反面手动校验（u-form 对自定义组件不自动拦截） =====
+					if (!this.formData.id_card_front) {
+						uni.showToast({
+							title: '请上传身份证正面',
+							icon: 'none'
+						});
+						return;
+					}
+					if (!this.formData.id_card_back) {
+						uni.showToast({
+							title: '请上传身份证反面',
+							icon: 'none'
+						});
+						return;
+					}
+
 					const action = this.formData._id ? 'admin/hrm/entry-forms/pub/update' :
 						'admin/hrm/entry-forms/pub/add';
 					const data = {
 						...this.formData
 					};
+					// 期望薪资 int 类型，转成数字
+					data.expected_salary = data.expected_salary ? Number(data.expected_salary) : null;
 					// 处理证明文件
 					data.file_attachments = this.attachFiles.map(f => f.url);
 					// 处理头像
@@ -617,11 +674,12 @@
 					delete data.educational_id_label;
 					delete data._add_time;
 					delete data._update_time;
+
 					const res = await vk.callFunction({
+						title: '请求中...',
 						url: action,
 						data
 					});
-					this.submitting = false;
 					if (res.code === 0) {
 						uni.showToast({
 							title: '保存成功',
@@ -685,21 +743,17 @@
 						mask: true
 					});
 
-					// 遍历所有选中的文件进行上传
 					for (let i = 0; i < e.tempFilePaths.length; i++) {
 						const tempFilePath = e.tempFilePaths[i];
 
-						// 获取文件信息
 						const fileInfo = e.tempFiles[i] || {};
 						const fileName = fileInfo.name || this.getFileNameFromPath(tempFilePath);
 						const fileSize = fileInfo.size || 0;
 
-						// 构建云存储路径
 						const timestamp = Date.now();
 						const random = Math.floor(Math.random() * 10000);
 						const ext = fileName.split('.').pop() || 'file';
 
-						// 根据文件类型选择不同的目录
 						let dirPath;
 						if (fileType === 'avatar') {
 							dirPath = `public${this.avatarDir}`;
@@ -709,7 +763,6 @@
 
 						const cloudPath = `${dirPath}/${timestamp}_${random}.${ext}`;
 
-						// 1. 获取上传参数
 						const uploadOptionsRes = await vk.callFunction({
 							url: 'common/pub/getUploadFileOptions/index',
 							data: {
@@ -723,7 +776,6 @@
 
 						const uploadOptions = uploadOptionsRes.rows;
 
-						// 2. 使用 uni.uploadFile 上传到七牛云
 						const uploadResult = await new Promise((resolve, reject) => {
 							uni.uploadFile({
 								...uploadOptions.uploadFileOptions,
@@ -740,12 +792,9 @@
 							});
 						});
 
-						// 3. 构建文件信息
 						const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
 
-						// 4. 根据文件类型添加到对应的数据中
 						if (fileType === 'avatar') {
-							// 头像：只保留一个
 							const avatarItem = {
 								name: fileName,
 								size: fileSize,
@@ -759,7 +808,6 @@
 							this.avatarFileList = [avatarItem];
 							this.formData.avatar = fileUrl;
 						} else {
-							// 证明文件：添加到列表
 							const attachItem = {
 								name: fileName,
 								size: fileSize,
@@ -791,6 +839,117 @@
 				}
 			},
 
+			// ==================== 新增：身份证正反面上传 ====================
+			/**
+			 * RboyUploadSfz 选择图片后触发
+			 * e: { msg, name: 'obverse' | 'reverse', tempFilePath, tempFile }
+			 */
+			async onIdCardSelect(e) {
+				const {
+					name,
+					tempFilePath,
+					tempFile
+				} = e;
+				if (!tempFilePath) return;
+
+				try {
+					uni.showLoading({
+						title: '上传中...',
+						mask: true
+					});
+
+					const fileName = tempFile?.name || this.getFileNameFromPath(tempFilePath);
+					const ext = fileName.split('.').pop() || 'png';
+					const timestamp = Date.now();
+					const random = Math.floor(Math.random() * 10000);
+
+					// 身份证专用目录
+					const dirPath = 'public/entry-forms/idcard';
+					const cloudPath = `${dirPath}/${timestamp}_${random}.${ext}`;
+
+					// 1. 获取上传参数
+					const uploadOptionsRes = await vk.callFunction({
+						url: 'common/pub/getUploadFileOptions/index',
+						data: {
+							cloudPath
+						}
+					});
+					if (uploadOptionsRes.code !== 0) {
+						throw new Error(uploadOptionsRes.msg || '获取上传参数失败');
+					}
+
+					// 2. 上传到七牛云
+					await new Promise((resolve, reject) => {
+						uni.uploadFile({
+							...uploadOptionsRes.rows.uploadFileOptions,
+							filePath: tempFilePath,
+							name: 'file',
+							success: (res) => {
+								if (res.statusCode === 200) resolve(res);
+								else reject(new Error(`上传失败: ${res.statusCode}`));
+							},
+							fail: reject
+						});
+					});
+
+					const fileUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
+
+					// 3. 回填到对应字段
+					if (name === 'obverse') {
+						this.formData.id_card_front = fileUrl;
+					} else {
+						this.formData.id_card_back = fileUrl;
+					}
+
+					uni.hideLoading();
+					uni.showToast({
+						title: '上传成功',
+						icon: 'success'
+					});
+				} catch (error) {
+					uni.hideLoading();
+					console.error('身份证上传失败:', error);
+					uni.showToast({
+						title: '上传失败',
+						icon: 'none'
+					});
+				}
+			},
+
+			/**
+			 * RboyUploadSfz 点击删除按钮后触发
+			 * e: { name: 'obverse' | 'reverse' }
+			 */
+			async onIdCardDel(e) {
+				const {
+					name
+				} = e;
+				const url = name === 'obverse' ? this.formData.id_card_front : this.formData.id_card_back;
+
+				// 先清空本地展示
+				if (name === 'obverse') {
+					this.formData.id_card_front = '';
+				} else {
+					this.formData.id_card_back = '';
+				}
+
+				// 再删云端文件（失败不影响交互）
+				if (url) {
+					try {
+						await vk.myfn.deleteFile({
+							url
+						});
+					} catch (err) {
+						console.error('删除云文件失败:', err);
+					}
+				}
+				uni.showToast({
+					title: '删除成功',
+					icon: 'success'
+				});
+			},
+			// ==============================================================
+
 			getFileNameFromPath(filePath) {
 				if (!filePath) return '未命名文件';
 				const parts = filePath.split('/');
@@ -809,7 +968,6 @@
 			},
 
 			onAttachInput(val) {
-				// 如果 val 是临时路径，忽略更新
 				if (Array.isArray(val) && val.length > 0) {
 					const hasTempPath = val.some(file =>
 						file.url && (file.url.startsWith('http://tmp/') || file.url.startsWith('blob:'))
@@ -819,14 +977,12 @@
 						return;
 					}
 				}
-				// 正常更新
 				this.attachFiles = val;
 			},
 
 			// ========== 证明文件删除 ==========
 			async onAttachRemove(e) {
 				try {
-					// 直接从 attachFiles 中获取要删除的文件
 					const index = e.index;
 					const fileToDelete = this.attachFiles[index];
 
@@ -837,7 +993,6 @@
 						console.log('删除云文件:', fileToDelete.url);
 					}
 
-					// 手动从列表中移除
 					if (index !== undefined && index >= 0 && index < this.attachFiles.length) {
 						this.attachFiles.splice(index, 1);
 					}
@@ -1100,7 +1255,37 @@
 			padding: 30rpx 0;
 			justify-content: flex-end;
 		}
+
+		.readonly-text {
+			font-size: 28rpx;
+			color: #1a1e25;
+		}
 	}
+
+	/* ==================== 新增：身份证上传容器 ==================== */
+	.idcard-upload {
+		width: 90%;
+
+		/* 两个卡片横排，宽度不够自动换行 */
+		::v-deep .Rboy-box {
+			flex-wrap: wrap;
+			// justify-content: flex-start;
+			gap: 20rpx;
+		}
+
+		/* 组件内部写死了 345rpx，窄屏下收缩到 320rpx，避免溢出 */
+		::v-deep .Rboy-obverse,
+		::v-deep .Rboy-reverse {
+			width: 100% !important;
+		}
+
+		::v-deep .obverseimg,
+		::v-deep .reverseimg {
+			width: 100% !important;
+		}
+	}
+
+	/* ============================================================== */
 
 	/* 文件上传相关样式 - 修复文件名超出屏幕问题 */
 	.file-upload-container {

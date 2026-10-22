@@ -129,14 +129,7 @@ module.exports = {
 					foreignKey: "insurance_id",
 					as: "insurances",
 					limit: 1
-				},
-				{
-					dbName: "hrm-employees",
-					localKey: "internal_id",
-					foreignKey: "employee_id",
-					as: "internals",
-					limit: 1
-				},
+				},				
 				{
 					dbName: "hrm-salary-clothes",
 					localKey: "employee_id",

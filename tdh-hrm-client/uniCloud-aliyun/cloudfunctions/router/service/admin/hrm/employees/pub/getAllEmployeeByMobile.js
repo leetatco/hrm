@@ -1,7 +1,7 @@
 module.exports = {
 	/**
 	 * 查询多条记录（全量，突破1000条限制）并去重
-	 * @url admin/hrm/attendance/sys/approve/getList 前端调用的url参数地址
+	 * @url admin/hrm/employees/pub/getAllEmployeeByMobile 前端调用的url参数地址
 	 */
 	main: async (event) => {
 		let {
@@ -105,14 +105,7 @@ module.exports = {
 				foreignKey: "insurance_id",
 				as: "insurances",
 				limit: 1
-			},
-			{
-				dbName: "hrm-employees",
-				localKey: "internal_id",
-				foreignKey: "employee_id",
-				as: "internals",
-				limit: 1
-			},
+			},			
 			{
 				dbName: "hrm-salary-clothes",
 				localKey: "employee_id",

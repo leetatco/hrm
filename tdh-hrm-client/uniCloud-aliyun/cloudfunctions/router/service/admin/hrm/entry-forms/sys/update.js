@@ -40,6 +40,7 @@ module.exports = {
 			educational_id,
 			stay,
 			card,
+			company_id,
 			openid,
 			gender,
 			birth_date,
@@ -53,6 +54,13 @@ module.exports = {
 			no_crime,
 			comment,
 			avatar,
+			id_card_front,
+			id_card_back,
+			expected_salary,
+			internal_name,
+			interviewer_name,
+			salary_name,
+			probation_period,
 			file_attachments
 		} = data;
 		let dbName = 'hrm-entry-forms'; // 表名
@@ -70,7 +78,7 @@ module.exports = {
 				{
 					mobile: mobile,
 				},
-			]);
+			])
 		});
 		if (checkRes) {
 			if (_id !== checkRes._id)
@@ -81,6 +89,9 @@ module.exports = {
 				}
 		}
 		// 参数验证结束		
+
+		console.log("data:", data)
+
 		// 执行 数据库 updateById 命令
 		await vk.baseDao.updateById({
 			dbName,
@@ -95,6 +106,7 @@ module.exports = {
 				educational_id,
 				stay,
 				card,
+				company_id,
 				openid,
 				gender,
 				birth_date,
@@ -108,6 +120,13 @@ module.exports = {
 				no_crime,
 				comment,
 				avatar,
+				id_card_front,
+				id_card_back,
+				expected_salary,
+				internal_name,
+				interviewer_name,
+				salary_name,
+				probation_period,
 				file_attachments,
 				update_id: uid,
 				update_date: new Date().getTime()

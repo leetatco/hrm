@@ -32,6 +32,48 @@ pubFun.decrypt = (ciphertext) => {
 	let originalText = bytes.toString(CryptoJS.enc.Utf8);
 	return originalText;
 }
+
+pubFun.clockTimeToTimestamp = (clockTime) => {
+	if (!clockTime) return 0;
+	const str = clockTime.replace(/\+/g, ' ').trim(); // "2026-10-06 07:56"
+	// 拆成 [2026,10,06] 和 [07,56]
+	const [datePart, timePart = '00:00'] = str.split(' ');
+	const [y, m, d] = datePart.split('-').map(Number);
+	const [hh, mm, ss = 0] = timePart.split(':').map(Number);
+	// 注意月份从 0 开始
+	return new Date(y, m - 1, d, hh, mm, ss).getTime();
+}
+
+pubFun.formatJobNumber = (jobNumber) => {
+	if (!jobNumber) return '';
+	// 用正则拆出「字母部分」和「数字部分」
+	const match = jobNumber.match(/^([a-zA-Z]*)(\d+)$/);
+	if (!match) return jobNumber; // 不匹配则原样返回
+	const letters = match[1]; // "test"
+	const numbers = match[2]; // "00002"
+	// 取字母最后一个字符 + "-" + 数字
+	return letters + '-' + numbers; // "test-00002"
+}
+
+/**
+ * 日期字符串转毫秒时间戳
+ * @param {String} dateStr - 格式 "YYYY-MM-DD"
+ * @param {Boolean} isEnd - true 取当天 23:59:59，false 取当天 00:00:00
+ * @returns {Number} 毫秒时间戳
+ */
+pubFun.dateToTimestamp = (dateStr, isEnd = false) => {
+	const [y, m, d] = dateStr.split('-').map(Number);
+	const date = new Date(
+		y,
+		m - 1,
+		d,
+		isEnd ? 23 : 0,
+		isEnd ? 59 : 0,
+		isEnd ? 59 : 0
+	);
+	return date.getTime();
+}
+
 pubFun.createPool = async () => {
 	const con = await mysql.createPool({
 		host: '113.90.145.57', // 从环境变量读取
@@ -64,7 +106,7 @@ pubFun.getRoleCompanys = async (userInfo, vk, _) => {
 		getMain: true
 	});
 
-	if (filterDetails && filterDetails[0].roles && filterDetails[0].paths) {		
+	if (filterDetails && filterDetails[0].roles && filterDetails[0].paths) {
 		systemAdminRoles = filterDetails[0].roles;
 	}
 

@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "vk-pay-orders-vk-data-table-button1": "/pages_plugs/system_uni/vk-pay-orders-vk-data-table-button1"
+  }
+}

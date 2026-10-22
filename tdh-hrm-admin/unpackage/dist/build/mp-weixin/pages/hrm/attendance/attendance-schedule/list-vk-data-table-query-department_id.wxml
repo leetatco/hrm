@@ -1,0 +1,1 @@
+<vk-data-input-tree-select vue-id="e07954ba-3" localdata="{{departments}}" placeholder="请选择" value="{{form.department_id}}" data-event-opts="{{[['^change',[['toDepartment']]],['^input',[['__set_model',['$0','department_id','$event',[]],['form']]]]]}}" bind:change="__e" bind:input="__e" class="data-v-043d73d2" bind:__l="__l"></vk-data-input-tree-select>

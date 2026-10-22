@@ -47,7 +47,7 @@ module.exports = {
 			dbName,
 			whereJson: {
 				card: _.in(cards),
-				attendance_ym_key: _.in(keys)
+				attendance_ym: _.in(keys)
 			}
 		})
 		// 业务逻辑结束-----------------------------------------------------------

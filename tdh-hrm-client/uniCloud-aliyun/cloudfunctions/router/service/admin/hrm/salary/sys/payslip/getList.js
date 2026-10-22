@@ -28,6 +28,7 @@ module.exports = {
 		} = util;
 		let {
 			uid,
+			company_ids = [],
 			otherWhereJson,
 			filterWhereJson
 		} = data;
@@ -36,12 +37,23 @@ module.exports = {
 			msg: ''
 		};
 
+		//是否需要过滤公司别
+		let whereJson = {};
+		let lastWhereJson = {};
+		if (company_ids.length > 0) {
+			whereJson = {
+				...(filterWhereJson || {}),
+				...(otherWhereJson || {})
+			};
+			lastWhereJson = {
+				'employees.company_id': _.in(company_ids)
+			};
+		}
+
 		let dbName = "hrm-salary-payslip";
 		let pageSize = data.pageSize !== undefined ? data.pageSize : 10;
-		const whereJson = {
-			...(filterWhereJson || {}),
-			...(otherWhereJson || {})
-		};
+		
+		console.log("whereJson:", whereJson, lastWhereJson);
 
 		// 当 pageSize 为 -1 或大于 1000 时，自动循环分页取全部数据
 		if (pageSize === -1 || pageSize > 1000) {
@@ -53,7 +65,6 @@ module.exports = {
 			while (hasMore) {
 				let pageRes = await vk.baseDao.getTableData({
 					dbName,
-					whereJson,
 					data: {
 						...data,
 						pageIndex: currentPage,
@@ -81,6 +92,7 @@ module.exports = {
 						as: "users",
 						limit: 1
 					}],
+					lastWhereJson,
 					getCount: false // 循环查询不需要 count，提升性能
 				});
 
@@ -110,8 +122,7 @@ module.exports = {
 		} else {
 			// 正常分页查询（1000条以内，保持原有逻辑）
 			res = await vk.baseDao.getTableData({
-				dbName,
-				whereJson,
+				dbName,				
 				data,
 				sortArr: [{
 						name: "attendance_ym",
@@ -134,7 +145,8 @@ module.exports = {
 					foreignKey: "_id",
 					as: "users",
 					limit: 1
-				}]
+				}],
+				lastWhereJson
 			});
 		}
 

@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "list-el-table-column-default": "/pages/hrm/attendance/daily/list-el-table-column-default",
+    "list-el-table-column-default1": "/pages/hrm/attendance/daily/list-el-table-column-default1",
+    "list-el-table-column-default2": "/pages/hrm/attendance/daily/list-el-table-column-default2",
+    "list-el-table-column-default3": "/pages/hrm/attendance/daily/list-el-table-column-default3",
+    "attendance-seal": "/components/attendance-seal/index"
+  }
+}

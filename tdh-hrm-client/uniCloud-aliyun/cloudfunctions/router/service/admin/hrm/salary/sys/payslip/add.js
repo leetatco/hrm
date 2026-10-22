@@ -112,7 +112,7 @@ module.exports = {
 		let checkRes = await vk.baseDao.findByWhereJson({
 			dbName,
 			whereJson: {
-				attendance_ym_key,
+				attendance_ym,
 				employee_id
 			}
 		});
@@ -127,8 +127,7 @@ module.exports = {
 		res.id = await vk.baseDao.add({
 			dbName,
 			dataJson: {
-				attendance_ym,
-				attendance_ym_key,
+				attendance_ym,				
 				resign_month,
 				employee_id,
 				total_salary,

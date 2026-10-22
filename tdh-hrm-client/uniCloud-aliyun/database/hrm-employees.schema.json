@@ -232,11 +232,28 @@
 			"description": "紧急联系人电话",
 			"trim": "both"
 		},
-		"internal_id": {
+		"internal_name": {
 			"bsonType": "string",
-			"title": "内部介绍人",
-			"foreignKey": "hr-employees.employee_id",
-			"description": "内部介绍人",
+			"title": "介绍人",			
+			"description": "介绍人",
+			"trim": "both"
+		},
+		"interviewer_name": {
+			"bsonType": "string",
+			"title": "面试人",			
+			"description": "面试人",
+			"trim": "both"
+		},
+		"salary_name": {
+			"bsonType": "string",
+			"title": "定薪人",			
+			"description": "定薪人",
+			"trim": "both"
+		},
+		"probation_period": {
+			"bsonType": "string",
+			"title": "试用期",			
+			"description": "试用期",
 			"trim": "both"
 		},
 		"handover_person_id": {
@@ -343,9 +360,9 @@
 			]
 		},
 		"expected_salary": {
-			"title": "意向工资",
+			"title": "期望薪资",
 			"bsonType": "int",
-			"description": "意向工资"
+			"description": "期望薪资"
 		},
 		"update_date": {
 			"title": "更新时间",

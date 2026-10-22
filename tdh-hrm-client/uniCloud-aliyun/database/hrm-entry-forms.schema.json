@@ -81,10 +81,28 @@
 				"value": 2
 			}]
 		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",			
+			"description": "所属公司",
+			"trim": "both"
+		},
 		"card": {
 			"bsonType": "string",
 			"title": "身份证号码",
 			"description": "身份证号码",
+			"trim": "both"
+		},
+		"id_card_front": {
+			"bsonType": "string",
+			"title": "身份证正面",
+			"description": "身份证正面",
+			"trim": "both"
+		},
+		"id_card_back": {
+			"bsonType": "string",
+			"title": "身份证反面",
+			"description": "身份证反面",
 			"trim": "both"
 		},
 		"birth_date": {
@@ -112,6 +130,17 @@
 			"bsonType": "string",
 			"title": "户口所在地",
 			"description": "户口所在地",
+			"trim": "both"
+		},
+		"expected_salary": {
+			"title": "期望薪资",
+			"bsonType": "int",
+			"description": "期望薪资"
+		},
+		"internal_name": {
+			"bsonType": "string",
+			"title": "介绍人",			
+			"description": "介绍人",
 			"trim": "both"
 		},
 		"emergency_contact": {

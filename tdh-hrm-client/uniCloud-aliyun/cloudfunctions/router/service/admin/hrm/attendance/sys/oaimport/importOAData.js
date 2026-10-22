@@ -395,10 +395,16 @@ async function handleLeave(app, util, uid) {
 }
 
 // ==================== 加班单（口径A：上限约束原始时长，系数只用于换算） ====================
+// ==================== 加班单（按打卡实际时长计算） ====================
 async function handleOvertime(app, util, uid) {
-	const { vk, db } = util;
+	const {
+		vk,
+		db,
+		_
+	} = util;
 	const formData = app.form_data;
 	const employeeId = app.applicant_id;
+	const departmentId = app.form_data.employeeInfo.department_id;
 
 	if (!formData || !Array.isArray(formData.items) || formData.items.length === 0) {
 		throw new Error('加班明细不能为空');
@@ -407,15 +413,29 @@ async function handleOvertime(app, util, uid) {
 	// ========== 1. 获取考勤组及绑定的加班规则、打卡规则 ==========
 	const groupRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-group',
-		whereJson: { employee_ids: employeeId, status: true },
+		whereJson: _.and([
+		  {
+		    status: true,
+		  },
+		  _.or([
+		    {
+		      department_ids: departmentId,
+		    },
+		    {
+		      employee_ids: employeeId,
+		    },
+		  ]),
+		]),
 		limit: 1
 	});
 
 	let overtimeRule = null;
-	let punchRule = null;
+	let punchRule = null;	
 
 	if (groupRes.rows.length > 0) {
 		const group = groupRes.rows[0];
+
+		console.log("group:", group);
 
 		if (group.overtime_rule_id) {
 			const ruleRes = await vk.baseDao.findById({
@@ -424,6 +444,8 @@ async function handleOvertime(app, util, uid) {
 			});
 			if (ruleRes && ruleRes.status) overtimeRule = ruleRes;
 		}
+
+		console.log("overtimeRule:", overtimeRule);
 
 		if (group.punch_rule_id) {
 			const punchRes = await vk.baseDao.findById({
@@ -441,11 +463,25 @@ async function handleOvertime(app, util, uid) {
 	const weekendRatio = overtimeRule.weekend_overtime_ratio || 2.0;
 	const holidayRatio = overtimeRule.holiday_overtime_ratio || 3.0;
 
-	// 每日/每月上限（小时 -> 分钟），口径A：约束原始加班时长
+	// 每日/每月上限（小时 -> 分钟）
 	const maxDailyMinutes = (overtimeRule.max_daily_overtime || 0) * 60;
 	const maxMonthlyMinutes = (overtimeRule.max_monthly_overtime || 0) * 60;
 
-	const { inBefore, inAfter, outBefore, outAfter } = getPunchWindow(punchRule);
+	const {
+		inBefore,
+		inAfter,
+		outBefore,
+		outAfter
+	} = getPunchWindow(punchRule);
+	const windowConfig = {
+		inBefore,
+		inAfter,
+		outBefore,
+		outAfter
+	};
+
+	// ★ 用于缓存每天的打卡记录，避免第 3 步重复查库
+	const dayPunchMap = new Map();
 
 	// ========== 2. 缺卡校验 ==========
 	const missingErrors = [];
@@ -464,7 +500,10 @@ async function handleOvertime(app, util, uid) {
 				type: '公司卡',
 				clockintime: db.command.gte(dayStartTs).and(db.command.lte(dayEndTs))
 			},
-			sortArr: [{ name: 'clockintime', type: 'asc' }]
+			sortArr: [{
+				name: 'clockintime',
+				type: 'asc'
+			}]
 		});
 
 		const remedyRes = await vk.baseDao.selects({
@@ -487,6 +526,11 @@ async function handleOvertime(app, util, uid) {
 			if (!fd || !fd.miss_time) return;
 			if (!punchTimes.includes(fd.miss_time)) punchTimes.push(fd.miss_time);
 		});
+		// 重新排序，确保时间是顺序的
+		punchTimes.sort((a, b) => toMinutes(a) - toMinutes(b));
+
+		// ★ 缓存起来，供第 3 步计算时长使用
+		dayPunchMap.set(overtimeDate, punchTimes);
 
 		console.log(`[加班缺卡校验] ${overtimeDate} 打卡合并后=${punchTimes.join(',')}`);
 
@@ -528,30 +572,55 @@ async function handleOvertime(app, util, uid) {
 		throw new Error(`加班汇入失败：${missingErrors.join('；')}`);
 	}
 
-	// ========== 3. 计算加班明细（口径A：日上限约束原始时长，系数仅记录） ==========
+	// ========== 3. 计算加班明细（按实际打卡与申请时段的交集计算） ==========
+	// ========== 3. 计算加班明细（按实际打卡与申请时段的交集计算） ==========
 	const records = [];
+
+	console.log(`[handleOvertime] 开始计算，共 ${formData.items.length} 条明细，员工=${employeeId}`);
 
 	for (const item of formData.items) {
 		const overtimeDate = item.overtime_date;
-		if (!overtimeDate) continue;
+		if (!overtimeDate) {
+			console.log(`[handleOvertime] 跳过：无 overtime_date`);
+			continue;
+		}
 
 		const overtimeDateTimestamp = new Date(overtimeDate).getTime();
+		const punchTimes = dayPunchMap.get(overtimeDate) || [];
+
+		console.log(
+			`[handleOvertime] 日期=${overtimeDate} 打卡=[${punchTimes.join(',')}] 上午=${JSON.stringify(item.morning_range)} 下午=${JSON.stringify(item.afternoon_range)}`
+		);
 
 		let totalMinutes = 0;
-		if (item.morning_range && Array.isArray(item.morning_range) && item.morning_range.length === 2) {
-			totalMinutes += calcMinutesBetween(item.morning_range[0], item.morning_range[1]);
+		let morningMin = 0;
+		let afternoonMin = 0;
+
+		if (item.morning_range) {
+			morningMin = calcActualRangeMinutes(punchTimes, item.morning_range, windowConfig);
+			totalMinutes += morningMin;
 		}
-		if (item.afternoon_range && Array.isArray(item.afternoon_range) && item.afternoon_range.length === 2) {
-			totalMinutes += calcMinutesBetween(item.afternoon_range[0], item.afternoon_range[1]);
+		if (item.afternoon_range) {
+			afternoonMin = calcActualRangeMinutes(punchTimes, item.afternoon_range, windowConfig);
+			totalMinutes += afternoonMin;
 		}
 
-		if (totalMinutes <= 0) continue;
+		console.log(
+			`[handleOvertime] ${overtimeDate} 上午=${morningMin}min 下午=${afternoonMin}min 合计=${totalMinutes}min`);
 
-		// 最小单位取整
+		if (totalMinutes <= 0) {
+			console.log(`[handleOvertime] ${overtimeDate} 时长为0，跳过`);
+			continue;
+		}
+
 		const minUnitMinutes = overtimeRule.min_calculate_unit || 30;
+		const beforeRound = totalMinutes;
 		totalMinutes = Math.ceil(totalMinutes / minUnitMinutes) * minUnitMinutes;
+		console.log(
+			`[handleOvertime] ${overtimeDate} 取整前=${beforeRound}min 单位=${minUnitMinutes}min 取整后=${totalMinutes}min`
+		);
 
-		// ===== 每日上限校验（口径A：用原始分钟数判断，不用系数） =====
+		// ===== 每日上限校验 =====
 		if (maxDailyMinutes > 0) {
 			const dayStartTs = new Date(overtimeDate + 'T00:00:00').getTime();
 			const dayEndTs = new Date(overtimeDate + 'T23:59:59.999').getTime();
@@ -565,32 +634,36 @@ async function handleOvertime(app, util, uid) {
 			});
 			const existDailyMinutes = existDailyRes.rows.reduce((sum, r) => sum + (r.total_minutes || 0), 0);
 
+			console.log(
+				`[handleOvertime] ${overtimeDate} 已有日累计=${existDailyMinutes}min 日上限=${maxDailyMinutes}min 本次=${totalMinutes}min`
+			);
+
 			if (existDailyMinutes + totalMinutes > maxDailyMinutes) {
 				const allowed = Math.max(0, maxDailyMinutes - existDailyMinutes);
 				if (allowed <= 0) {
-					console.log(`[加班超日上限] ${employeeId} ${overtimeDate} 已加班${existDailyMinutes}分钟，日上限${maxDailyMinutes}分钟，跳过`);
+					console.log(`[handleOvertime] ${overtimeDate} 超日上限且无剩余额度，跳过`);
 					continue;
 				}
-				console.log(`[加班截断] ${employeeId} ${overtimeDate} 日上限${maxDailyMinutes}分钟，原始${totalMinutes}分钟截断为${allowed}分钟`);
+				console.log(`[handleOvertime] ${overtimeDate} 超日上限，截断 ${totalMinutes} -> ${allowed}min`);
 				totalMinutes = allowed;
 			}
 		}
-		// =====================================================
 
-		// ===== 判断当天日期类型，取加班系数（仅记录，不参与上限判断） =====
 		const dayType = await getDayType(util, overtimeDate);
 		let overtimeRatio = weekdayRatio;
 		if (dayType === 2) overtimeRatio = weekendRatio;
 		else if (dayType === 3) overtimeRatio = holidayRatio;
 
+		console.log(`[handleOvertime] ${overtimeDate} dayType=${dayType} ratio=${overtimeRatio}`);
+
 		records.push({
 			employee_id: employeeId,
 			oa_instance_id: app._id,
 			overtime_date: overtimeDateTimestamp,
-			total_minutes: totalMinutes,        // 原始加班分钟数（已受日上限约束）
+			total_minutes: totalMinutes,
 			overtime_type: formData.overtime_type || 'paid',
-			overtime_ratio: overtimeRatio,      // 加班系数，仅用于换算
-			day_type: dayType,                  // 1=工作日, 2=休息日, 3=节假日
+			overtime_ratio: overtimeRatio,
+			day_type: dayType,
 			morning_range: item.morning_range,
 			afternoon_range: item.afternoon_range,
 			import_status: 1,
@@ -599,11 +672,18 @@ async function handleOvertime(app, util, uid) {
 		});
 	}
 
+	console.log(
+		`[handleOvertime] 计算完成，records=${records.length} 条，明细=${JSON.stringify(records.map(r => ({ date: new Date(r.overtime_date).toISOString().slice(0,10), minutes: r.total_minutes })))}`
+	);
+	console.log(
+		`[handleOvertime] 本次总分钟=${records.reduce((s, r) => s + r.total_minutes, 0)}min (${formatMinutes(records.reduce((s, r) => s + r.total_minutes, 0))})`
+	);
+
 	if (records.length === 0) {
 		throw new Error('加班时长为0或已超过每日加班上限');
 	}
 
-	// ===== 每月上限校验（口径A：用原始分钟数判断，不用系数） =====
+	// ===== 每月上限校验 =====
 	if (maxMonthlyMinutes > 0) {
 		const months = new Set(records.map(r => {
 			const d = new Date(r.overtime_date);
@@ -633,10 +713,11 @@ async function handleOvertime(app, util, uid) {
 
 			if (existMonthlyMinutes + thisMonthMinutes > maxMonthlyMinutes) {
 				const allowed = Math.max(0, maxMonthlyMinutes - existMonthlyMinutes);
-				console.log(`[加班超月上限] ${employeeId} ${monthStr} 已加班${existMonthlyMinutes}分钟，月上限${maxMonthlyMinutes}分钟，本次${thisMonthMinutes}分钟，允许${allowed}分钟`);
+				console.log(
+					`[加班超月上限] ${employeeId} ${monthStr} 已加班${existMonthlyMinutes}分钟，月上限${maxMonthlyMinutes}分钟，本次${thisMonthMinutes}分钟，允许${allowed}分钟`
+				);
 
 				if (allowed <= 0) {
-					// 本月已满，删除该月本次所有记录
 					for (let i = records.length - 1; i >= 0; i--) {
 						const d = new Date(records[i].overtime_date);
 						if (d.getFullYear() === y && (d.getMonth() + 1) === m) {
@@ -644,7 +725,6 @@ async function handleOvertime(app, util, uid) {
 						}
 					}
 				} else {
-					// 从后往前截断该月记录
 					let remaining = allowed;
 					for (let i = records.length - 1; i >= 0; i--) {
 						const d = new Date(records[i].overtime_date);
@@ -661,7 +741,6 @@ async function handleOvertime(app, util, uid) {
 			}
 		}
 	}
-	// ============================================================
 
 	if (records.length === 0) {
 		throw new Error('加班时长已超过每月加班上限');
@@ -673,9 +752,8 @@ async function handleOvertime(app, util, uid) {
 		dataJson: records
 	});
 
-	// ========== 5. 调休类型加班 → 增加调休额度（口径A：先算系数，再换算调休） ==========
+	// ========== 5. 调休类型加班 → 增加调休额度 ==========
 	if (formData.overtime_type === 'compensatory') {
-		// 每条记录按加班系数换算调休分钟数
 		const totalCompMinutes = records.reduce((sum, r) => {
 			return sum + Math.floor(r.total_minutes * (r.overtime_ratio || 1.0));
 		}, 0);
@@ -689,14 +767,91 @@ async function handleOvertime(app, util, uid) {
 	}
 }
 
+/**
+ * 计算实际打卡与申请时段的重合分钟数
+ * @param {Array} punchTimes 当天的所有打卡 HH:mm 数组（已升序）
+ * @param {Array} range 申请时段 ["08:30", "12:00"]
+ * @param {Object} window 打卡规则窗口 { inBefore, inAfter, outBefore, outAfter }
+ * @returns {Number} 实际合规的加班分钟数
+ */
+function calcActualRangeMinutes(punchTimes, range, window) {
+	if (!range || !Array.isArray(range) || range.length !== 2) return 0;
+
+	const segStart = toMinutes(range[0]);
+	const segEnd = toMinutes(range[1]);
+	const {
+		inBefore,
+		inAfter,
+		outBefore,
+		outAfter
+	} = window;
+
+	console.log(
+		`[calcActualRange] 时段=${range[0]}-${range[1]} (${segStart}-${segEnd}min) 打卡=[${punchTimes.join(',')}] 窗口=in[${segStart - inBefore},${segStart + inAfter}] out[${segEnd - outBefore},${segEnd + outAfter}]`
+	);
+
+	let actualIn = null;
+	let minInDiff = Infinity;
+	let actualOut = null;
+	let minOutDiff = Infinity;
+	let inPunch = null;
+	let outPunch = null;
+
+	for (let i = 0; i < punchTimes.length; i++) {
+		const pMin = toMinutes(punchTimes[i]);
+
+		if (pMin >= segStart - inBefore && pMin <= segStart + inAfter) {
+			const diff = Math.abs(pMin - segStart);
+			if (diff < minInDiff) {
+				minInDiff = diff;
+				actualIn = pMin;
+				inPunch = punchTimes[i];
+			}
+		}
+
+		if (pMin >= segEnd - outBefore && pMin <= segEnd + outAfter) {
+			const diff = Math.abs(pMin - segEnd);
+			if (diff < minOutDiff) {
+				minOutDiff = diff;
+				actualOut = pMin;
+				outPunch = punchTimes[i];
+			}
+		}
+	}
+
+	console.log(`[calcActualRange] 命中签到=${inPunch}(${actualIn}) 命中签退=${outPunch}(${actualOut})`);
+
+	if (actualIn === null || actualOut === null) {
+		console.log(`[calcActualRange] 缺签到或签退，返回0`);
+		return 0;
+	}
+
+	if (actualIn >= actualOut) {
+		console.log(`[calcActualRange] 签到>=签退，返回0`);
+		return 0;
+	}
+
+	let actualWorkMinutes = actualOut - actualIn;
+	let planWorkMinutes = segEnd - segStart;
+	const result = Math.min(actualWorkMinutes, planWorkMinutes);
+
+	console.log(`[calcActualRange] 实际打卡时长=${actualWorkMinutes}min 申请时长=${planWorkMinutes}min 取min=${result}min`);
+	return result;
+}
+
 // ==================== 判断日期类型 ====================
 async function getDayType(util, dateStr) {
-	const { vk } = util;
+	const {
+		vk
+	} = util;
 	try {
 		const year = new Date(dateStr).getFullYear();
 		const res = await vk.baseDao.selects({
 			dbName: 'hrm-attendance-calendar',
-			whereJson: { calendar_date: dateStr, year },
+			whereJson: {
+				calendar_date: dateStr,
+				year
+			},
 			limit: 1
 		});
 		if (res.rows.length > 0) {
