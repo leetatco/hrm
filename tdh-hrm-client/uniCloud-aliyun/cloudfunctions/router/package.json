@@ -9,10 +9,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {	
+  "dependencies": {
     "bpmn-js": "^7.3.1",
-    "crypto-js": "^4.2.0",
+    "crypto-js": "^4.2.0",   
     "mysql2": "^3.14.3",
+    "pdf-lib": "^1.17.1",    
     "uni-config-center": "file:../../../uni_modules/uni-config-center/uniCloud/cloudfunctions/common/uni-config-center",
     "uni-id": "file:../../../uni_modules/uni-id/uniCloud/cloudfunctions/common/uni-id",
     "vk-unicloud": "file:../../../uni_modules/vk-unicloud/uniCloud/cloudfunctions/common/vk-unicloud"

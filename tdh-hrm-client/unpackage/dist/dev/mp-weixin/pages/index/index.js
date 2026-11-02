@@ -3,7 +3,7 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = {
   data() {
     return {
-      company_id: "",
+      company_id: "tdh",
       pageLoading: true,
       statusBarHeight: 20,
       popupStyle: {
@@ -97,9 +97,9 @@ const _sfc_main = {
   async onLoad(options) {
     if (options.q) {
       const qrUrl = decodeURIComponent(options.q);
-      this.company_id = vk.myfn.getUrlParam(qrUrl, "company_id") || "";
-      common_vendor.index.setStorageSync("company_id", this.company_id);
+      this.company_id = vk.myfn.getUrlParam(qrUrl, "company_id") || "tdh";
     }
+    common_vendor.index.setStorageSync("company_id", this.company_id);
     const sysInfo = common_vendor.index.getSystemInfoSync();
     this.statusBarHeight = sysInfo.statusBarHeight || 20;
     this.pageLoading = true;
@@ -154,7 +154,7 @@ const _sfc_main = {
           this.payslipList = res.rows;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:335", "加载轮播图失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:334", "加载轮播图失败:", error);
       }
     },
     async loadSwiperList() {
@@ -173,7 +173,7 @@ const _sfc_main = {
           }));
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:354", "加载轮播图失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:353", "加载轮播图失败:", error);
       }
     },
     async loadMenuList() {
@@ -196,7 +196,7 @@ const _sfc_main = {
           }));
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:378", "加载常用功能失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:377", "加载常用功能失败:", error);
       }
     },
     async loadNoticeList() {
@@ -214,7 +214,7 @@ const _sfc_main = {
           this.noticeList = res.rows;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:395", "加载通知失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:394", "加载通知失败:", error);
       }
     },
     async loadUnreadCount() {
@@ -233,18 +233,18 @@ const _sfc_main = {
           this.tabbar[1].count = res.data.count || 0;
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:413", "加载未读数量失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:412", "加载未读数量失败:", error);
       }
     },
     loadUserInfo() {
       try {
         this.userInfo = vk.getVuex("$user.userInfo") || {};
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:420", "加载用户信息失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:419", "加载用户信息失败:", error);
       }
     },
     refreshData() {
-      common_vendor.index.__f__("log", "at pages/index/index.vue:424", "刷新数据");
+      common_vendor.index.__f__("log", "at pages/index/index.vue:423", "刷新数据");
     },
     getColor(index) {
       return this.colorPool[index % this.colorPool.length];

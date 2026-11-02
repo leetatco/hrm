@@ -230,6 +230,20 @@
 			}]
 		},
 		{
+			"root": "pages/contact-sign",
+			"pages": [{
+				"path": "index",
+				"style": {
+					"navigationBarTitleText": "合同列表"
+				}
+			},{
+				"path": "sign",
+				"style": {
+					"navigationBarTitleText": "合同签署"
+				}
+			}]
+		},
+		{
 			"root": "pages_template",
 			"pages": [{
 					"path": "db-test/db-test",

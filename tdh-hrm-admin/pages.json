@@ -203,6 +203,12 @@
 					"path": "contract/list"
 				},
 				{
+					"path": "contract-setting/list"
+				},
+				{
+					"path": "contract-sign/list"
+				},
+				{
 					"path": "insurance/list"
 				},
 				{

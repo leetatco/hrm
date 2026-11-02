@@ -38,6 +38,8 @@ if (!Math) {
   "./pages/clockin/clockin.js";
   "./pages/payslip/index.js";
   "./pages/payslip/sign.js";
+  "./pages/contact-sign/index.js";
+  "./pages/contact-sign/sign.js";
   "./pages_template/db-test/db-test.js";
   "./pages_template/db-test/list/list.js";
   "./pages_template/uni-id/index/index.js";

@@ -29,20 +29,25 @@ module.exports = {
 		let {
 			uid,
 			keyword,
+			company_ids = [],
 			otherWhereJson,
-			filterWhereJson
+			filterWhereJson,
+			lastWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
-		let dbName = "hrm-employees"; // 表名
-		// 业务逻辑开始-----------------------------------------------------------				
+
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
 		const whereJson = {
 			...(filterWhereJson || {}),
 			...(otherWhereJson || {})
 		};
-		let lastWhereJson = {};
+
+		//lastWherJson加条件，在此处理
+		lastWhereJson = {};
 		if (keyword) {
 			lastWhereJson = _.or([{
 					"departments.department_name": new RegExp(keyword)
@@ -56,6 +61,8 @@ module.exports = {
 			])
 		}
 
+		let dbName = "hrm-employees"; // 表名
+		// 业务逻辑开始-----------------------------------------------------------			
 		res = await vk.baseDao.getTableData({
 			dbName,
 			data,
@@ -129,7 +136,7 @@ module.exports = {
 					foreignKey: "insurance_id",
 					as: "insurances",
 					limit: 1
-				},				
+				},
 				{
 					dbName: "hrm-salary-clothes",
 					localKey: "employee_id",

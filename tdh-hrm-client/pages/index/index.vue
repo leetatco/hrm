@@ -176,7 +176,7 @@
 	export default {
 		data() {
 			return {
-				company_id: '',
+				company_id: 'tdh',
 				pageLoading: true,
 				statusBarHeight: 20,
 				popupStyle: {
@@ -271,10 +271,9 @@
 				// 1. 解码获取原始链接
 				const qrUrl = decodeURIComponent(options.q);
 				// 2. 从链接中提取你需要的业务参数
-				this.company_id = vk.myfn.getUrlParam(qrUrl, 'company_id') || '';
-				uni.setStorageSync('company_id', this.company_id);				
+				this.company_id = vk.myfn.getUrlParam(qrUrl, 'company_id') || 'tdh';
 			}
-
+			uni.setStorageSync('company_id', this.company_id);
 			const sysInfo = uni.getSystemInfoSync();
 			this.statusBarHeight = sysInfo.statusBarHeight || 20;
 

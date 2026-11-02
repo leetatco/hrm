@@ -19,7 +19,7 @@
 		<div style="overflow-x: auto;">
 			<vk-data-table ref="table1" :action="table1.action" :columns="table1.columns" :query-form-param="queryForm1"
 				:right-btns="table1.rightBtns" :custom-right-btns="table1.customRightBtns" :selection="true"
-				:row-no="true" :pagination="true" @update="updateBtn" @delete="deleteBtn"
+				:row-no="false" :pagination="true" @update="updateBtn" @delete="deleteBtn"
 				@current-change="currentChange" @selection-change="selectionChange">
 			</vk-data-table>
 		</div>

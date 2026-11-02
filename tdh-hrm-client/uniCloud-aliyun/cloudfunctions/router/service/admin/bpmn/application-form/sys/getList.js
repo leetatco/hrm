@@ -28,18 +28,31 @@ module.exports = {
 		} = util;
 		let {
 			uid,
-			id
+			id,
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson,
+			lastWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
+		
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+		//lastWherJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
 
 		// 业务逻辑开始-----------------------------------------------------------
-		let dbName = "bpmn-application-form";
+		let dbName = "bpmn-application-form";		
 
-		// 构建查询条件		
-		let whereJson = {};
 		// 权限控制：普通用户只能查看自己的申请
 		const userRole = userInfo.role || [];
 		const isAdmin = userRole.includes('admin');
@@ -54,47 +67,20 @@ module.exports = {
 			whereJson._id = id;
 		}
 
-		// 处理前端传递的查询条件
-		// let startTime = 0;
-		// let endTime = 0;
-
-		// if (data.formData) {
-		// 	// 表单类型筛选
-		// 	if (data.formData.form_type_code) {
-		// 		queryConditions.form_type_code = data.formData.form_type_code;
-		// 	}
-
-		// 	// 状态筛选
-		// 	if (data.formData.status && data.formData.status !== 'all') {
-		// 		queryConditions.status = data.formData.status;
-		// 	}
-
-		// 	// 关键词搜索
-		// 	if (data.formData.keyword) {
-		// 		queryConditions.title = new RegExp(data.formData.keyword, 'i');
-		// 	}
-
-		// 	// 时间范围筛选		
-		// 	if (data.formData.dateRange && data.formData.dateRange.length === 2) {
-		// 		startTime = data.formData.dateRange[0];
-		// 		endTime = data.formData.dateRange[1];
-		// 		whereJson["_add_time"] = _.gte(startTime).lte(endTime);
-		// 	}
-		// }
-
-		// console.log(queryConditions, whereJson);
 		// 使用vk.baseDao.getTableData进行分页查询
 		// 为何加上whereJson是为了查詢建立日期，如果不加条件无效
 		res = await vk.baseDao.getTableData({
 			dbName,
 			data,
-			whereJson
-			// data: {
-			// 	...data,
-			// 	// 覆盖查询条件
-			// 	// formData: queryConditions,
-			// },
-			// whereJson: whereJson
+			whereJson,
+			foreignDB: [{
+				dbName: "hrm-employees",
+				localKey: "applicant_id",
+				foreignKey: "employee_id",
+				as: "employees",
+				limit: 1
+			}],
+			lastWhereJson
 		});
 
 		// 关联任务信息

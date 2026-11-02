@@ -99,7 +99,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   } : {
     f: common_vendor.f($data.list, (item, k0, i0) => {
       return {
-        a: common_vendor.t($options.formatDate(item.attendance_ym_key)),
+        a: common_vendor.t($options.formatDate(item.attendance_ym)),
         b: common_vendor.t(item.employee_name),
         c: item._id,
         d: common_vendor.o(($event) => $options.goSign(item), item._id)

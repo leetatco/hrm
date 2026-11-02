@@ -189,12 +189,13 @@
 								placeholder: "请输入功能名称"
 							},
 							{
-								"key": "imgUrl",
-								"title": "图片文件",
-								"type": "image",
-								"limit": 1,
-								"width": colWidth,
-								"cloudDirectory": "/common-functions",
+								key: "imgUrl",
+								title: "图片文件",
+								type: "image",
+								limit: 1,
+								width: colWidth,
+								provider: "unicloud",
+								cloudDirectory: "/common-functions",
 								onRemove: (file, fileList) => {
 									vk.myfn.deleteFile(file)
 								}
@@ -261,7 +262,7 @@
 				formDatas: {},
 			};
 		},
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
 		},

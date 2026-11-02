@@ -50,6 +50,13 @@
       ]
     },
     {
+      "root": "pages/contact-sign",
+      "pages": [
+        "index",
+        "sign"
+      ]
+    },
+    {
       "root": "pages_template",
       "pages": [
         "db-test/db-test",

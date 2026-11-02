@@ -26,12 +26,29 @@ module.exports = {
 			_
 		} = util;
 		let {
-			uid
+			uid,
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson,
+			lastWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
+
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+		//lastWherJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
+
+
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = 'hrm-attendance-leavebalance'; // 表名
 		res = await vk.baseDao.getTableData({
@@ -48,7 +65,7 @@ module.exports = {
 				dbName: "hrm-employees",
 				localKey: "employee_id",
 				foreignKey: "employee_id",
-				as: "employeeInfo",
+				as: "employees",
 				limit: 1
 			}, {
 				dbName: "hrm-attendance-leave",

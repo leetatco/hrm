@@ -44,12 +44,24 @@
 								{{ detailDialog.data.overtime_type === 'paid' ? '计薪' : '调休' }}
 							</el-tag>
 						</el-descriptions-item>
-						<el-descriptions-item label="加班时长">{{ vk.myfn.formatMinutes(detailDialog.data.total_minutes) }}</el-descriptions-item>
+						<el-descriptions-item
+							label="加班时长">{{ vk.myfn.formatMinutes(detailDialog.data.total_minutes) }}</el-descriptions-item>
 						<el-descriptions-item label="汇入状态">
 							<el-tag :type="getImportStatusType(detailDialog.data.import_status)">
 								{{ getImportStatusText(detailDialog.data.import_status) }}
 							</el-tag>
 						</el-descriptions-item>
+						<el-descriptions-item label="迟到分钟数">
+							<span :style="{color: detailDialog.data.late_minutes > 0 ? '#F56C6C' : ''}">
+								{{ detailDialog.data.late_minutes ? detailDialog.data.late_minutes : '无' }}
+							</span>
+						</el-descriptions-item>
+						<el-descriptions-item label="早退分钟数">
+							<span :style="{color: detailDialog.data.early_minutes > 0 ? '#E6A23C' : ''}">
+								{{ detailDialog.data.early_minutes ? detailDialog.data.early_minutes : '无' }}
+							</span>
+						</el-descriptions-item>
+
 						<el-descriptions-item
 							label="汇入时间">{{ formatDate(detailDialog.data.update_date) }}</el-descriptions-item>
 						<el-descriptions-item
@@ -115,7 +127,7 @@
 							title: "员工姓名",
 							type: "text",
 							width: colWidth - 40,
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
+							formatter: (val, row) => row.employees ? row.employees.employee_name : ''
 						},
 						{
 							key: "overtime_date",
@@ -131,6 +143,20 @@
 							type: "text",
 							width: colWidth - 40,
 							formatter: (val) => vk.myfn.formatMinutes(val)
+						},
+						{
+							key: "late_minutes",
+							title: "迟到(分)",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => val || 0
+						},
+						{
+							key: "early_minutes",
+							title: "早退(分)",
+							type: "text",
+							width: colWidth - 40,
+							formatter: (val) => val || 0
 						},
 						{
 							key: "overtime_type",
@@ -303,7 +329,7 @@
 							key: "employee_name",
 							title: "员工姓名",
 							type: "text",
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
+							formatter: (val, row) => row.employees ? row.employees.employee_name : ''
 						},
 						{
 							key: "overtime_date",
@@ -317,6 +343,18 @@
 							title: "加班时长",
 							type: "text",
 							formatter: (val) => vk.myfn.formatMinutes(val)
+						},
+						{
+							key: "late_minutes",
+							title: "迟到(分)",
+							type: "text",
+							formatter: (val) => val || 0
+						},
+						{
+							key: "early_minutes",
+							title: "早退(分)",
+							type: "text",
+							formatter: (val) => val || 0
 						},
 						{
 							key: "overtime_type",
@@ -346,7 +384,7 @@
 				this.detailDialog.loading = true;
 				this.detailDialog.data = {
 					...item,
-					employee_name: item.employeeInfo ? item.employeeInfo.employee_name : ''
+					employee_name: item.employees ? item.employees.employee_name : ''
 				};
 				this.detailDialog.title = '加班汇入详情';
 				this.detailDialog.loading = false;

@@ -21,6 +21,14 @@
 			"title": "加班时数",
 			"bsonType": "double"
 		},
+		"late_minutes": {
+			"bsonType": "int",
+			"description": "该时段迟到分钟数"
+		},
+		"early_minutes": {
+			"bsonType": "int",
+			"description": "该时段早退分钟数"
+		},
 		"overtime_type": {
 			"title": "加班类型",
 			"bsonType": "string",

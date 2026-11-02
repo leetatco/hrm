@@ -272,13 +272,28 @@ async function preloadGroupAndShift(util, preload) {
 		_
 	} = util;
 
+	// ★ 新增：无论有没有排班，先把“加班打卡”规则查出来缓存备用
+	const overtimeRuleRes = await vk.baseDao.selects({
+		dbName: 'hrm-attendance-punchrule',
+		whereJson: {
+			rule_name: '加班打卡', // 对应你截图里的规则名称
+			status: true
+		},
+		limit: 1
+	});
+	const overtimePunchRule = overtimeRuleRes.rows.length > 0 ? overtimeRuleRes.rows[0] : null;
+
+	console.log("overtimePunchRule:", overtimePunchRule)
+
 	const groupIds = [...new Set(
 		Object.values(preload.scheduleMap).map(s => s.attendance_group_id).filter(Boolean)
 	)];
+
 	if (groupIds.length === 0) return {
 		groupMap: {},
 		shiftMap: {},
-		ruleMap: {}
+		ruleMap: {},
+		overtimePunchRule // ★ 加上返回
 	};
 
 	const groupRes = await vk.baseDao.select({
@@ -293,8 +308,6 @@ async function preloadGroupAndShift(util, preload) {
 
 	const shiftIds = [...new Set(groupRes.rows.map(g => g.shift_id).filter(Boolean))];
 	const ruleIds = [...new Set(groupRes.rows.map(g => g.punch_rule_id).filter(Boolean))];
-
-	console.log(groupRes, ruleIds, shiftIds)
 
 	const [shiftRes, ruleRes] = await Promise.all([
 		shiftIds.length > 0 ? vk.baseDao.select({
@@ -325,7 +338,8 @@ async function preloadGroupAndShift(util, preload) {
 	return {
 		groupMap,
 		shiftMap,
-		ruleMap
+		ruleMap,
+		overtimePunchRule
 	};
 }
 
@@ -579,6 +593,13 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 		}
 	}
 
+	// 就强制给他赋予“加班打卡”规则
+	if (!punchRule && cache.overtimePunchRule) {
+		punchRule = cache.overtimePunchRule;
+	}
+
+	console.log("punchRule:", punchRule)
+
 	// 配置快照
 	const configSnapshot = {
 		schedule: schedule ? {
@@ -668,7 +689,10 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 		total_minutes: r.total_minutes,
 		overtime_type: r.overtime_type,
 		morning_range: r.morning_range || null,
-		afternoon_range: r.afternoon_range || null
+		afternoon_range: r.afternoon_range || null,
+		// ★ 新增：把加班单汇入时记录的迟到早退读出来
+		late_minutes: r.late_minutes || 0,
+		early_minutes: r.early_minutes || 0
 	}));
 
 	// 补卡
@@ -717,6 +741,9 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 		// ========== 优先处理加班（加班优先于外出） ==========
 		if (overtimeMinutesFromRecord > 0) {
 			const overtimeSegments = [];
+			let otLateMinutes = 0; // ★ 汇总加班单迟到
+			let otEarlyMinutes = 0; // ★ 汇总加班单早退
+
 			overtimeRecords.forEach(r => {
 				if (r.morning_range && r.morning_range.length === 2) {
 					overtimeSegments.push({
@@ -732,6 +759,9 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 						end_time: r.afternoon_range[1]
 					});
 				}
+				// 累加加班单里的迟到早退
+				otLateMinutes += r.late_minutes;
+				otEarlyMinutes += r.early_minutes;
 			});
 
 			// 加班时段应有出勤分钟数
@@ -761,25 +791,19 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 				const segEnd = toMinutes(seg.end_time);
 				const segTotalMinutes = segEnd - segStart;
 
-				// 计算该段实际出勤
-				if (seg.clock_in && seg.clock_out) {
-					const inMin = toMinutes(seg.clock_in);
-					const outMin = toMinutes(seg.clock_out);
-					if (outMin > inMin) {
-						actualWorkMinutes += (outMin - inMin);
-					}
-				} else if (seg.clock_in && !seg.clock_out) {
-					// 只有签到，算到下班时间（或者算 0，取决于规则，这里保守算 0）
-					// actualWorkMinutes += 0; 
-				}
-
 				// 计算该段缺卡时长
 				if (seg.missing_in && seg.missing_out) {
 					absentFromMissing += segTotalMinutes;
 				} else if (seg.missing_in || seg.missing_out) {
-					// 缺一半（签退或签到），简单按半个时段算旷工
 					absentFromMissing += Math.floor(segTotalMinutes / 2);
 				}
+			}
+
+			// ★ 修改：直接信任加班单里已扣除迟到早退的 total_minutes
+			if (!otResult.hasMissing) {
+				actualWorkMinutes = overtimeMinutesFromRecord;
+			} else {
+				actualWorkMinutes = Math.max(0, overtimeMinutesFromRecord - absentFromMissing);
 			}
 
 			// ===== 状态判定 =====
@@ -814,11 +838,11 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 				attendanceGroupName,
 				shift: null,
 				segments: otResult.segmentResults,
-				shouldAttendMinutes: overtimeShouldMinutes, // ★ 应出勤 = 加班时段总长
-				actualAttendMinutes: actualWorkMinutes, // ★ 实际出勤 = 真实在岗时长
-				lateMinutes: otResult.totalLate,
-				earlyMinutes: otResult.totalEarly,
-				absentMinutes, // ★ 动态旷工时长
+				shouldAttendMinutes: overtimeShouldMinutes,
+				actualAttendMinutes: actualWorkMinutes,
+				lateMinutes: 0, // ★ 写入日考勤迟到字段
+				earlyMinutes: 0, // ★ 写入日考勤早退字段
+				absentMinutes,
 				overtimeMinutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
 				overtimeCompensatoryMinutes,
 				overtimePaidMinutes,
@@ -1062,9 +1086,29 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 		}
 	}
 
+	// ★ 合并加班带来的时长和迟到早退
+	let finalShouldAttend = shouldAttendMinutes;
+	let finalPunchWork = punchWorkMinutes;
+
+	// 严格区分：正常班的迟到早退
+	let finalLate = totalLate;
+	let finalEarly = totalEarly;
+
+	if (overtimeMinutesFromRecord > 0) {
+		// 应出勤 = 排班时长 + 加班申请时长
+		finalShouldAttend += overtimeMinutesFromRecord;
+
+		// 实际出勤 = 正常班打卡时长 + 加班有效时长
+		finalPunchWork += overtimeMinutesFromRecord;
+
+		// ★ 核心修改：加班产生的迟到早退，绝不写入日考勤的迟到早退中！
+		// 因为日考勤的迟到早退会影响月度全勤判定和扣款。
+		// 加班单的迟到早退已经在 importOAData.js 中扣除掉了加班时长，直接无视即可。
+	}
+
 	const actualAttendMinutes = calcActualAttendMinutes({
-		shouldAttendMinutes,
-		punchWorkMinutes,
+		shouldAttendMinutes: finalShouldAttend, // 使用合并后的应出勤
+		punchWorkMinutes: finalPunchWork, // 使用合并后的打卡时长
 		tripMinutes,
 		outingMinutes,
 		compMinutes,
@@ -1089,10 +1133,10 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 		attendanceGroupName,
 		shift,
 		segments: matchResult.segmentResults,
-		shouldAttendMinutes,
+		shouldAttendMinutes: finalShouldAttend, // ★ 替换为合并后的应出勤
 		actualAttendMinutes,
-		lateMinutes: totalLate,
-		earlyMinutes: totalEarly,
+		lateMinutes: finalLate, // ★ 替换为合并后的迟到
+		earlyMinutes: finalEarly, // ★ 替换为合并后的早退
 		absentMinutes,
 		overtimeMinutes: roundOvertimeMinutes(overtimeMinutesFromRecord),
 		overtimeCompensatoryMinutes,
@@ -1176,7 +1220,7 @@ function matchSegments(clockRows, segments, remedyList, outingRanges, inBefore, 
 
 			console.log(
 				`[matchSegments] 段=${seg.name} 未命中签到卡！检查：打卡[${clockRows.map(c => extractHHmmFromTimestamp(c.clockintime))}] 是否在窗口[${inWindow}]内，usedIndexes=${[...usedPunchIndexes]}`
-				);
+			);
 
 			for (const rem of remedyList) {
 				if (rem.used || rem.miss_type !== 'clock_in') continue;

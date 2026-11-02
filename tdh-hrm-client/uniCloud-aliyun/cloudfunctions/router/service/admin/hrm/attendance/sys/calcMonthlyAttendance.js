@@ -247,94 +247,79 @@ module.exports = {
 };
 
 // ==================== 构建正常月汇总记录 ====================
-function buildMonthlyRecord({
-	empId,
-	empInfo,
-	salaryInfo,
-	rows,
-	attendance_ym,
-	periodRange,
-	params
-}) {
+function buildMonthlyRecord({ empId, empInfo, salaryInfo, rows, attendance_ym, periodRange, params }) {
 	const salaryType = salaryInfo.salary_type || 1;
 	const salary = salaryInfo.salary || 0;
 	const contractDays = salaryInfo.contract_days || 0;
 	const card = empInfo.card || '';
 	const employeeName = empInfo.employee_name || '';
 
-	let shouldDays = 0,
-		actualDays = 0,
-		restDays = 0;
-	let lateCount = 0,
-		lateMinutes = 0;
-	let earlyCount = 0,
-		earlyMinutes = 0;
-	let absentCount = 0,
-		absentMinutes = 0;
-	let overtimeMinutes = 0,
-		overtimeCompensatoryMinutes = 0,
-		overtimePaidMinutes = 0,
-		leaveMinutes = 0,
-		tripMinutes = 0,
-		outingMinutes = 0,
-		compensatoryMinutes = 0;
+	let shouldDays = 0, actualDays = 0, restDays = 0;
+	let lateCount = 0, lateMinutes = 0;
+	let earlyCount = 0, earlyMinutes = 0;
+	let absentCount = 0, absentMinutes = 0;
+	let overtimeMinutes = 0, overtimeCompensatoryMinutes = 0, overtimePaidMinutes = 0;
+	let leaveMinutes = 0, tripMinutes = 0, outingMinutes = 0, compensatoryMinutes = 0;
 	let remedyCount = 0;
-	let shouldMinutes = 0,
-		actualMinutes = 0;
-
+	let shouldMinutes = 0, actualMinutes = 0;
 	let noPunchCount = 0;
 
 	for (const day of rows) {
 		const dayShould = day.should_attend_minutes || 0;
 		const dayActual = day.actual_attend_minutes || 0;
 
-		shouldMinutes += dayShould;
-		actualMinutes += dayActual;
+		// ★ 核心修改 1：判断是不是纯加班日（没有班次，但是有加班记录）
+		const isOvertimeOnly = day.attendance_status === 6 && !day.shift_id;
 
-		if (dayShould > 0) shouldDays++;
-		else restDays++;
+		if (isOvertimeOnly) {
+			// 纯加班日：只算加班时长，绝不参与应出勤天数和时长的计算
+			restDays++; // 既然是休息日来加班，本日对底薪而言就是休息日
+		} else {
+			// 正常排班日（或有请假/出差的排班日）
+			if (dayShould > 0) {
+				shouldDays++;
+				shouldMinutes += dayShould;
+				
+				// 如果实际出勤 >= 应出勤，记为满勤
+				if (dayActual >= dayShould) actualDays++;
+			} else {
+				restDays++;
+			}
+			
+			// 实际出勤时长累加
+			actualMinutes += dayActual;
+		}
 
-		if (dayShould > 0 && dayActual >= dayShould) actualDays++;
-		else if (dayShould === 0 && dayActual > 0) actualDays++;
-
-		if (day.late_minutes > 0) {
-			lateCount++;
-			lateMinutes += day.late_minutes;
-		}
-		if (day.early_minutes > 0) {
-			earlyCount++;
-			earlyMinutes += day.early_minutes;
-		}
-		if (day.absent_minutes > 0) {
-			absentCount++;
-			absentMinutes += day.absent_minutes;
-		}
+		// 累加各类异常时长
+		if (day.late_minutes > 0) { lateCount++; lateMinutes += day.late_minutes; }
+		if (day.early_minutes > 0) { earlyCount++; earlyMinutes += day.early_minutes; }
+		if (day.absent_minutes > 0) { absentCount++; absentMinutes += day.absent_minutes; }
 		if (day.remedy_flag) remedyCount++;
+		
 		overtimeMinutes += day.overtime_minutes || 0;
 		overtimeCompensatoryMinutes += day.overtime_compensatory_minutes || 0;
 		overtimePaidMinutes += day.overtime_paid_minutes || 0;
-
 		leaveMinutes += day.leave_minutes || 0;
 		tripMinutes += day.trip_minutes || 0;
 		outingMinutes += day.outing_minutes || 0;
 		compensatoryMinutes += day.compensatory_minutes || 0;
 
-		// 缺卡次数：当天只要有一个时段缺签到或缺签退，就算 1 次
+		// 缺卡次数判定
 		if (day.segments && Array.isArray(day.segments)) {
 			const hasMissing = day.segments.some(seg => seg.missing_in || seg.missing_out);
 			if (hasMissing) noPunchCount++;
 		}
-
 	}
 
+	// ★ 核心修改 2：如果你有法定节假日排班表（比如这个月应出勤是 22 天），这里应该兜底
+	// 防止因为员工全部旷工，导致 shouldDays 变成 0（这样他就无法计算底薪扣款了）
+	// 不过你有 contractDays 可以兜底，见下方逻辑。
+
 	// 计薪天数/小时
-	let payDays = 0,
-		payHours = 0;
+	let payDays = 0, payHours = 0;
 	if (salaryType === 2) {
 		const standardMinutes = params.standard_work_minutes || 8 * 60;
-		payDays = standardMinutes > 0 ?
-			Math.round((actualMinutes / standardMinutes) * 100) / 100 :
-			0;
+		payDays = standardMinutes > 0 ? Math.round((actualMinutes / standardMinutes) * 100) / 100 : 0;
 	} else if (salaryType === 3) {
 		payHours = Math.round((actualMinutes / 60) * 100) / 100;
 	}
@@ -342,8 +327,11 @@ function buildMonthlyRecord({
 	// 合同天数差异（仅月薪）
 	let diffDays = 0;
 	let signStatus = 2;
+	// ★ 核心修改 3：如果算出的 shouldDays 不够，或者合同定的是 22 天，就以合同为准
+	// 避免因为漏排班导致“应出勤”变少
+	const finalShouldDays = shouldDays > 0 ? shouldDays : contractDays;
 	if (salaryType === 1 && contractDays > 0) {
-		diffDays = contractDays - shouldDays;
+		diffDays = contractDays - finalShouldDays;
 		if (diffDays < 0) diffDays = 0;
 		if (diffDays > 0) signStatus = 0;
 	}
@@ -352,7 +340,7 @@ function buildMonthlyRecord({
 	const fullAttendance = (
 		lateCount === 0 && earlyCount === 0 && absentCount === 0 &&
 		leaveMinutes === 0 && compensatoryMinutes === 0 && remedyCount === 0 &&
-		shouldDays > 0 && actualDays >= shouldDays
+		finalShouldDays > 0 && actualDays >= finalShouldDays
 	);
 
 	return {
@@ -366,11 +354,11 @@ function buildMonthlyRecord({
 		salary: salary,
 		pay_days: payDays,
 		pay_hours: payHours,
-		should_days: shouldDays,
+		should_days: finalShouldDays, // 使用兜底后的应出勤天数
 		actual_days: actualDays,
 		rest_days: restDays,
-		should_minutes: shouldMinutes,
-		actual_minutes: actualMinutes,
+		should_minutes: shouldMinutes, // 只算正常排班的分钟数，不含加班
+		actual_minutes: actualMinutes, // 正常打卡时长（加班时长单独在下面）
 		late_count: lateCount,
 		late_minutes: lateMinutes,
 		early_count: earlyCount,

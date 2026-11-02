@@ -75,7 +75,7 @@
 							title: "员工姓名",
 							type: "text",
 							width: colWidth - 100,
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
+							formatter: (val, row) => row.employees ? row.employees.employee_name : ''
 						},
 						{
 							key: "clockintime",

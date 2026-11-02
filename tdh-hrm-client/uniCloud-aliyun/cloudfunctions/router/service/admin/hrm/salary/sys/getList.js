@@ -27,43 +27,61 @@ module.exports = {
 			$
 		} = util;
 		let {
-			uid
+			uid,
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson,
+			lastWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
+
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+		//lastWherJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
+
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = "hrm-salary"; // 表名		
 
-		let resTotal = await vk.baseDao.getTableData({
-			dbName,
-			data,			
-			groupJson: {
-				_id: "$attendance_ym", // 以 attendance_ym 作为分组字段				
-				work_days: $.sum('$work_days'),
-				real_days: $.sum('$real_days'),
-				gross_salary: $.sum('$gross_salary'),
-				overtime_cost: $.sum('$overtime_cost'),
-				free_cost: $.sum('$free_cost'),				
-				grant: $.sum('$grant'),				
-				agency_fee: $.sum('$agency_fee'),				
-				other_cost: $.sum('$other_cost'),				
-				we_cost: $.sum('$we_cost'),				
-				clothes_cost: $.sum('$clothes_cost'),				
-				earlytime_cost: $.sum('$earlytime_cost'),				
-				missed_cost: $.sum('$missed_cost'),				
-				loan_cost: $.sum('$loan_cost'),				
-				this_month_sb: $.sum('$this_month_sb'),				
-				this_month_dk: $.sum('$this_month_dk'),				
-				dkgs: $.sum('$dkgs'),				
-				real_salary: $.sum('$real_salary'),
-			}
-		});
+		// let resTotal = await vk.baseDao.getTableData({
+		// 	dbName,
+		// 	data,			
+		// 	groupJson: {
+		// 		_id: "$attendance_ym", // 以 attendance_ym 作为分组字段				
+		// 		work_days: $.sum('$work_days'),
+		// 		real_days: $.sum('$real_days'),
+		// 		gross_salary: $.sum('$gross_salary'),
+		// 		overtime_cost: $.sum('$overtime_cost'),
+		// 		free_cost: $.sum('$free_cost'),				
+		// 		grant: $.sum('$grant'),				
+		// 		agency_fee: $.sum('$agency_fee'),				
+		// 		other_cost: $.sum('$other_cost'),				
+		// 		we_cost: $.sum('$we_cost'),				
+		// 		clothes_cost: $.sum('$clothes_cost'),				
+		// 		earlytime_cost: $.sum('$earlytime_cost'),				
+		// 		missed_cost: $.sum('$missed_cost'),				
+		// 		loan_cost: $.sum('$loan_cost'),				
+		// 		this_month_sb: $.sum('$this_month_sb'),				
+		// 		this_month_dk: $.sum('$this_month_dk'),				
+		// 		dkgs: $.sum('$dkgs'),				
+		// 		real_salary: $.sum('$real_salary'),
+		// 	}
+		// });
+
+		// res.totalSummary = resTotal.rows[0];
 
 		res = await vk.baseDao.getTableData({
 			dbName,
-			data,			
+			data,
 			sortArr: [{
 				name: "attendance_ym",
 				type: "asc"
@@ -73,15 +91,20 @@ module.exports = {
 			}],
 			// 副表
 			foreignDB: [{
+				dbName: "hrm-employees",
+				localKey: "card",
+				foreignKey: "card",
+				as: "employees"
+			}, {
 				dbName: "uni-id-users",
 				localKey: "update_id",
 				foreignKey: "_id",
 				as: "users",
 				limit: 1
-			}]
+			}],
+			lastWhereJson
 		});
 
-		res.totalSummary = resTotal.rows[0];
 		return res;
 	}
 

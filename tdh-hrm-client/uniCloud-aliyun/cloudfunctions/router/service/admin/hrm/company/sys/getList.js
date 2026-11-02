@@ -28,23 +28,34 @@ module.exports = {
 		} = util;
 		let {
 			uid,
-			filterWhereJson
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson,
+			lastWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
+
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+		//lastWhereJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
+
 		let dbName = "hrm-companys"; // 表名		
 
 		res = await vk.baseDao.selects({
 			dbName,
 			pageIndex: 1,
 			pageSize: 500,
-			whereJson: filterWhereJson,
-			// whereJson: {
-			// 	parent_company_id: _.in([null, ""]),
-			// 	company_id: _.exists(true).and(),
-			// },
+			whereJson,			
 			sortArr: [{
 				name: "sort",
 				type: "asc"

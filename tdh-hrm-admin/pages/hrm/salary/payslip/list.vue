@@ -508,7 +508,7 @@
 						// 表单字段显示规则
 						columns: [{
 								key: "attendance_ym",
-								title: "时间",
+								title: "月份",
 								type: "date",
 								dateType: "month",
 								disabled: false,

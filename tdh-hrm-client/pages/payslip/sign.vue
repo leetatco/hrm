@@ -11,7 +11,7 @@
 				<view class="detail-card" v-if="salaryData">
 					<view class="detail-header">
 						<text class="name">月份</text>
-						<text class="ym">{{ formatDate(salaryData.attendance_ym_key) }}</text>
+						<text class="ym">{{ formatDate(salaryData.attendance_ym) }}</text>
 					</view>
 
 					<!-- 第一块：应发工资 -->

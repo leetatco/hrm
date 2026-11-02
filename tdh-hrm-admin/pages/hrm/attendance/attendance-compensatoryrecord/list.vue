@@ -104,7 +104,7 @@
 							title: "员工姓名",
 							type: "text",
 							width: colWidth - 40,
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
+							formatter: (val, row) => row.employees ? row.employees.employee_name : ''
 						},
 						{
 							key: "compensatory_date",
@@ -260,7 +260,7 @@
 							key: "employee_name",
 							title: "员工姓名",
 							type: "text",
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : ''
+							formatter: (val, row) => row.employees ? row.employees.employee_name : ''
 						},
 						{
 							key: "compensatory_date",
@@ -298,7 +298,7 @@
 				this.detailDialog.loading = true;
 				this.detailDialog.data = {
 					...item,
-					employee_name: item.employeeInfo ? item.employeeInfo.employee_name : ''
+					employee_name: item.employees ? item.employees.employee_name : ''
 				};
 				this.detailDialog.title = '调休详情';
 				this.detailDialog.loading = false;

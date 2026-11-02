@@ -30,30 +30,27 @@ module.exports = {
 			uid,
 			company_ids = [],
 			otherWhereJson,
-			filterWhereJson
+			filterWhereJson,
+			lastWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
 
-		//是否需要过滤公司别
-		let whereJson = {};
-		let lastWhereJson = {};
-		if (company_ids.length > 0) {
-			whereJson = {
-				...(filterWhereJson || {}),
-				...(otherWhereJson || {})
-			};
-			lastWhereJson = {
-				'employees.company_id': _.in(company_ids)
-			};
-		}
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+		//lastWhereJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
 
 		let dbName = "hrm-salary-payslip";
 		let pageSize = data.pageSize !== undefined ? data.pageSize : 10;
-		
-		console.log("whereJson:", whereJson, lastWhereJson);
 
 		// 当 pageSize 为 -1 或大于 1000 时，自动循环分页取全部数据
 		if (pageSize === -1 || pageSize > 1000) {
@@ -122,7 +119,7 @@ module.exports = {
 		} else {
 			// 正常分页查询（1000条以内，保持原有逻辑）
 			res = await vk.baseDao.getTableData({
-				dbName,				
+				dbName,
 				data,
 				sortArr: [{
 						name: "attendance_ym",

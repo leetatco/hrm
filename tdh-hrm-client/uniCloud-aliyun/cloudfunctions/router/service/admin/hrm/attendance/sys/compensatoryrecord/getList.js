@@ -1,20 +1,48 @@
 module.exports = {
 	main: async (event) => {
-		let { data = {}, util } = event;
-		let { vk, db } = util;
-		let res = { code: 0, msg: '' };
+		let {
+			data = {}, util
+		} = event;
+		let {
+			vk,
+			db
+		} = util;
+		let {
+			uid,
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson,
+			lastWhereJson
+		} = data;
+		let res = {
+			code: 0,
+			msg: ''
+		};
+
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+		//lastWherJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
 
 		let dbName = 'hrm-attendance-compensatoryrecord';
 		res = await vk.baseDao.getTableData({
 			dbName,
 			data,
-			sortArr: [{ name: 'update_date', type: 'desc' }],
-			foreignDB: [
-				{
+			sortArr: [{
+				name: 'update_date',
+				type: 'desc'
+			}],
+			foreignDB: [{
 					dbName: 'hrm-employees',
 					localKey: 'employee_id',
 					foreignKey: 'employee_id',
-					as: 'employeeInfo',
+					as: 'employees',
 					limit: 1
 				},
 				{

@@ -21,7 +21,7 @@ class CloudStorage {
     } = obj;
     common_vendor.index.vk;
     if (!runCloud)
-      runCloud = common_vendor.Vs;
+      runCloud = common_vendor.Qs;
     if (!cloudPath)
       cloudPath = createFileName(obj);
     return new Promise((resolve, reject) => {
@@ -49,7 +49,7 @@ class CloudStorage {
       });
     }).then((res) => {
       return new Promise((resolve, reject) => {
-        common_vendor.Vs.getTempFileURL({
+        common_vendor.Qs.getTempFileURL({
           fileList: [res.fileID],
           success: (data) => {
             let { fileID, tempFileURL } = data.fileList[0];

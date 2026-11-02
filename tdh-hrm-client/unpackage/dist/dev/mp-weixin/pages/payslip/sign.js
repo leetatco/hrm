@@ -782,7 +782,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     d: $data.salaryData
   }, $data.salaryData ? common_vendor.e({
-    e: common_vendor.t($options.formatDate($data.salaryData.attendance_ym_key)),
+    e: common_vendor.t($options.formatDate($data.salaryData.attendance_ym)),
     f: common_vendor.f($data.group1, (key, k0, i0) => {
       return common_vendor.e({
         a: $data.salaryData[key]
@@ -812,23 +812,23 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.salaryData ? {} : {}, {
     k: $data.refreshing,
     l: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "22"),
-    m: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "49")
+    m: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "16")
   }) : {
-    n: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "50"),
+    n: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "66"),
     o: $data.selectColor === "black" ? "/static/other/color_black_selected.png" : "/static/other/color_black.png",
     p: $data.selectColor === "red" ? "/static/other/color_red_selected.png" : "/static/other/color_red.png",
-    q: common_vendor.o((...args) => $options.clear && $options.clear(...args), "93"),
+    q: common_vendor.o((...args) => $options.clear && $options.clear(...args), "2d"),
     r: $data.lastSignatureUrl,
-    s: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "1b"),
+    s: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "86"),
     t: $data.lastSignatureUrl,
-    v: common_vendor.o((...args) => $options.undo && $options.undo(...args), "93"),
+    v: common_vendor.o((...args) => $options.undo && $options.undo(...args), "3a"),
     w: $data.lastSignatureUrl,
-    x: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "7f"),
-    y: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "fc"),
-    z: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "cf"),
-    A: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "95"),
-    B: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "1f"),
-    C: common_vendor.o($options.getPickerColor, "66"),
+    x: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "6b"),
+    y: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "c2"),
+    z: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "4c"),
+    A: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "8f"),
+    B: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "83"),
+    C: common_vendor.o($options.getPickerColor, "35"),
     D: common_vendor.p({
       isShow: $data.showPickerColor,
       bottom: 0

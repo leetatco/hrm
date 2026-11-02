@@ -138,8 +138,29 @@ async function getCompRule(util) {
 	};
 }
 
+// ==================== 公共：时间格式化 ====================
+function minutesToHHmm(minutes) {
+	const h = Math.floor(minutes / 60);
+	const m = minutes % 60;
+	return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 // ==================== 公共：获取打卡规则窗口 ====================
-function getPunchWindow(punchRule) {
+async function getPunchWindow(punchRule, vk) {
+	// 如果没传 punchRule（比如加班没排班），就去数据库查你配的“加班打卡”规则
+	if (!punchRule) {
+		const overtimeRuleRes = await vk.baseDao.selects({
+			dbName: 'hrm-attendance-punchrule',
+			whereJson: {
+				rule_name: '加班打卡',
+				status: true
+			},
+			limit: 1
+		});
+		punchRule = overtimeRuleRes.rows.length > 0 ? overtimeRuleRes.rows[0] : null;
+	}
+
+	// 拿到规则后返回
 	if (punchRule) {
 		return {
 			inBefore: punchRule.sign_in_before_minutes ?? 60,
@@ -148,7 +169,7 @@ function getPunchWindow(punchRule) {
 			outAfter: punchRule.sign_out_after_minutes ?? 120
 		};
 	}
-	// 无打卡规则时使用默认值
+	// 如果数据库里实在没查到，返回兜底默认值
 	return {
 		inBefore: 60,
 		inAfter: 30,
@@ -413,24 +434,22 @@ async function handleOvertime(app, util, uid) {
 	// ========== 1. 获取考勤组及绑定的加班规则、打卡规则 ==========
 	const groupRes = await vk.baseDao.selects({
 		dbName: 'hrm-attendance-group',
-		whereJson: _.and([
-		  {
-		    status: true,
-		  },
-		  _.or([
-		    {
-		      department_ids: departmentId,
-		    },
-		    {
-		      employee_ids: employeeId,
-		    },
-		  ]),
+		whereJson: _.and([{
+				status: true,
+			},
+			_.or([{
+					department_ids: departmentId,
+				},
+				{
+					employee_ids: employeeId,
+				},
+			]),
 		]),
 		limit: 1
 	});
 
 	let overtimeRule = null;
-	let punchRule = null;	
+	let punchRule = null;
 
 	if (groupRes.rows.length > 0) {
 		const group = groupRes.rows[0];
@@ -447,16 +466,38 @@ async function handleOvertime(app, util, uid) {
 
 		console.log("overtimeRule:", overtimeRule);
 
-		if (group.punch_rule_id) {
-			const punchRes = await vk.baseDao.findById({
-				dbName: 'hrm-attendance-punchrule',
-				id: group.punch_rule_id
-			});
-			if (punchRes && punchRes.status) punchRule = punchRes;
-		}
+		// if (group.punch_rule_id) {
+		// 	const punchRes = await vk.baseDao.findById({
+		// 		dbName: 'hrm-attendance-punchrule',
+		// 		id: group.punch_rule_id
+		// 	});
+		// 	if (punchRes && punchRes.status) punchRule = punchRes;
+		// }
+	}
+
+	// ★ 核心修改：强制查询专用的“加班打卡”规则，不再使用考勤组的白班规则
+	const otPunchRes = await vk.baseDao.selects({
+		dbName: 'hrm-attendance-punchrule',
+		whereJson: {
+			rule_name: '加班打卡', // 对应你截图里的名字
+			status: true
+		},
+		limit: 1
+	});
+	if (otPunchRes.rows.length > 0) {
+		punchRule = otPunchRes.rows[0];
 	}
 
 	if (!overtimeRule) overtimeRule = getDefaultOvertimeRule();
+
+	// ★ 新增：获取系统参数中的迟到早退阈值
+	const paramsRes = await vk.callFunction({
+		url: 'admin/hrm/attendance/pub/getParams',
+		data: {}
+	});
+	const params = paramsRes.code === 0 ? paramsRes.rows : {};
+	const lateThreshold = params.late_threshold_minutes || 0;
+	const earlyThreshold = params.early_threshold_minutes || 0;
 
 	// 加班系数（默认 1.5/2.0/3.0）
 	const weekdayRatio = overtimeRule.weekday_overtime_ratio || 1.5;
@@ -472,7 +513,7 @@ async function handleOvertime(app, util, uid) {
 		inAfter,
 		outBefore,
 		outAfter
-	} = getPunchWindow(punchRule);
+	} = await getPunchWindow(punchRule, vk);
 	const windowConfig = {
 		inBefore,
 		inAfter,
@@ -526,21 +567,39 @@ async function handleOvertime(app, util, uid) {
 			if (!fd || !fd.miss_time) return;
 			if (!punchTimes.includes(fd.miss_time)) punchTimes.push(fd.miss_time);
 		});
-		// 重新排序，确保时间是顺序的
 		punchTimes.sort((a, b) => toMinutes(a) - toMinutes(b));
 
-		// ★ 缓存起来，供第 3 步计算时长使用
 		dayPunchMap.set(overtimeDate, punchTimes);
 
-		console.log(`[加班缺卡校验] ${overtimeDate} 打卡合并后=${punchTimes.join(',')}`);
+		// ★ 打印当前的系统参数和打卡情况
+		console.log(`\n================ [缺卡检测开始] ${overtimeDate} ================`);
+		console.log(`系统规则窗口: 提前${inBefore}分, 延后${inAfter}分, 提前${outBefore}分, 延后${outAfter}分`);
+		console.log(`[缺卡检测] 当天所有打卡: [${punchTimes.join(', ')}]`);
 
 		const usedPunchIndexes = new Set();
 
 		const checkSegment = (range, label) => {
-			if (!range || !Array.isArray(range) || range.length !== 2) return;
+			if (!range || !Array.isArray(range) || range.length !== 2) {
+				console.log(`[缺卡检测] ${label} 申请时段为空，跳过`);
+				return;
+			}
 
 			const segStartMin = toMinutes(range[0]);
 			const segEndMin = toMinutes(range[1]);
+
+			// 计算窗口
+			const inWindowStart = segStartMin - inBefore;
+			const inWindowEnd = segStartMin + inAfter;
+			const outWindowStart = segEndMin - outBefore;
+			const outWindowEnd = segEndMin + outAfter;
+
+			console.log(`[缺卡检测] ${label} 时段: ${range[0]} ~ ${range[1]}`);
+			console.log(
+				`[缺卡检测] ${label} 签到窗口: [${inWindowStart} ~ ${inWindowEnd}] (即 ${minutesToHHmm(inWindowStart)} ~ ${minutesToHHmm(inWindowEnd)})`
+			);
+			console.log(
+				`[缺卡检测] ${label} 签退窗口: [${outWindowStart} ~ ${outWindowEnd}] (即 ${minutesToHHmm(outWindowStart)} ~ ${minutesToHHmm(outWindowEnd)})`
+			);
 
 			let hasInPunch = false;
 			let hasOutPunch = false;
@@ -549,30 +608,42 @@ async function handleOvertime(app, util, uid) {
 				if (usedPunchIndexes.has(i)) continue;
 				const pMin = toMinutes(punchTimes[i]);
 
-				if (!hasInPunch && pMin >= segStartMin - inBefore && pMin <= segStartMin + inAfter) {
+				if (!hasInPunch && pMin >= inWindowStart && pMin <= inWindowEnd) {
 					hasInPunch = true;
 					usedPunchIndexes.add(i);
+					console.log(`  👉 匹配到签到卡: ${punchTimes[i]} (分钟: ${pMin})`);
 				}
-				if (!hasOutPunch && pMin >= segEndMin - outBefore && pMin <= segEndMin + outAfter) {
+				if (!hasOutPunch && pMin >= outWindowStart && pMin <= outWindowEnd) {
 					hasOutPunch = true;
 					usedPunchIndexes.add(i);
+					console.log(`  👉 匹配到签退卡: ${punchTimes[i]} (分钟: ${pMin})`);
 				}
 				if (hasInPunch && hasOutPunch) break;
 			}
 
-			if (!hasInPunch) missingErrors.push(`${overtimeDate} ${label}缺签到卡`);
-			if (!hasOutPunch) missingErrors.push(`${overtimeDate} ${label}缺签退卡`);
+			if (!hasInPunch) {
+				console.log(`  ❌ ${label} 未匹配到签到卡！`);
+				missingErrors.push(
+					`${overtimeDate} ${label}缺签到卡, 当天所有打卡: [${punchTimes.join(', ')}](有效卡范围: ${minutesToHHmm(inWindowStart)} ~ ${minutesToHHmm(inWindowEnd)})`
+					);
+			}
+			if (!hasOutPunch) {
+				console.log(`  ❌ ${label} 未匹配到签退卡！`);
+				missingErrors.push(
+					`${overtimeDate} ${label}缺签退卡, 当天所有打卡: [${punchTimes.join(', ')}](有效卡范围: ${minutesToHHmm(outWindowStart)} ~ ${minutesToHHmm(outWindowEnd)})`
+					);
+			}
 		};
 
 		checkSegment(item.morning_range, '上午');
 		checkSegment(item.afternoon_range, '下午');
+		console.log(`================ [缺卡检测结束] ================\n`);
 	}
 
 	if (missingErrors.length > 0) {
 		throw new Error(`加班汇入失败：${missingErrors.join('；')}`);
 	}
 
-	// ========== 3. 计算加班明细（按实际打卡与申请时段的交集计算） ==========
 	// ========== 3. 计算加班明细（按实际打卡与申请时段的交集计算） ==========
 	const records = [];
 
@@ -592,17 +663,27 @@ async function handleOvertime(app, util, uid) {
 			`[handleOvertime] 日期=${overtimeDate} 打卡=[${punchTimes.join(',')}] 上午=${JSON.stringify(item.morning_range)} 下午=${JSON.stringify(item.afternoon_range)}`
 		);
 
-		let totalMinutes = 0;
 		let morningMin = 0;
 		let afternoonMin = 0;
+		let totalMinutes = 0;
+		let totalLateMinutes = 0; // ★ 记录总迟到
+		let totalEarlyMinutes = 0; // ★ 记录总早退
 
 		if (item.morning_range) {
-			morningMin = calcActualRangeMinutes(punchTimes, item.morning_range, windowConfig);
-			totalMinutes += morningMin;
+			// ★ 修改这里：传入迟到早退阈值
+			const res = calcActualRangeMinutes(punchTimes, item.morning_range, windowConfig, lateThreshold,
+				earlyThreshold);
+			totalMinutes += res.minutes;
+			totalLateMinutes += res.late;
+			totalEarlyMinutes += res.early;
 		}
 		if (item.afternoon_range) {
-			afternoonMin = calcActualRangeMinutes(punchTimes, item.afternoon_range, windowConfig);
-			totalMinutes += afternoonMin;
+			// ★ 修改这里：传入迟到早退阈值
+			const res = calcActualRangeMinutes(punchTimes, item.afternoon_range, windowConfig, lateThreshold,
+				earlyThreshold);
+			totalMinutes += res.minutes;
+			totalLateMinutes += res.late;
+			totalEarlyMinutes += res.early;
 		}
 
 		console.log(
@@ -613,7 +694,8 @@ async function handleOvertime(app, util, uid) {
 			continue;
 		}
 
-		const minUnitMinutes = overtimeRule.min_calculate_unit || 30;
+		//按最小单位取整
+		const minUnitMinutes = overtimeRule.min_calculate_unit || 1;
 		const beforeRound = totalMinutes;
 		totalMinutes = Math.ceil(totalMinutes / minUnitMinutes) * minUnitMinutes;
 		console.log(
@@ -661,6 +743,8 @@ async function handleOvertime(app, util, uid) {
 			oa_instance_id: app._id,
 			overtime_date: overtimeDateTimestamp,
 			total_minutes: totalMinutes,
+			late_minutes: totalLateMinutes, // ★ 写入迟到记录
+			early_minutes: totalEarlyMinutes, // ★ 写入早退记录
 			overtime_type: formData.overtime_type || 'paid',
 			overtime_ratio: overtimeRatio,
 			day_type: dayType,
@@ -768,14 +852,20 @@ async function handleOvertime(app, util, uid) {
 }
 
 /**
- * 计算实际打卡与申请时段的重合分钟数
+ * 计算实际打卡与申请时段的重合分钟数（扣除迟到早退）
  * @param {Array} punchTimes 当天的所有打卡 HH:mm 数组（已升序）
  * @param {Array} range 申请时段 ["08:30", "12:00"]
  * @param {Object} window 打卡规则窗口 { inBefore, inAfter, outBefore, outAfter }
+ * @param {Number} lateThreshold 迟到豁免阈值（分钟）
+ * @param {Number} earlyThreshold 早退豁免阈值（分钟）
  * @returns {Number} 实际合规的加班分钟数
  */
-function calcActualRangeMinutes(punchTimes, range, window) {
-	if (!range || !Array.isArray(range) || range.length !== 2) return 0;
+function calcActualRangeMinutes(punchTimes, range, window, lateThreshold = 0, earlyThreshold = 0) {
+	if (!range || !Array.isArray(range) || range.length !== 2) return {
+		minutes: 0,
+		late: 0,
+		early: 0
+	};
 
 	const segStart = toMinutes(range[0]);
 	const segEnd = toMinutes(range[1]);
@@ -786,16 +876,10 @@ function calcActualRangeMinutes(punchTimes, range, window) {
 		outAfter
 	} = window;
 
-	console.log(
-		`[calcActualRange] 时段=${range[0]}-${range[1]} (${segStart}-${segEnd}min) 打卡=[${punchTimes.join(',')}] 窗口=in[${segStart - inBefore},${segStart + inAfter}] out[${segEnd - outBefore},${segEnd + outAfter}]`
-	);
-
 	let actualIn = null;
 	let minInDiff = Infinity;
 	let actualOut = null;
 	let minOutDiff = Infinity;
-	let inPunch = null;
-	let outPunch = null;
 
 	for (let i = 0; i < punchTimes.length; i++) {
 		const pMin = toMinutes(punchTimes[i]);
@@ -805,7 +889,6 @@ function calcActualRangeMinutes(punchTimes, range, window) {
 			if (diff < minInDiff) {
 				minInDiff = diff;
 				actualIn = pMin;
-				inPunch = punchTimes[i];
 			}
 		}
 
@@ -814,29 +897,43 @@ function calcActualRangeMinutes(punchTimes, range, window) {
 			if (diff < minOutDiff) {
 				minOutDiff = diff;
 				actualOut = pMin;
-				outPunch = punchTimes[i];
 			}
 		}
 	}
 
-	console.log(`[calcActualRange] 命中签到=${inPunch}(${actualIn}) 命中签退=${outPunch}(${actualOut})`);
-
-	if (actualIn === null || actualOut === null) {
-		console.log(`[calcActualRange] 缺签到或签退，返回0`);
-		return 0;
-	}
-
-	if (actualIn >= actualOut) {
-		console.log(`[calcActualRange] 签到>=签退，返回0`);
-		return 0;
+	if (actualIn === null || actualOut === null || actualIn >= actualOut) {
+		console.log(`[计算时长] 时段 ${range[0]}~${range[1]}: 缺卡或签到签退颠倒，返回 0 分钟`);
+		return {
+			minutes: 0,
+			late: 0,
+			early: 0
+		};
 	}
 
 	let actualWorkMinutes = actualOut - actualIn;
 	let planWorkMinutes = segEnd - segStart;
-	const result = Math.min(actualWorkMinutes, planWorkMinutes);
 
-	console.log(`[calcActualRange] 实际打卡时长=${actualWorkMinutes}min 申请时长=${planWorkMinutes}min 取min=${result}min`);
-	return result;
+	// 计算迟到与早退
+	let lateDiff = actualIn - segStart;
+	let deductLate = lateDiff > lateThreshold ? lateDiff : 0;
+
+	let earlyDiff = segEnd - actualOut;
+	let deductEarly = earlyDiff > earlyThreshold ? earlyDiff : 0;
+
+	let effectiveWorkMinutes = actualWorkMinutes - deductLate - deductEarly;
+	if (effectiveWorkMinutes < 0) effectiveWorkMinutes = 0;
+
+	const resultMinutes = Math.min(effectiveWorkMinutes, planWorkMinutes);
+
+	console.log(`[计算时长] 时段 ${range[0]}~${range[1]}: 签到=${minutesToHHmm(actualIn)}, 签退=${minutesToHHmm(actualOut)}`);
+	console.log(`[计算时长] 实际跨度=${actualWorkMinutes}分, 扣除迟到=${deductLate}分, 扣除早退=${deductEarly}分`);
+	console.log(`[计算时长] 最终有效时长=${resultMinutes}分`);
+
+	return {
+		minutes: resultMinutes,
+		late: deductLate,
+		early: deductEarly
+	};
 }
 
 // ==================== 判断日期类型 ====================

@@ -29,32 +29,31 @@ module.exports = {
 			uid,
 			company_ids = [],
 			otherWhereJson,
-			filterWhereJson
+			filterWhereJson,
+			lastWhereJson
 		} = data;
 		let res = {
 			code: 0,
 			msg: ''
 		};
-		
-		//是否需要过滤公司别
-		let whereJson = {};
-		let lastWhereJson = {};
-		if (company_ids.length > 0) {
-			whereJson = {
-				...(filterWhereJson || {}),
-				...(otherWhereJson || {})
-			};
-			lastWhereJson = {
-				'employees.company_id': _.in(company_ids)
-			};
-		}
-		
+
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+		//lastWherJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
+
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = 'hrm-entry-forms'; // 表名
 		res = await vk.baseDao.getTableData({
 			dbName,
-			data,	
-			whereJson,		
+			data,
+			whereJson,
 			// 副表
 			foreignDB: [{
 				dbName: "hrm-bank",

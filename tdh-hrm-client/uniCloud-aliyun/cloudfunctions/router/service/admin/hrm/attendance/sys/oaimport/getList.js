@@ -11,8 +11,24 @@ module.exports = {
 		let {
 			formData,
 			pageIndex,
-			pageSize
+			pageSize,
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson,
+			lastWhereJson
 		} = data;
+
+		// 是否需要过滤公司别
+		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {}),
+			status: 'approved'
+		};
+		//lastWherJson加条件，在此处理
+		// lastWhereJson = {
+		// 	...lastWhereJson
+		// }
 
 		// 获取允许汇入的 form_type_code 列表
 		const configRes = await vk.baseDao.selects({
@@ -23,9 +39,7 @@ module.exports = {
 			}
 		});
 		let allowedCodes = configRes.rows[0]?.import_codes || [];
-		let whereJson = {
-			status: 'approved'
-		};
+
 		// 前端传了 form_type_code，则直接使用
 		if (formData.form_type_code) {
 			whereJson.form_type_code = formData.form_type_code;
@@ -63,6 +77,12 @@ module.exports = {
 				type: 'desc'
 			}],
 			foreignDB: [{
+					dbName: "hrm-employees",
+					localKey: "applicant_id",
+					foreignKey: "employee_id",
+					as: "employees",
+					limit: 1
+				}, {
 					dbName: 'bpmn-form-type',
 					localKey: 'form_type_code',
 					foreignKey: 'code',
@@ -76,7 +96,8 @@ module.exports = {
 					as: 'importOperatorInfo',
 					limit: 1
 				}
-			]
+			],
+			lastWhereJson
 		});
 	}
 };

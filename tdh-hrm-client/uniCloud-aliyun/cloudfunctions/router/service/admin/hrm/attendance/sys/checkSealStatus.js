@@ -1,9 +1,21 @@
 // admin/hrm/attendance/sys/checkSealStatus
 module.exports = {
 	main: async (event) => {
-		const { data = {}, util } = event;
-		const { vk, db, _ } = util;
-		const { employee_ids = [] } = data;
+		let {
+			data = {}, userInfo, util, filterResponse, originalParam
+		} = event;
+		let {
+			customUtil,
+			uniID,
+			config,
+			pubFun,
+			vk,
+			db,
+			_
+		} = util;
+		const {
+			employee_ids = []
+		} = data;
 
 		const dbName = 'hrm-attendance-daily';
 
@@ -31,7 +43,10 @@ module.exports = {
 		const earliestRes = await vk.baseDao.selects({
 			dbName,
 			whereJson,
-			sortArr: [{ name: 'attendance_date', type: 'asc' }],
+			sortArr: [{
+				name: 'attendance_date',
+				type: 'asc'
+			}],
 			limit: 1
 		});
 		const earliestDate = vk.pubfn.timeFormat(new Date(earliestRes.rows[0].attendance_date), 'yyyy-MM-dd');
@@ -40,7 +55,10 @@ module.exports = {
 		const latestRes = await vk.baseDao.selects({
 			dbName,
 			whereJson,
-			sortArr: [{ name: 'attendance_date', type: 'desc' }],
+			sortArr: [{
+				name: 'attendance_date',
+				type: 'desc'
+			}],
 			limit: 1
 		});
 		const latestDate = vk.pubfn.timeFormat(new Date(latestRes.rows[0].attendance_date), 'yyyy-MM-dd');
@@ -51,7 +69,7 @@ module.exports = {
 			unsealedCount: countRes,
 			earliestUnsealedDate: earliestDate,
 			latestUnsealedDate: latestDate,
-			suggestedSealDate: latestDate   // 建议封存日期 = 最晚未封存日期
+			suggestedSealDate: latestDate // 建议封存日期 = 最晚未封存日期
 		};
 	}
 };

@@ -520,12 +520,7 @@
 							header: '序号',
 							key: 'index',
 							width: 10
-						},
-						{
-							header: '时间',
-							key: 'attendance_ym',
-							width: 15
-						},
+						},						
 						{
 							header: '月份',
 							key: 'attendance_ym',
@@ -606,9 +601,9 @@
 					const imageUrls = listData.map(item => item.signature_url).filter(Boolean);
 					let base64Map = {};
 					let failCount = 0;
-
 					if (imageUrls.length > 0) {
-						const BATCH_SIZE = 60; // 低于云函数 maxCount(100)，留有余量const total = imageUrls.length;
+						const BATCH_SIZE = 60; // 低于云函数 maxCount(100)，留有余量
+						const total = imageUrls.length;
 						const batches = [];
 						for (let i = 0; i < total; i += BATCH_SIZE) {
 							batches.push(imageUrls.slice(i, i + BATCH_SIZE));

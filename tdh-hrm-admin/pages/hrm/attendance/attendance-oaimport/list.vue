@@ -10,8 +10,7 @@
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-upload2"
 					:disabled="!table1.selectItem || (table1.selectItem.import_status !== 0 && table1.selectItem.import_status !== 2)"
-					v-if="$hasRole('admin') || $hasPermission('attendance-import-execute')"
-					@click="executeImport">
+					v-if="$hasRole('admin') || $hasPermission('attendance-import-execute')" @click="executeImport">
 					{{ table1.selectItem && table1.selectItem.import_status === 2 ? '重新汇入' : '汇入' }}
 				</el-button>
 				<el-button type="warning" size="small" icon="el-icon-upload"
@@ -320,25 +319,17 @@
 
 				vk.confirm(confirmMsg, async (res) => {
 					if (res.confirm) {
-						vk.showLoading('正在汇入...');
-						try {
-							const result = await vk.callFunction({
-								url: 'admin/hrm/attendance/sys/oaimport/importOAData',
-								data: {
-									_id: item._id
-								}
-							});
-							vk.hideLoading();
-							if (result.code === 0) {
-								vk.toast('汇入成功');
-							} else {
-								vk.alert(result.msg || '汇入失败', '汇入失败');
+						const result = await vk.callFunction({
+							url: 'admin/hrm/attendance/sys/oaimport/importOAData',
+							title: '正在汇入...',
+							data: {
+								_id: item._id
 							}
+						});
+						if (result.code === 0) {
+							vk.toast('汇入成功');
 							this.refresh();
-						} catch (e) {
-							vk.hideLoading();
-							vk.alert('请求异常：' + (e.message || '未知错误'), '汇入失败');
-						}
+						} 
 					}
 				});
 			},
@@ -351,14 +342,14 @@
 				if (items.length === 0) return vk.toast('没有可汇入的记录');
 
 				vk.confirm(`确定要批量汇入 ${items.length} 条记录吗？`, async (res) => {
-					if (res.confirm) {						
+					if (res.confirm) {
 						let successCount = 0;
 						let failCount = 0;
 						let failMsgs = [];
 						for (let item of items) {
 							const result = await vk.callFunction({
 								url: 'admin/hrm/attendance/sys/oaimport/importOAData',
-								title:'正在批量汇入...',
+								title: '正在批量汇入...',
 								data: {
 									_id: item._id
 								}
@@ -369,9 +360,10 @@
 								failCount++;
 								failMsgs.push(`${item.title || item._id}: ${result.msg}`);
 							}
-						}						
+						}
 						if (failCount > 0) {
-							vk.alert(`成功 ${successCount} 条，失败 ${failCount} 条`, '批量汇入结果', () => this.refresh());
+							vk.alert(`成功 ${successCount} 条，失败 ${failCount} 条`, '批量汇入结果', () => this
+								.refresh());
 						} else {
 							vk.alert(`成功汇入 ${successCount} 条`, '提示', () => this.refresh());
 						}

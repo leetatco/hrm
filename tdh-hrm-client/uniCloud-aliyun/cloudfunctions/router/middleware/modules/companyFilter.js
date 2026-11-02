@@ -166,18 +166,25 @@ module.exports = [{
 			}
 
 			// 6. 应用公司过滤条件
-			let filterWhereJson = data.whereJson || {};
+			let filterWhereJson = {};
 			filterWhereJson.company_id = _.in(userCompanyIds);
+
+			// 7. 副表公司过滤条件
+			let lastWhereJson = {
+				'employees.company_id': _.in(userCompanyIds)
+			};
 
 			// 挂载到 data 上，方便后续云函数使用
 			data.company_ids = userCompanyIds;
 			data.filterWhereJson = filterWhereJson;
+			data.lastWhereJson = lastWhereJson;
 
 			console.log("companyFilter 动态应用:", {
 				routerPath,
 				user: userInfo.username,
 				userCompanyIds,
 				filterWhereJson,
+				lastWhereJson,
 				isExempted: false
 			});
 

@@ -860,7 +860,7 @@
 			async getSumList() {
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
 				let res = await vk.callFunction({
-					url: 'admin/hrm/salary/pub/getSumList',
+					url: 'admin/hrm/salary/sys/getSumList',
 					title: '请求中...',
 					data: {
 						attendance_ym

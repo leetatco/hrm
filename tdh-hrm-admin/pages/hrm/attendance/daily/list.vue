@@ -364,7 +364,7 @@
 							type: "text",
 							width: colWidth - 100,
 							fixed: true,
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : (row
+							formatter: (val, row) => row.employees ? row.employees.employee_name : (row
 								.employee_name || '')
 						},
 						{
@@ -687,7 +687,7 @@
 			originalForms = {
 				form1: vk.pubfn.copyObject(this.form1)
 			};
-			this.loadSealStatus();
+			// this.loadSealStatus();
 		},
 		methods: {
 			init(options) {
@@ -780,7 +780,7 @@
 							key: "employee_name",
 							title: "员工姓名",
 							type: "text",
-							formatter: (val, row) => row.employeeInfo ? row.employeeInfo.employee_name : (
+							formatter: (val, row) => row.employees ? row.employees.employee_name : (
 								row.employee_name || '')
 						},
 						{
@@ -911,7 +911,7 @@
 					this.detailDialog.title = '考勤详情';
 					this.$set(this.detailDialog, 'data', {
 						...JSON.parse(JSON.stringify(item || {})),
-						employee_name: item.employeeInfo ? item.employeeInfo.employee_name : (item
+						employee_name: item.employees ? item.employees.employee_name : (item
 							.employee_name || '')
 					});
 					this.detailDialog.loading = false;

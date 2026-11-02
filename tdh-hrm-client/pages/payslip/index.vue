@@ -10,7 +10,7 @@
 		<!-- 列表 -->
 		<view v-else class="list">
 			<view v-for="item in list" :key="item._id" class="item" @click="goSign(item)">
-				<text class="ym">{{ formatDate(item.attendance_ym_key) }}</text>
+				<text class="ym">{{ formatDate(item.attendance_ym) }}</text>
 				<text class="name">{{ item.employee_name }}</text>
 				<text class="sign-badge">待签名</text>
 			</view>
