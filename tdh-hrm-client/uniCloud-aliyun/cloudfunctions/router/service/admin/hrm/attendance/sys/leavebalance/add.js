@@ -1,8 +1,13 @@
-// admin/hrm/attendance/sys/leavebalance/add
+const HrmService = require('../../../../../common/pub/class/hrm-service.js');
 module.exports = {
 	main: async (event) => {
-		const { data = {}, userInfo, util } = event;
-		const { vk, db } = util;
+		const {
+			data = {}, userInfo, util
+		} = event;
+		const {
+			vk,
+			db
+		} = util;
 
 		const {
 			uid,
@@ -17,7 +22,10 @@ module.exports = {
 		} = data;
 
 		if (!employee_id || !leave_type_id || !year) {
-			return { code: -1, msg: '员工、假期类型、年度不能为空' };
+			return {
+				code: -1,
+				msg: '员工、假期类型、年度不能为空'
+			};
 		}
 
 		const dbName = 'hrm-attendance-leavebalance';
@@ -26,18 +34,30 @@ module.exports = {
 		// 1. 检查是否已存在
 		const existRes = await vk.baseDao.selects({
 			dbName,
-			whereJson: { employee_id, leave_type_id, year },
+			whereJson: {
+				employee_id,
+				leave_type_id,
+				year
+			},
 			limit: 1
 		});
 
 		if (existRes.rows.length > 0) {
-			return { code: -1, msg: '该员工该年度该假期类型额度已存在，请勿重复添加' };
+			return {
+				code: -1,
+				msg: '该员工该年度该假期类型额度已存在，请勿重复添加'
+			};
 		}
+
+		const hrmService = new HrmService(vk, db);
+		// 在业务流程中获取 company_id（自动走缓存）
+		const companyId = await hrmService.getCompanyIdByKeyWithCache(employee_id);
 
 		// 2. 新增额度
 		const id = await vk.baseDao.add({
 			dbName,
 			dataJson: {
+				company_id: companyId,
 				employee_id,
 				leave_type_id,
 				year,
@@ -58,7 +78,7 @@ module.exports = {
 				employee_id,
 				leave_type_id,
 				year,
-				change_type: 1,  // 初始化
+				change_type: 1, // 初始化
 				change_amount: total_minutes,
 				before_balance: 0,
 				after_balance: total_minutes,
@@ -70,6 +90,10 @@ module.exports = {
 			}
 		});
 
-		return { code: 0, msg: '添加成功', id };
+		return {
+			code: 0,
+			msg: '添加成功',
+			id
+		};
 	}
 };

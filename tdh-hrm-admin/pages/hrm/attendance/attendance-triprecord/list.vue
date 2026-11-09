@@ -13,7 +13,7 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('attendance-triprecord-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-export')"
 					@click="exportExcel">导出全部</el-button>
 			</el-row>
 		</view>
@@ -47,7 +47,8 @@
 							label="开始时间">{{ formatDate(detailDialog.data.start_time) }}</el-descriptions-item>
 						<el-descriptions-item
 							label="结束时间">{{ formatDate(detailDialog.data.end_time) }}</el-descriptions-item>
-						<el-descriptions-item label="出差时长">{{ vk.myfn.formatMinutes(detailDialog.data.total_minutes) }}</el-descriptions-item>
+						<el-descriptions-item
+							label="出差时长">{{ vk.myfn.formatMinutes(detailDialog.data.total_minutes) }}</el-descriptions-item>
 						<el-descriptions-item label="汇入状态">
 							<el-tag :type="getImportStatusType(detailDialog.data.import_status)">
 								{{ getImportStatusText(detailDialog.data.import_status) }}
@@ -81,7 +82,7 @@
 						title: '详情',
 						icon: 'el-icon-view',
 						type: 'primary',
-						show: () => this.$hasRole('admin') || this.$hasPermission('attendance-triprecord-view'),
+						show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-view'),
 						onClick: (item) => {
 							this.onDetail(item);
 						}
@@ -215,6 +216,24 @@
 									mode: "%%"
 								}
 							],
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
 							mode: "="
 						},
 						{

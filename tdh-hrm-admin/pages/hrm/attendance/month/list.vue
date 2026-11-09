@@ -9,10 +9,10 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-refresh"
-					v-if="$hasRole('admin') || $hasPermission('attendance-monthly-generate')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					@click="showGenerateDialog">生成月度汇总</el-button>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('attendance-monthly-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-export')"
 					@click="exportExcelAll">导出全部</el-button>
 			</el-row>
 		</view>
@@ -193,7 +193,7 @@
 						mode: 'detail_auto',
 						title: '详细',
 						show: () => this.$hasRole('admin') || this.$hasPermission(
-							'attendance-monthly-view')
+							'hrm-attendance-view')
 					}],
 					columns: [{
 							key: "attendance_ym",
@@ -426,6 +426,24 @@
 									mode: "%%"
 								}
 							],
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
 							mode: "="
 						},
 						{

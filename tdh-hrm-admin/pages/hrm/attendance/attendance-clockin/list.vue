@@ -12,12 +12,12 @@
 		<!-- 操作按钮 -->
 		<view class="btn-group">
 			<el-row>
-				<el-button type="success" v-if="$hasRole('admin') || $hasPermission('clockin-record-add')" size="small"
+				<el-button type="success" v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')" size="small"
 					icon="el-icon-edit" @click="importHKDates">导入打卡机数据</el-button>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('clockin-record-add')" @click="addBtn">添加打卡记录</el-button>
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')" @click="addBtn">添加打卡记录</el-button>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('clockin-record-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-export')"
 					@click="exportExcel">导出全部</el-button>
 			</el-row>
 		</view>
@@ -50,17 +50,17 @@
 					rightBtns: [{
 							mode: 'detail_auto',
 							title: '详细',
-							show: () => this.$hasRole('admin') || this.$hasPermission('clockin-record-view')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-view')
 						},
 						{
 							mode: 'update',
 							title: '编辑',
-							show: () => this.$hasRole('admin') || this.$hasPermission('clockin-record-edit')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-edit')
 						},
 						{
 							mode: 'delete',
 							title: '删除',
-							show: () => this.$hasRole('admin') || this.$hasPermission('clockin-record-delete')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-delete')
 						}
 					],
 					columns: [{
@@ -177,6 +177,24 @@
 									mode: "%%"
 								},
 							],
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
 							mode: "="
 						},
 						{

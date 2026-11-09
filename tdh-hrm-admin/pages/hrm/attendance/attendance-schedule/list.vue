@@ -17,13 +17,13 @@
 		<!-- 操作按钮 -->
 		<el-row>
 			<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-				v-if="$hasRole('admin') || $hasPermission('attendance-schedule-add')" @click="addBtn">添加</el-button>
+				v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')" @click="addBtn">添加</el-button>
 			<el-button type="primary" size="small" icon="el-icon-refresh"
-				v-if="$hasRole('admin') || $hasPermission('attendance-schedule-batch')"
+				v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-batch')"
 				@click="openBatchGenerate">批量生成</el-button>
 			<!-- 批量操作 -->
 			<el-dropdown
-				v-if="table1.multipleSelection && ($hasRole('admin') || $hasPermission('attendance-schedule-add'))"
+				v-if="table1.multipleSelection && ($hasRole('admin') || $hasPermission('hrm-attendance-config-add'))"
 				:split-button="false" trigger="click" @command="batchBtn">
 				<el-button type="danger" size="small" style="margin-left: 20rpx;"
 					:disabled="table1.multipleSelection.length === 0">
@@ -77,17 +77,17 @@
 					rightBtns: [{
 							mode: 'detail_auto',
 							title: '详细',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-schedule-view')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view')
 						},
 						{
 							mode: 'update',
 							title: '编辑',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-schedule-edit')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit')
 						},
 						{
 							mode: 'delete',
 							title: '删除',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-schedule-delete')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete')
 						}
 					],
 					columns: [{
@@ -401,7 +401,7 @@
 			 */
 			async beforeConfigChange() {
 				const res = await vk.callFunction({
-					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					url: 'admin/hrm/attendance/pub/checkSealStatus',
 					data: {}
 				});
 				if (res.code !== 0) {

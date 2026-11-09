@@ -8,22 +8,22 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-add')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					@click="addBtn">添加</el-button>
 				<el-button type="warning" size="small" icon="el-icon-magic-stick"
-					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-generate')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					@click="generateByRule">按年假规则生成额度</el-button>
 				<el-upload style="display: inline-block; margin-left: 10px;margin-right: 10px;" accept=".xlsx, .xls"
 					:auto-upload="false" :limit="1" :show-file-list="false"
-					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-import')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					:on-change="handleChange" action="">
 					<el-button type="primary" size="small" icon="el-icon-upload2">导入Excel</el-button>
 				</el-upload>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('attendance-leavebalance-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-export')"
 					@click="exportExcelModel">下载模板</el-button>
 				<el-button type="info" size="small" icon="el-icon-document"
-					v-if="$hasRole('admin') || $hasPermission('attendance-balancelog-view')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-view')"
 					@click="viewLogs">额度变动日志</el-button>
 			</el-row>
 		</view>
@@ -84,17 +84,17 @@
 					rightBtns: [{
 							mode: 'detail_auto',
 							title: '详细',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-leavebalance-view')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-view')
 						},
 						{
 							mode: 'update',
 							title: '编辑',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-leavebalance-edit')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-edit')
 						},
 						{
 							mode: 'delete',
 							title: '删除',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-leavebalance-delete')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-delete')
 						}
 					],
 					columns: [{
@@ -218,6 +218,24 @@
 									mode: "%%"
 								},
 							],
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
 							mode: "="
 						},
 						{

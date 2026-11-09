@@ -15,6 +15,13 @@
 			"description": "员工身份证号码，冗余字段，便于薪资核算",
 			"trim": "both"
 		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"foreignKey": "hrm-companys.company_id",
+			"description": "所属公司",
+			"trim": "both"
+		},
 		"attendance_ym": {
 			"title": "考勤月份",
 			"bsonType": "date",

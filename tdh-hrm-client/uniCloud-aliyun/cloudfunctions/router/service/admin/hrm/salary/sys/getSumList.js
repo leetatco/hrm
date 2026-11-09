@@ -24,8 +24,7 @@ module.exports = {
 			attendance_ym,
 			company_ids = [],
 			otherWhereJson,
-			filterWhereJson,
-			lastWhereJson
+			filterWhereJson
 		} = data;
 		let res = {
 			code: 0,
@@ -41,31 +40,18 @@ module.exports = {
 		}
 
 		// 是否需要过滤公司别
-		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		// filterWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 		
 		const whereJson = {
 			...(filterWhereJson || {}),
 			...(otherWhereJson || {})
 		};
-		//lastWherJson加条件，在此处理
-		// lastWhereJson = {
-		// 	...lastWhereJson
-		// }
-
-
+		
 		let dbName = "hrm-salary";
 
 		// 使用 groupJson 聚合
 		let groupRes = await vk.baseDao.selects({
 			dbName,
-			whereJson,
-			// 副表
-			foreignDB: [{
-				dbName: "hrm-employees",
-				localKey: "card",
-				foreignKey: "card",
-				as: "employees"
-			}],
-			lastWhereJson,
+			whereJson,						
 			groupJson: {
 				_id: null, // 不按任何字段分组，整体聚合
 				work_days: $.sum('$work_days'),

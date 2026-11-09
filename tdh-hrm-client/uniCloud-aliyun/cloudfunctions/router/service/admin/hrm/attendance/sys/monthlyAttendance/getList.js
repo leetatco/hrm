@@ -10,21 +10,16 @@ module.exports = {
 			uid,
 			company_ids = [],
 			otherWhereJson,
-			filterWhereJson,
-			lastWhereJson
+			filterWhereJson
 		} = data;
-		
+
 		// 是否需要过滤公司别
-		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		// filterWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 		
 		const whereJson = {
 			...(filterWhereJson || {}),
 			...(otherWhereJson || {})
-		};
-		//lastWhereJson加条件，在此处理
-		// lastWhereJson = {
-		// 	...lastWhereJson
-		// }
-		
+		};		
+
 		let res = await vk.baseDao.getTableData({
 			dbName: 'hrm-attendance-monthly',
 			data,
@@ -35,13 +30,7 @@ module.exports = {
 				name: 'employee_id',
 				type: 'asc'
 			}],
-			foreignDB: [{
-					dbName: 'hrm-employees',
-					localKey: 'employee_id',
-					foreignKey: 'employee_id',
-					as: 'employees',
-					limit: 1
-				},
+			foreignDB: [
 				{
 					dbName: "uni-id-users",
 					localKey: "update_id",
@@ -49,8 +38,7 @@ module.exports = {
 					as: "users",
 					limit: 1
 				}
-			],
-			lastWhereJson
+			]
 		});
 		return res;
 	}

@@ -14,21 +14,16 @@ module.exports = {
 			pageSize,
 			company_ids = [],
 			otherWhereJson,
-			filterWhereJson,
-			lastWhereJson
+			filterWhereJson
 		} = data;
 
 		// 是否需要过滤公司别
-		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		// filterWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 		
 		const whereJson = {
 			...(filterWhereJson || {}),
 			...(otherWhereJson || {}),
 			status: 'approved'
 		};
-		//lastWherJson加条件，在此处理
-		// lastWhereJson = {
-		// 	...lastWhereJson
-		// }
 
 		// 获取允许汇入的 form_type_code 列表
 		const configRes = await vk.baseDao.selects({
@@ -96,8 +91,7 @@ module.exports = {
 					as: 'importOperatorInfo',
 					limit: 1
 				}
-			],
-			lastWhereJson
+			]
 		});
 	}
 };

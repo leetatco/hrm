@@ -3,10 +3,10 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('attendance-abnormalrule-add')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')"
 					@click="addBtn">添加规则</el-button>
 				<el-button type="warning" size="small" icon="el-icon-refresh-left"
-					v-if="$hasRole('admin') || $hasPermission('attendance-abnormalrule-edit')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-edit')"
 					@click="resetDefault">恢复默认</el-button>
 			</el-row>
 		</view>
@@ -36,17 +36,17 @@
 					rightBtns: [{
 							mode: 'detail_auto',
 							title: '详细',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-abnormalrule-view')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view')
 						},
 						{
 							mode: 'update',
 							title: '编辑',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-abnormalrule-edit')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit')
 						},
 						{
 							mode: 'delete',
 							title: '删除',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-abnormalrule-delete')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete')
 						}
 					],
 					columns: [{

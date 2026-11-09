@@ -1,3 +1,4 @@
+const HrmService = require('../../../../common/pub/class/hrm-service.js');
 module.exports = {
 	/**
 	 * 修改数据
@@ -42,6 +43,10 @@ module.exports = {
 			update_date,
 			updat_id
 		} = data;
+
+		const hrmService = new HrmService(vk, db);
+		// 在业务流程中获取 company_id（自动走缓存）
+		const companyId = await hrmService.getCompanyIdByKeyWithCache(card);
 		// 参数验证开始
 		if (vk.pubfn.isNull(_id)) return {
 			code: -1,
@@ -49,7 +54,7 @@ module.exports = {
 		};
 		let checkRes = await vk.baseDao.findByWhereJson({
 			dbName,
-			whereJson: _.or([{
+			whereJson: _.and([{
 					card
 				},
 				{
@@ -72,6 +77,7 @@ module.exports = {
 			dbName,
 			id: _id,
 			dataJson: {
+				company_id: companyId,
 				contract_sign_id,
 				card,
 				sign_date,

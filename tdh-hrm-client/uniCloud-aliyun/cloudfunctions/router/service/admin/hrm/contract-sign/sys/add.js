@@ -1,3 +1,4 @@
+const HrmService = require('../../../../common/pub/class/hrm-service.js');
 module.exports = {
 	/**
 	 * 添加单条数据
@@ -41,14 +42,36 @@ module.exports = {
 			update_date,
 			updat_id
 		} = data;
-		// 参数验证开始
 
-		// 参数验证结束
+		const hrmService = new HrmService(vk, db);
+		// 在业务流程中获取 company_id（自动走缓存）
+		const companyId = await hrmService.getCompanyIdByKeyWithCache(card);
+
 		let dbName = 'hrm-contract-sign'; // 表名
+		// 参数验证开始
+		let checkRes = await vk.baseDao.findByWhereJson({
+			dbName,
+			whereJson: _.and([{
+					card
+				},
+				{
+					contract_sign_id
+				}
+			])
+		});
+		if (checkRes) {
+			return {
+				code: -1,
+				msg: "合同重复"
+			}
+		}
+
+		// 参数验证结束		
 		// 执行 数据库add 命令
 		res.id = await vk.baseDao.add({
 			dbName,
 			dataJson: {
+				company_id: companyId,
 				contract_sign_id,
 				card,
 				sign_date,

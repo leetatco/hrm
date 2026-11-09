@@ -60,9 +60,9 @@ module.exports = {
 				const queryKey = card;
 				if (!queryKey) return null;
 
-				// 查询该员工所有有签名的记录，按月份倒序取第一条
+				// 查询该员工所有合同有签名的记录，按月份倒序取第一条
 				const historyRes = await vk.baseDao.getTableData({
-					dbName:'hrm-salary-payslip',
+					dbName:'hrm-contract-sign',
 					whereJson: {
 						// 根据实际字段调整：可能用 card，也可能用 uid
 						card: queryKey,
@@ -70,7 +70,7 @@ module.exports = {
 						signature_url: _.neq('') // 只取非空签名
 					},
 					sortArr: [{
-						name: "attendance_ym",
+						name: "_id",
 						type: "desc"
 					}],
 					limit: 1,

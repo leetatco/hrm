@@ -28,7 +28,8 @@ module.exports = {
 
 		// 业务逻辑开始-----------------------------------------------------------
 		let {
-			items = []
+			cards = [],
+				items = []
 		} = data;
 
 		// 参数验证
@@ -39,13 +40,26 @@ module.exports = {
 			};
 		}
 
-		// 校验每条记录都有 _id
-		for (const item of items) {
-			if (!item || !item._id) {
-				return {
-					code: -1,
-					msg: 'items中的每条记录都必须包含 _id'
-				};
+
+		const employeeCompanyMap = {};
+		if (cards.length > 0) {
+			const batchSize = 500;
+			for (let i = 0; i < cards.length; i += batchSize) {
+				const batchIds = cards.slice(i, i + batchSize);
+				const empRes = await vk.baseDao.select({
+					dbName: 'hrm-employees',
+					whereJson: {
+						card: _.in(batchIds)
+					},
+					fieldJson: {
+						card: 1,
+						company_id: 1
+					},
+					pageSize: batchSize
+				});
+				(empRes.rows || []).forEach(emp => {
+					employeeCompanyMap[emp.card] = emp.company_id || '';
+				});
 			}
 		}
 
@@ -55,6 +69,7 @@ module.exports = {
 		const tasks = items.map(item => {
 			const updateData = {
 				...item,
+				company_id: employeeCompanyMap[item.card],
 				update_id: uid,
 				update_date: nowTime
 			};

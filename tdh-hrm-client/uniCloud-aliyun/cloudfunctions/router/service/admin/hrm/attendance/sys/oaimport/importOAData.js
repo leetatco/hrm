@@ -311,6 +311,7 @@ async function handleTrip(app, util, uid) {
 				const minutes = Math.round((segEnd - segStart) / (1000 * 60));
 				records.push({
 					employee_id: employeeId,
+					company_id: app.company_id,
 					oa_instance_id: app._id,
 					trip_location: location,
 					start_time: segStart,
@@ -388,6 +389,7 @@ async function handleLeave(app, util, uid) {
 
 		records.push({
 			employee_id: employeeId,
+			company_id: app.company_id,
 			oa_instance_id: app._id,
 			leave_date: leaveDateTimestamp,
 			leave_type: leaveTypeCode,
@@ -625,13 +627,13 @@ async function handleOvertime(app, util, uid) {
 				console.log(`  ❌ ${label} 未匹配到签到卡！`);
 				missingErrors.push(
 					`${overtimeDate} ${label}缺签到卡, 当天所有打卡: [${punchTimes.join(', ')}](有效卡范围: ${minutesToHHmm(inWindowStart)} ~ ${minutesToHHmm(inWindowEnd)})`
-					);
+				);
 			}
 			if (!hasOutPunch) {
 				console.log(`  ❌ ${label} 未匹配到签退卡！`);
 				missingErrors.push(
 					`${overtimeDate} ${label}缺签退卡, 当天所有打卡: [${punchTimes.join(', ')}](有效卡范围: ${minutesToHHmm(outWindowStart)} ~ ${minutesToHHmm(outWindowEnd)})`
-					);
+				);
 			}
 		};
 
@@ -740,6 +742,7 @@ async function handleOvertime(app, util, uid) {
 
 		records.push({
 			employee_id: employeeId,
+			company_id: app.company_id,
 			oa_instance_id: app._id,
 			overtime_date: overtimeDateTimestamp,
 			total_minutes: totalMinutes,

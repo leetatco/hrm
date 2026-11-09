@@ -31,11 +31,37 @@ module.exports = {
 		// 业务逻辑开始-----------------------------------------------------------
 		// 获取前端传过来的参数
 		let {
-			items=[],
-			update_date,
-			update_id
+			cards = [],
+				items = [],
+				update_date,
+				update_id
 		} = data;
-		// 参数验证开始		
+		// 参数验证开始
+		const employeeCompanyMap = {};
+		if (cards.length > 0) {
+			const batchSize = 500;
+			for (let i = 0; i < cards.length; i += batchSize) {
+				const batchIds = cards.slice(i, i + batchSize);
+				const empRes = await vk.baseDao.select({
+					dbName: 'hrm-employees',
+					whereJson: {
+						card: _.in(batchIds)
+					},
+					fieldJson: {
+						card: 1,
+						company_id: 1
+					},
+					pageSize: batchSize
+				});
+				(empRes.rows || []).forEach(emp => {
+					employeeCompanyMap[emp.card] = emp.company_id || '';
+				});
+			}
+		}
+
+		items.forEach(e => {
+			e.company_id = employeeCompanyMap[e.card]
+		})
 
 		// 参数验证结束		
 		// 执行 数据库adds 命令

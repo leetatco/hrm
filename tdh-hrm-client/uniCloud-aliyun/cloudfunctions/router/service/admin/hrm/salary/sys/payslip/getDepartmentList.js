@@ -1,0 +1,113 @@
+module.exports = {
+	/**
+	 * 查询多条记录 分页（支持超过1000条自动循环取全部）
+	 * @url admin/hrm/salary/sys/payslip/getList 前端调用的url参数地址
+	 * data 请求参数 说明
+	 * @params {Number}         pageIndex 当前页码
+	 * @params {Number}         pageSize  每页显示数量（-1 表示取全部）
+	 * @params {Array<Object>}  sortRule  排序规则
+	 * @params {object}         formData  查询条件数据源
+	 * @params {Array<Object>}  columns   查询条件规则
+	 * res 返回参数说明
+	 * @params {Number}         code      错误码，0表示成功
+	 * @params {String}         msg       详细信息
+	 */
+	main: async (event) => {
+		let {
+			data = {}, userInfo, util, filterResponse, originalParam
+		} = event;
+		let {
+			customUtil,
+			uniID,
+			config,
+			pubFun,
+			vk,
+			db,
+			_,
+			$
+		} = util;
+		let {
+			uid,
+			status,
+			company_ids = [],
+			otherWhereJson,
+			filterWhereJson
+		} = data;
+		let res = {
+			code: 0,
+			msg: ''
+		};
+
+		// 是否需要过滤公司别
+		// filterWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 		
+		const whereJson = {
+			...(filterWhereJson || {}),
+			...(otherWhereJson || {})
+		};
+
+		let dbName = "hrm-salary-payslip";
+		let pageSize = data.pageSize !== undefined ? data.pageSize : 10;
+
+		// 当 pageSize 为 -1 或大于 1000 时，自动循环分页取全部数据
+		if (pageSize === -1 || pageSize > 1000) {
+			let allRows = [];
+			let currentPage = 1;
+			let batchSize = 1000; // uniCloud 单次查询硬限制
+			let hasMore = true;
+
+			while (hasMore) {
+				let pageRes = await vk.baseDao.getTableData({
+					dbName,
+					whereJson,
+					data: {
+						pageIndex: currentPage,
+						pageSize: batchSize
+					},
+					groupJson: {
+						_id: '$department_name',
+						department_name: $.first('$department_name')
+					}
+				});
+
+				if (pageRes.rows && pageRes.rows.length > 0) {
+					allRows = allRows.concat(pageRes.rows);
+				}
+
+				// 如果本次取满 1000 条，说明可能还有下一页
+				hasMore = pageRes.rows && pageRes.rows.length === batchSize;
+				currentPage++;
+
+				// 安全限制：最多循环 100 次（即最多取 10 万条），防止意外死循环或超时
+				if (currentPage > 100) {
+					console.warn(`[payslip/getList] 数据量过大，已触发安全限制，当前已取 ${allRows.length} 条`);
+					break;
+				}
+			}
+
+			res = {
+				code: 0,
+				msg: '',
+				rows: allRows,
+				total: allRows.length,
+				pageIndex: 1,
+				pageSize: allRows.length
+			};
+		} else {
+			// 正常分页查询（1000条以内，保持原有逻辑）
+			res = await vk.baseDao.getTableData({
+				dbName,
+				whereJson,
+				data: {
+					pageIndex: currentPage,
+					pageSize: batchSize
+				},
+				groupJson: {
+					_id: '$department_name',
+					department_name: $.first('$department_name')
+				}
+			});
+		}
+
+		return res;
+	}
+};

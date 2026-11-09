@@ -447,33 +447,45 @@
 							mode: "%%"
 						},
 						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
+							mode: "="
+						},
+						{
 							key: "department_name",
 							title: "部门名称",
 							type: "remote-select",
 							placeholder: "请选择部门名称",
 							width: colWidth,
-							action: "admin/hrm/salary/sys/payslip/getList",
+							action: "admin/hrm/salary/sys/payslip/getDepartmentList",
 							props: {
 								list: "rows",
 								value: "department_name",
 								label: "department_name"
-							},
-							dataPreprocess: (list) => {
-								const departmentList = [...new Set(
-									list.map(item => item.department_name)
-								)].map(name => ({
-									department_name: name
-								}));
-								return departmentList;
-							},
+							},							
 							showAll: true,
 							actionData: {
 								otherWhereJson: {
+									attendance_ym: nowym,
 									status: 0
 								},
 								pageSize: -1,
 								pageIndex: 1
-							}
+							},
+							mode: "="
 						},
 						{
 							key: "status",
@@ -1176,6 +1188,7 @@
 								url: 'admin/hrm/salary/sys/payslip/all/addAll',
 								title: '请求中...',
 								data: {
+									cards,
 									items: validData
 								},
 							});
@@ -1247,7 +1260,7 @@
 			},
 			// 搜索
 			async search() {
-				if (this.queryForm1.formData.attendance_ym.length > 0) {
+				if (this.queryForm1.formData.attendance_ym && this.queryForm1.formData.attendance_ym.length > 0) {
 					this.queryForm1.formData.attendance_ym = [...this.queryForm1.formData.attendance_ym].sort()
 				}
 				this.$refs.table1.search();

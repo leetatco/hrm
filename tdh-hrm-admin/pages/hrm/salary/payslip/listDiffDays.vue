@@ -404,7 +404,7 @@
 				vk.pubfn.resetForm(originalForms, this);
 			},
 			async search() {
-				if (this.queryForm1.formData.attendance_ym.length > 0) {
+				if (this.queryForm1.formData.attendance_ym && this.queryForm1.formData.attendance_ym.length > 0) {
 					this.queryForm1.formData.attendance_ym = [...this.queryForm1.formData.attendance_ym].sort()
 				}
 				this.$refs.table1.search();

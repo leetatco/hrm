@@ -8,11 +8,12 @@
 		<!-- 自定义按钮区域开始 -->
 		<view>
 			<el-row>
-				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					@click="addBtn">添加公告</el-button>
+				<el-button type="success" size="small" icon="el-icon-circle-plus-outline" @click="addBtn"
+					v-if="$hasRole('admin') || $hasPermission('hrm-employee-add')">添加公告</el-button>
 				<!-- 批量操作 -->
 				<el-dropdown v-if="table1.multipleSelection" :split-button="false" trigger="click" @command="batchBtn">
 					<el-button type="danger" size="small" style="margin-left: 20rpx;"
+						v-if="$hasRole('admin') || $hasPermission('hrm-employee-add')"
 						:disabled="table1.multipleSelection.length === 0">
 						批量操作<i class="el-icon-arrow-down el-icon--right"></i>
 					</el-button>
@@ -63,14 +64,14 @@
 							mode: 'detail_auto',
 							title: '详细',
 							show: (item) => {
-								return this.$hasRole('admin')
+								return this.$hasRole('admin') || this.$hasPermission('hrm-employee-view')
 							}
 						},
 						{
 							mode: 'update',
 							title: '编辑',
 							show: (item) => {
-								return this.$hasRole('admin')
+								return this.$hasRole('admin') || this.$hasPermission('hrm-employee-add')
 							}
 						},
 						{
@@ -95,7 +96,7 @@
 							formatter: (value, row, column, index) => {
 								const map = {
 									system: '系统公告',
-									activity: '活动通知',									
+									activity: '活动通知',
 									notice: '一般通知',
 									about: '关于我们',
 									other: '其他'
@@ -419,7 +420,7 @@
 				formDatas: {},
 			};
 		},
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
 		},
@@ -485,7 +486,7 @@
 			},
 			updateBtn({
 				item
-			}) {				
+			}) {
 				this.form1.props.action = 'admin/opendb-notice/sys/update';
 				this.form1.props.formType = 'update';
 				this.form1.props.title = '编辑公告';
@@ -512,10 +513,10 @@
 				let action = '';
 				let newStatus = '';
 				if (index === 1) {
-					action = 'admin/opendb-notice/sys/batchPublish';
+					action = 'admin/opendb-notice/sys/updateBatch';
 					newStatus = 'published';
 				} else if (index === 2) {
-					action = 'admin/opendb-notice/sys/batchOffline';
+					action = 'admin/opendb-notice/sys/updateBatch';
 					newStatus = 'offline';
 				}
 				uni.showModal({
@@ -525,6 +526,7 @@
 						if (res.confirm) {
 							vk.callFunction({
 								url: action,
+								title: '加载中...',
 								data: {
 									ids,
 									status: newStatus

@@ -18,7 +18,7 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('attendance-wificonfig-add')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')"
 					@click="addBtn">添加打卡点</el-button>
 			</el-row>
 		</view>
@@ -58,19 +58,19 @@
 							mode: 'detail_auto',
 							title: '详细',
 							show: (row) => row.type === "clockin" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-wificonfig-view'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view'))
 						},
 						{
 							mode: 'update',
 							title: '编辑',
 							show: (row) => row.type === "clockin" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-wificonfig-edit'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit'))
 						},
 						{
 							mode: 'delete',
 							title: '删除',
 							show: (row) => row.type === "clockin" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-wificonfig-delete'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete'))
 						}
 					],
 					columns: [{

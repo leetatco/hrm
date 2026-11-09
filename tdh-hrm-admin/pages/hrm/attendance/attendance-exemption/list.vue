@@ -9,10 +9,10 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('attendance-exemption-add')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')"
 					@click="addBtn">添加</el-button>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('attendance-exemption-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-export')"
 					@click="exportExcel">导出全部</el-button>
 			</el-row>
 		</view>
@@ -45,17 +45,17 @@
 					rightBtns: [{
 							mode: 'detail_auto',
 							title: '详细',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-exemption-view')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view')
 						},
 						{
 							mode: 'update',
 							title: '编辑',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-exemption-edit')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit')
 						},
 						{
 							mode: 'delete',
 							title: '删除',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-exemption-delete')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete')
 						}
 					],
 					columns: [{

@@ -9,7 +9,7 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('attendance-balancelog-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-export')"
 					@click="exportExcel">导出全部</el-button>
 			</el-row>
 		</view>
@@ -32,7 +32,7 @@
 					rightBtns: [{
 						mode: 'detail_auto',
 						title: '详细',
-						show: () => this.$hasRole('admin') || this.$hasPermission('attendance-balancelog-view')
+						show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view')
 					}],
 					columns: [{
 							key: "employee_id",

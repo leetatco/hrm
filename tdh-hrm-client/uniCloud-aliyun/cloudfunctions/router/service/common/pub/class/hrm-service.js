@@ -6,6 +6,54 @@ class HrmService {
 	}
 
 	/**
+	 * 带缓存获取员工所属公司ID
+	 * @param {String} keyValue(username或card或mobile)
+	 * @param {Number} cacheSeconds 缓存秒数，默认300秒(5分钟)
+	 * @returns {Promise<String>} company_id
+	 */
+	async getCompanyIdByKeyWithCache(keyValue, cacheSeconds = 300) {
+		if (!keyValue) throw new Error('keyValue 不能为空');
+
+		const cacheManage = vk.getCacheManage(); // 初始化缓存实例[citation:1]
+		const cacheKey = `company_id:keyValue:${keyValue}`; // 缓存键名，建议加前缀便于管理
+
+		// 1. 先尝试从缓存读取
+		const cachedCompanyId = await cacheManage.get(cacheKey);
+		if (cachedCompanyId) {
+			return cachedCompanyId; // 缓存命中，直接返回
+		}
+
+		// 2. 缓存未命中，查数据库（通过员工表的 username 或 mobile 或 card关联）
+		const dbCmd = this.db.command
+		const employee = await this.vk.baseDao.selects({
+			dbName: 'hrm-employees',
+			getOne: true,
+			getMain: true,
+			fieldJson: {
+				company_id: true
+			},
+			whereJson: dbCmd.or([{
+				employee_id: keyValue ? keyValue : 'null'
+			}, {
+				card: keyValue ? keyValue : 'null'
+			}, {
+				mobile: keyValue ? keyValue : 'null'
+			}])
+		})
+
+		if (!employee) {
+			throw new Error(`未找到用户 ${keyValue} 关联的公司信息`);
+		}
+
+		const companyId = employee.company_id;
+
+		// 3. 写入缓存，设置过期时间
+		await cacheManage.set(cacheKey, companyId, cacheSeconds);
+
+		return companyId;
+	}
+
+	/**
 	 * 根据用户名、手机号码获取完整的员工信息
 	 */
 	async getEmployeeInfoByUsername(username) {
@@ -165,6 +213,7 @@ class HrmService {
 			// 部门信息
 			department_id: employee.department_id,
 			department_name: employee.department_info?.department_name || '',
+			parent_department_id: employee.department_info?.parent_department_id || '',
 			department_manager_id: employee.department_info.deptmanager_info?.employee_id || '',
 			department_manager_name: employee.department_info.deptmanager_info?.employee_name || '',
 

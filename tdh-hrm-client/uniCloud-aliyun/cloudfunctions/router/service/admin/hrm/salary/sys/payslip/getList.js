@@ -30,8 +30,7 @@ module.exports = {
 			uid,
 			company_ids = [],
 			otherWhereJson,
-			filterWhereJson,
-			lastWhereJson
+			filterWhereJson
 		} = data;
 		let res = {
 			code: 0,
@@ -39,15 +38,11 @@ module.exports = {
 		};
 
 		// 是否需要过滤公司别
-		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		// filterWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 		
 		const whereJson = {
 			...(filterWhereJson || {}),
 			...(otherWhereJson || {})
 		};
-		//lastWhereJson加条件，在此处理
-		// lastWhereJson = {
-		// 	...lastWhereJson
-		// }
 
 		let dbName = "hrm-salary-payslip";
 		let pageSize = data.pageSize !== undefined ? data.pageSize : 10;
@@ -89,7 +84,6 @@ module.exports = {
 						as: "users",
 						limit: 1
 					}],
-					lastWhereJson,
 					getCount: false // 循环查询不需要 count，提升性能
 				});
 
@@ -121,6 +115,7 @@ module.exports = {
 			res = await vk.baseDao.getTableData({
 				dbName,
 				data,
+				whereJson,
 				sortArr: [{
 						name: "attendance_ym",
 						type: "asc"
@@ -142,8 +137,7 @@ module.exports = {
 					foreignKey: "_id",
 					as: "users",
 					limit: 1
-				}],
-				lastWhereJson
+				}]
 			});
 		}
 

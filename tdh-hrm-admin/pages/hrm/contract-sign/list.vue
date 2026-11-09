@@ -41,7 +41,7 @@
 	</view>
 </template>
 
-<script>
+<script>	
 	let vk = uni.vk;
 	const colWidth = 200;
 
@@ -79,7 +79,7 @@
 							type: "text",
 							"fixed": true,
 							width: colWidth - 100
-						},{
+						}, {
 							key: "employees.employee_name",
 							title: "员工姓名",
 							type: "text",
@@ -88,7 +88,7 @@
 						},
 						{
 							key: "signature_url",
-							title: "签名图片",
+							title: "签名",
 							type: "image",
 							width: colWidth - 100,
 							"fixed": true,
@@ -103,9 +103,9 @@
 						},
 						{
 							key: "contractInfo.contract_sign_name",
-							title: "合同类型",
+							title: "合同/协议名称",
 							type: "text",
-							width: colWidth - 100
+							width: colWidth - 50
 						},
 						{
 							key: "sign_date",
@@ -187,7 +187,7 @@
 						},
 						{
 							key: "contract_sign_id",
-							title: "合同类型",
+							title: "合同/协议名称",
 							type: "remote-select",
 							width: colWidth,
 							action: "admin/hrm/contract-sign/sys/setting/getList",
@@ -200,6 +200,24 @@
 							actionData: {
 								pageSize: 1000
 							}
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
+							mode: "="
 						},
 						{
 							key: "status",
@@ -278,7 +296,7 @@
 							},
 							{
 								key: "contract_sign_id",
-								title: "合同类型",
+								title: "合同/协议名称",
 								type: "remote-select",
 								width: colWidth,
 								action: "admin/hrm/contract-sign/sys/setting/getList",
@@ -343,7 +361,7 @@
 							},
 							{
 								key: "signature_url",
-								title: "签名图片",
+								title: "签名",
 								type: "image",
 								disabled: true,
 								limit: 1,
@@ -363,7 +381,7 @@
 							}],
 							contract_sign_id: [{
 								required: true,
-								message: "请选择合同类型",
+								message: "请选择合同/协议名称",
 								trigger: "change"
 							}],
 							sign_date: [{
@@ -433,12 +451,13 @@
 					fileName: "合同签署列表",
 					title: "正在导出...",
 					columns: this.table1.columns.filter(
-						(c) => !["contract_sign_file", "signature_url", "update_date", "users.nickname"].includes(c.key)
+						(c) => !["contract_sign_file", "signature_url", "update_date", "users.nickname"]
+						.includes(c.key)
 					),
 					pageIndex: 1,
 					pageSize: -1
 				});
-			}
+			}			
 		}
 	};
 </script>

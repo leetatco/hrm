@@ -4,9 +4,9 @@
     <view class="btn-group">
       <el-row>
         <el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-          v-if="$hasRole('admin') || $hasPermission('attendance-remedyrule-add')" @click="addBtn">添加规则</el-button>
+          v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')" @click="addBtn">添加规则</el-button>
         <el-button type="warning" size="small" icon="el-icon-refresh-left"
-          v-if="$hasRole('admin') || $hasPermission('attendance-remedyrule-edit')" @click="resetDefault">恢复默认</el-button>
+          v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-edit')" @click="resetDefault">恢复默认</el-button>
       </el-row>
     </view>
 
@@ -39,17 +39,17 @@ export default {
           {
             mode: 'detail_auto',
             title: '详细',
-            show: () => this.$hasRole('admin') || this.$hasPermission('attendance-remedyrule-view')
+            show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view')
           },
           {
             mode: 'update',
             title: '编辑',
-            show: () => this.$hasRole('admin') || this.$hasPermission('attendance-remedyrule-edit')
+            show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit')
           },
           {
             mode: 'delete',
             title: '删除',
-            show: () => this.$hasRole('admin') || this.$hasPermission('attendance-remedyrule-delete')
+            show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete')
           }
         ],
         columns: [

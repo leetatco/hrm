@@ -14,7 +14,7 @@
 					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-view')" @click="exportExcelAll"> 导出全部
 				</el-button>
 				<!-- <el-button type="primary" size="small" icon="el-icon-edit-outline"
-					v-if="$hasRole('admin') || $hasPermission('hrm-salary-payslip-view')" @click="updateAll"> 全部更新
+					v-if="$hasRole('admin')" @click="updateAll"> 全部更新
 				</el-button> -->
 			</el-row>
 		</view>
@@ -209,7 +209,7 @@
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							mode: "[]"
-						}, 
+						},
 						{
 							key: "employee_name",
 							title: "姓名",
@@ -217,33 +217,45 @@
 							mode: "%%"
 						},
 						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
+							mode: "="
+						},
+						{
 							key: "department_name",
 							title: "部门名称",
 							type: "remote-select",
 							placeholder: "请选择部门名称",
 							width: colWidth,
-							action: "admin/hrm/salary/sys/payslip/getList",
+							action: "admin/hrm/salary/sys/payslip/getDepartmentList",							
 							props: {
 								list: "rows",
 								value: "department_name",
 								label: "department_name"
-							},
-							dataPreprocess: (list) => {
-								const departmentList = [...new Set(
-									list.map(item => item.department_name)
-								)].map(name => ({
-									department_name: name
-								}));
-								return departmentList;
-							},
+							},							
 							showAll: true,
 							actionData: {
 								otherWhereJson: {
-									status: 0
+									attendance_ym: nowym,
+									status: 0									
 								},
 								pageSize: -1,
 								pageIndex: 1
-							}
+							},
+							mode: "="
 						},
 
 						{
@@ -410,7 +422,7 @@
 			},
 			// 搜索
 			async search() {
-				if (this.queryForm1.formData.attendance_ym.length > 0) {
+				if (this.queryForm1.formData.attendance_ym && this.queryForm1.formData.attendance_ym.length > 0) {
 					this.queryForm1.formData.attendance_ym = [...this.queryForm1.formData.attendance_ym].sort()
 				}
 				this.$refs.table1.search();
@@ -458,13 +470,18 @@
 					return vk.alert('无数据可导出');
 				}
 
-				listData.forEach((item, idx) => {
-					item.signature_url = item.signature_url?.replace(
-						"mp-172c1e9f-d637-4510-916b-3f73d0c2de3c.cdn.bspapp.com",
-						"tdhstorage.cntdh.net/public"
-					);
 
-				})
+				const cards = [...new Set(
+					listData.map(e => e.card).filter(Boolean)
+				)];
+
+				// listData.forEach((item, idx) => {
+				// 	item.signature_url = item.signature_url?.replace(
+				// 		"mp-172c1e9f-d637-4510-916b-3f73d0c2de3c.cdn.bspapp.com",
+				// 		"tdhstorage.cntdh.net/public"
+				// 	);
+
+				// })
 
 				// console.log(listData)
 
@@ -473,6 +490,7 @@
 					url: 'admin/hrm/salary/sys/payslip/all/updateAll',
 					title: '请求中...',
 					data: {
+						cards,
 						items: listData
 					}
 				});
@@ -520,7 +538,7 @@
 							header: '序号',
 							key: 'index',
 							width: 10
-						},						
+						},
 						{
 							header: '月份',
 							key: 'attendance_ym',

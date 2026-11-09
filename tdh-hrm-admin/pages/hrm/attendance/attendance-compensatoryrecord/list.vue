@@ -13,7 +13,7 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('attendance-compensatoryrecord-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-export')"
 					@click="exportExcel">导出全部</el-button>
 			</el-row>
 		</view>
@@ -88,7 +88,7 @@
 						icon: 'el-icon-view',
 						type: 'primary',
 						show: () => this.$hasRole('admin') || this.$hasPermission(
-							'attendance-compensatoryrecord-view'),
+							'hrm-attendance-view'),
 						onClick: (item) => {
 							this.onDetail(item);
 						}
@@ -192,6 +192,24 @@
 									mode: "%%"
 								}
 							],
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
 							mode: "="
 						},
 						{

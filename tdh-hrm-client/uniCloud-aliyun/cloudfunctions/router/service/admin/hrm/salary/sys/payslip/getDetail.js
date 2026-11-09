@@ -60,8 +60,31 @@ module.exports = {
 				const queryKey = card;
 				if (!queryKey) return null;
 
+				// 查询该员工所有合同有签名的记录，取第一条
+				let historyRes = await vk.baseDao.getTableData({
+					dbName: 'hrm-contract-sign',
+					whereJson: {
+						// 根据实际字段调整：可能用 card，也可能用 uid
+						card: queryKey,
+						status: 1,
+						signature_url: _.neq('') // 只取非空签名
+					},
+					sortArr: [{
+						name: "_id",
+						type: "desc"
+					}],
+					limit: 1,
+					getCount: false, // 不需要总数
+					// 只返回 signature_url 字段，减少数据传输
+					field: ['signature_url']
+				});
+
+				if (historyRes.rows && historyRes.total > 0) {
+					return historyRes.rows[0].signature_url;
+				}
+				
 				// 查询该员工所有有签名的记录，按月份倒序取第一条
-				const historyRes = await vk.baseDao.getTableData({
+				historyRes = await vk.baseDao.getTableData({
 					dbName,
 					whereJson: {
 						// 根据实际字段调整：可能用 card，也可能用 uid

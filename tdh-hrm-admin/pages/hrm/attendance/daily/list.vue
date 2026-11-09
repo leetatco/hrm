@@ -27,16 +27,16 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-refresh"
-					v-if="$hasRole('admin') || $hasPermission('attendance-daily-generate')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					@click="showGenerateDialog">手动生成考勤</el-button>
 				<el-button type="primary" size="small" icon="el-icon-download"
-					v-if="$hasRole('admin') || $hasPermission('attendance-daily-export')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-export')"
 					@click="exportExcel">导出全部</el-button>
 				<el-button type="warning" size="small" icon="el-icon-lock"
-					v-if="$hasRole('admin') || $hasPermission('attendance-daily-seal')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					@click="openSealDialog">封存数据</el-button>
 				<el-button type="info" size="small" icon="el-icon-unlock"
-					v-if="$hasRole('admin') || $hasPermission('attendance-daily-unseal')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					@click="openUnsealDialog">解封数据</el-button>
 			</el-row>
 		</view>
@@ -600,6 +600,24 @@
 							mode: "="
 						},
 						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
+							mode: "="
+						},
+						{
 							key: "attendance_date",
 							title: "日期范围",
 							type: "datetimerange",
@@ -706,7 +724,7 @@
 			// ========== 封存 / 解封 ==========
 			async loadSealStatus() {
 				const res = await vk.callFunction({
-					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					url: 'admin/hrm/attendance/pub/checkSealStatus',
 					data: {}
 				});
 				if (res.code === 0) {
@@ -721,7 +739,7 @@
 
 			async openSealDialog() {
 				const res = await vk.callFunction({
-					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					url: 'admin/hrm/attendance/pub/checkSealStatus',
 					data: {}
 				});
 				if (res.code !== 0) {

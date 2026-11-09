@@ -9,9 +9,9 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('attendance-calendar-add')" @click="addBtn">添加</el-button>
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')" @click="addBtn">添加</el-button>
 				<el-button type="primary" size="small" icon="el-icon-refresh"
-					v-if="$hasRole('admin') || $hasPermission('attendance-calendar-batch')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')"
 					@click="batchGenerate">批量生成年份</el-button>
 			</el-row>
 		</view>
@@ -87,19 +87,19 @@
 							title: '详细',
 							// 只有日期（叶子节点）显示按钮
 							show: (row) => row.type === "date" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-calendar-view'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view'))
 						},
 						{
 							mode: 'update',
 							title: '编辑',
 							show: (row) => row.type === "date" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-calendar-edit'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit'))
 						},
 						{
 							mode: 'delete',
 							title: '删除',
 							show: (row) => row.type === "date" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-calendar-delete'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete'))
 						}
 					],
 					columns: [{
@@ -393,7 +393,7 @@
 			 */
 			async beforeConfigChange() {
 				const res = await vk.callFunction({
-					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					url: 'admin/hrm/attendance/pub/checkSealStatus',
 					data: {}
 				});
 				if (res.code !== 0) {

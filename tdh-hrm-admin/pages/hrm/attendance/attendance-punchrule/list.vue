@@ -9,7 +9,7 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('attendance-sign-add')" @click="addBtn">添加</el-button>
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')" @click="addBtn">添加</el-button>
 			</el-row>
 		</view>
 
@@ -41,17 +41,17 @@
 					rightBtns: [{
 							mode: 'detail_auto',
 							title: '详细',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-sign-view')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view')
 						},
 						{
 							mode: 'update',
 							title: '编辑',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-sign-edit')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit')
 						},
 						{
 							mode: 'delete',
 							title: '删除',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-sign-delete')
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete')
 						}
 					],
 					columns: [{

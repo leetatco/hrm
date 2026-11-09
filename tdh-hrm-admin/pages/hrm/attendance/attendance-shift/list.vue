@@ -18,7 +18,7 @@
 		<view class="btn-group">
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-circle-plus-outline"
-					v-if="$hasRole('admin') || $hasPermission('attendance-shift-add')" @click="addBtn">添加</el-button>
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-config-add')" @click="addBtn">添加</el-button>
 			</el-row>
 		</view>
 
@@ -58,19 +58,19 @@
 							title: '详细',
 							// 只有班次（叶子节点）显示按钮
 							show: (row) => row.type === "shift" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-shift-view'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-view'))
 						},
 						{
 							mode: 'update',
 							title: '编辑',
 							show: (row) => row.type === "shift" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-shift-edit'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-edit'))
 						},
 						{
 							mode: 'delete',
 							title: '删除',
 							show: (row) => row.type === "shift" &&
-								(this.$hasRole('admin') || this.$hasPermission('attendance-shift-delete'))
+								(this.$hasRole('admin') || this.$hasPermission('hrm-attendance-config-delete'))
 						}
 					],
 					columns: [{
@@ -451,7 +451,7 @@
 			 */
 			async beforeConfigChange() {
 				const res = await vk.callFunction({
-					url: 'admin/hrm/attendance/sys/checkSealStatus',
+					url: 'admin/hrm/attendance/pub/checkSealStatus',
 					data: {}
 				});
 				if (res.code !== 0) {

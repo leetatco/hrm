@@ -10,12 +10,12 @@
 			<el-row>
 				<el-button type="success" size="small" icon="el-icon-upload2"
 					:disabled="!table1.selectItem || (table1.selectItem.import_status !== 0 && table1.selectItem.import_status !== 2)"
-					v-if="$hasRole('admin') || $hasPermission('attendance-import-execute')" @click="executeImport">
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')" @click="executeImport">
 					{{ table1.selectItem && table1.selectItem.import_status === 2 ? '重新汇入' : '汇入' }}
 				</el-button>
 				<el-button type="warning" size="small" icon="el-icon-upload"
 					:disabled="table1.multipleSelection.length === 0"
-					v-if="$hasRole('admin') || $hasPermission('attendance-import-batch')"
+					v-if="$hasRole('admin') || $hasPermission('hrm-attendance-add')"
 					@click="batchImport">批量汇入</el-button>
 			</el-row>
 		</view>
@@ -62,14 +62,14 @@
 					rightBtns: [{
 						mode: 'detail_auto',
 						title: '查看详情',
-						show: () => this.$hasRole('admin') || this.$hasPermission('attendance-import-view')
+						show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-view')
 					}],
 					customRightBtns: [{
 							mode: 'custom',
 							title: '查看汇入表单',
 							icon: 'el-icon-view',
 							type: 'primary',
-							show: () => this.$hasRole('admin') || this.$hasPermission('attendance-import-view'),
+							show: () => this.$hasRole('admin') || this.$hasPermission('hrm-attendance-view'),
 							onClick: (item) => {
 								this.viewImportForm(item);
 							}
@@ -152,6 +152,24 @@
 								list: "rows",
 								value: "code",
 								label: "name"
+							},
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
 							},
 							mode: "="
 						},

@@ -9,6 +9,13 @@
 			"bsonType": "string",
 			"description": "员工工号"
 		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"foreignKey": "hrm-companys.company_id",
+			"description": "所属公司",
+			"trim": "both"
+		},
 		"oa_instance_id": {
 			"bsonType": "string",
 			"description": "OA申请ID"

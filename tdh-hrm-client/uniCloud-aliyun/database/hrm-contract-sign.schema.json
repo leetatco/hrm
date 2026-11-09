@@ -1,92 +1,110 @@
 {
-  "bsonType": "object",
-  "required": [
-    "contract_sign_id",
-    "card",
-    "sign_date",
-    "end_date"
-  ],
-  "permission": {
-    "read": false,
-    "create": false,
-    "update": false,
-    "delete": false
-  },
-  "properties": {
-    "_id": {
-      "description": "存储文档 ID，系统自动生成"
-    },   
-    "contract_sign_id": {
-      "title": "合同配置ID",
-      "bsonType": "string",
-      "description": "关联 hrm-contract-setting.contract_sign_id",
-      "trim": "both",
-      "foreignKey": "hrm-contract-setting.contract_sign_id"
-    },    
-    "card": {
-      "title": "身份证号码",
-      "bsonType": "string",
-      "description": "关联 hrm-employees.card",
-      "trim": "both",
-      "foreignKey": "hrm-employees.card"
-    },
-    "sign_date": {
-      "title": "签订日期",
-      "bsonType": "date",
-      "description": "合同签署日期"
-    },
-    "end_date": {
-      "title": "到期日期",
-      "bsonType": "date",
-      "description": "合同到期日期"
-    },
-    "contract_sign_file": {
-      "title": "合同文件",
-      "bsonType": "string",
-      "description": "签署前为原合同，签署后为带签名的最终合同",
-      "trim": "both"
-    },
-    "signature_url": {
-      "title": "员工签名图片",
-      "bsonType": "string",
-      "description": "小程序签名后保存的签名图片地址",
-      "trim": "both"
-    },
-    "sign_time": {
-      "title": "签名时间",
-      "bsonType": "timestamp",
-      "description": "员工实际签名时间"
-    },   
-    "status": {
-      "title": "合同状态",
-      "bsonType": "int",
-      "description": "1已签 2到期 3解除 4待签署",
-      "enum": [
-        { "value": 1, "text": "已签署" },
-        { "value": 2, "text": "已到期" },
-        { "value": 3, "text": "已解除" },
-        { "value": 4, "text": "待签署" }
-      ],
-      "defaultValue": 4
-    },
-    "update_date": {
-      "title": "更新时间",
-      "bsonType": "timestamp",
-      "description": "更新时间",
-      "forceDefaultValue": {
-        "$env": "now"
-      }
-    },
-    "updat_id": {
-      "title": "更新人",
-      "bsonType": "string",
-      "description": "更新人ID",
-      "foreignKey": "uni-id-users._id",
-      "trim": "both",
-      "forceDefaultValue": {
-        "$env": "uid"
-      }
-    }
-  },
-  "version": "0.0.1"
+	"bsonType": "object",
+	"required": [
+		"contract_sign_id",
+		"card",
+		"sign_date",
+		"end_date"
+	],
+	"permission": {
+		"read": false,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "存储文档 ID，系统自动生成"
+		},
+		"contract_sign_id": {
+			"title": "合同配置ID",
+			"bsonType": "string",
+			"description": "关联 hrm-contract-setting.contract_sign_id",
+			"trim": "both",
+			"foreignKey": "hrm-contract-setting.contract_sign_id"
+		},
+		"card": {
+			"title": "身份证号码",
+			"bsonType": "string",
+			"description": "关联 hrm-employees.card",
+			"trim": "both",
+			"foreignKey": "hrm-employees.card"
+		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"foreignKey": "hrm-companys.company_id",
+			"description": "所属公司",
+			"trim": "both"
+		},
+		"sign_date": {
+			"title": "签订日期",
+			"bsonType": "date",
+			"description": "合同签署日期"
+		},
+		"end_date": {
+			"title": "到期日期",
+			"bsonType": "date",
+			"description": "合同到期日期"
+		},
+		"contract_sign_file": {
+			"title": "合同文件",
+			"bsonType": "string",
+			"description": "签署前为原合同，签署后为带签名的最终合同",
+			"trim": "both"
+		},
+		"signature_url": {
+			"title": "员工签名图片",
+			"bsonType": "string",
+			"description": "小程序签名后保存的签名图片地址",
+			"trim": "both"
+		},
+		"sign_time": {
+			"title": "签名时间",
+			"bsonType": "timestamp",
+			"description": "员工实际签名时间"
+		},
+		"status": {
+			"title": "合同状态",
+			"bsonType": "int",
+			"description": "1已签 2到期 3解除 4待签署",
+			"enum": [{
+					"value": 1,
+					"text": "已签署"
+				},
+				{
+					"value": 2,
+					"text": "已到期"
+				},
+				{
+					"value": 3,
+					"text": "已解除"
+				},
+				{
+					"value": 4,
+					"text": "待签署"
+				}
+			],
+			"defaultValue": 4
+		},
+		"update_date": {
+			"title": "更新时间",
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"forceDefaultValue": {
+				"$env": "now"
+			}
+		},
+		"updat_id": {
+			"title": "更新人",
+			"bsonType": "string",
+			"description": "更新人ID",
+			"foreignKey": "uni-id-users._id",
+			"trim": "both",
+			"forceDefaultValue": {
+				"$env": "uid"
+			}
+		}
+	},
+	"version": "0.0.1"
 }

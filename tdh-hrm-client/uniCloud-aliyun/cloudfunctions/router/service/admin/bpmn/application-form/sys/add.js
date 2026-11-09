@@ -56,6 +56,7 @@ module.exports = {
 		// 创建申请记录			
 		applicant_id = employeeInfo.employee_id;
 		applicant_name = employeeInfo.employee_name;
+		company_id = employeeInfo.company_id;
 		applicant_department = employeeInfo.department_name || '';
 		applicant_level = employeeInfo.position_level || '';
 		applicant_roles = userInfo.role || [];
@@ -71,6 +72,7 @@ module.exports = {
 				applicant_id,
 				applicant_name,
 				applicant_department,
+				company_id,
 				applicant_level,
 				applicant_roles,
 				title,

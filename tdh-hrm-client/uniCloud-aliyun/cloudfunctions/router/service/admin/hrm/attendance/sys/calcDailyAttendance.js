@@ -358,6 +358,7 @@ async function loadEmployeeInfoMap(util, employees) {
 		fieldJson: {
 			employee_id: true,
 			card: true,
+			company_id: true,
 			employee_name: true,
 			department_id: true
 		},
@@ -535,7 +536,7 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 	const empInfo = empInfoMap[employeeId] || {};
 	const card = empInfo.card || '';
 	const employeeName = empInfo.employee_name || '';
-
+	const company_id = empInfo.company_id || '';
 	const dayStartTs = new Date(dateStr + 'T00:00:00').getTime();
 	const dayEndTs = new Date(dateStr + 'T23:59:59.999').getTime();
 
@@ -833,6 +834,7 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 				employeeId,
 				employeeName,
 				card,
+				company_id,
 				dayStartTs,
 				attendanceGroupId,
 				attendanceGroupName,
@@ -881,6 +883,7 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 				employeeId,
 				employeeName,
 				card,
+				company_id,
 				dayStartTs,
 				attendanceGroupId,
 				attendanceGroupName,
@@ -936,6 +939,7 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 			employeeId,
 			employeeName,
 			card,
+			company_id,
 			dayStartTs,
 			attendanceGroupId,
 			attendanceGroupName,
@@ -1128,6 +1132,7 @@ function calcOneDay(employeeId, dateStr, util, params, exemptionMap, empInfoMap,
 		employeeId,
 		employeeName,
 		card,
+		company_id,
 		dayStartTs,
 		attendanceGroupId,
 		attendanceGroupName,
@@ -1302,6 +1307,7 @@ function buildRecord(data) {
 		employee_id: data.employeeId,
 		employee_name: data.employeeName,
 		card: data.card,
+		company_id: data.company_id,
 		attendance_date: data.dayStartTs,
 		attendance_group_id: data.attendanceGroupId,
 		attendance_group_name: data.attendanceGroupName,

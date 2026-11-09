@@ -31,8 +31,7 @@ module.exports = {
 			keyword,
 			company_ids = [],
 			otherWhereJson,
-			filterWhereJson,
-			lastWhereJson
+			filterWhereJson
 		} = data;
 		let res = {
 			code: 0,
@@ -40,14 +39,14 @@ module.exports = {
 		};
 
 		// 是否需要过滤公司别
-		// filterWhereJson、lastWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
+		// filterWhereJson、company_ids是在云函数拦截器加载，otherWhereJson是在前端应用加载 
 		const whereJson = {
 			...(filterWhereJson || {}),
 			...(otherWhereJson || {})
 		};
 
 		//lastWherJson加条件，在此处理
-		lastWhereJson = {};
+		let lastWhereJson = {};
 		if (keyword) {
 			lastWhereJson = _.or([{
 					"departments.department_name": new RegExp(keyword)

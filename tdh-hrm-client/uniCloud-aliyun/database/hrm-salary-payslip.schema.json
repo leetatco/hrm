@@ -46,6 +46,13 @@
 			"description": "身份证号码唯一标识，不可修改，不允许重复",
 			"trim": "both"
 		},
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"foreignKey": "hrm-companys.company_id",
+			"description": "所属公司",
+			"trim": "both"
+		},
 		"position_name": {
 			"title": "职位名称",
 			"bsonType": "string",

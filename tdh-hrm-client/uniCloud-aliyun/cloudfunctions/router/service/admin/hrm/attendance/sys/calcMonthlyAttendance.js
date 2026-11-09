@@ -247,21 +247,41 @@ module.exports = {
 };
 
 // ==================== 构建正常月汇总记录 ====================
-function buildMonthlyRecord({ empId, empInfo, salaryInfo, rows, attendance_ym, periodRange, params }) {
+function buildMonthlyRecord({
+	empId,
+	empInfo,
+	salaryInfo,
+	rows,
+	attendance_ym,
+	periodRange,
+	params
+}) {
 	const salaryType = salaryInfo.salary_type || 1;
 	const salary = salaryInfo.salary || 0;
 	const contractDays = salaryInfo.contract_days || 0;
 	const card = empInfo.card || '';
 	const employeeName = empInfo.employee_name || '';
+	const company_id = empInfo.company_id || '';
 
-	let shouldDays = 0, actualDays = 0, restDays = 0;
-	let lateCount = 0, lateMinutes = 0;
-	let earlyCount = 0, earlyMinutes = 0;
-	let absentCount = 0, absentMinutes = 0;
-	let overtimeMinutes = 0, overtimeCompensatoryMinutes = 0, overtimePaidMinutes = 0;
-	let leaveMinutes = 0, tripMinutes = 0, outingMinutes = 0, compensatoryMinutes = 0;
+	let shouldDays = 0,
+		actualDays = 0,
+		restDays = 0;
+	let lateCount = 0,
+		lateMinutes = 0;
+	let earlyCount = 0,
+		earlyMinutes = 0;
+	let absentCount = 0,
+		absentMinutes = 0;
+	let overtimeMinutes = 0,
+		overtimeCompensatoryMinutes = 0,
+		overtimePaidMinutes = 0;
+	let leaveMinutes = 0,
+		tripMinutes = 0,
+		outingMinutes = 0,
+		compensatoryMinutes = 0;
 	let remedyCount = 0;
-	let shouldMinutes = 0, actualMinutes = 0;
+	let shouldMinutes = 0,
+		actualMinutes = 0;
 	let noPunchCount = 0;
 
 	for (const day of rows) {
@@ -279,23 +299,32 @@ function buildMonthlyRecord({ empId, empInfo, salaryInfo, rows, attendance_ym, p
 			if (dayShould > 0) {
 				shouldDays++;
 				shouldMinutes += dayShould;
-				
+
 				// 如果实际出勤 >= 应出勤，记为满勤
 				if (dayActual >= dayShould) actualDays++;
 			} else {
 				restDays++;
 			}
-			
+
 			// 实际出勤时长累加
 			actualMinutes += dayActual;
 		}
 
 		// 累加各类异常时长
-		if (day.late_minutes > 0) { lateCount++; lateMinutes += day.late_minutes; }
-		if (day.early_minutes > 0) { earlyCount++; earlyMinutes += day.early_minutes; }
-		if (day.absent_minutes > 0) { absentCount++; absentMinutes += day.absent_minutes; }
+		if (day.late_minutes > 0) {
+			lateCount++;
+			lateMinutes += day.late_minutes;
+		}
+		if (day.early_minutes > 0) {
+			earlyCount++;
+			earlyMinutes += day.early_minutes;
+		}
+		if (day.absent_minutes > 0) {
+			absentCount++;
+			absentMinutes += day.absent_minutes;
+		}
 		if (day.remedy_flag) remedyCount++;
-		
+
 		overtimeMinutes += day.overtime_minutes || 0;
 		overtimeCompensatoryMinutes += day.overtime_compensatory_minutes || 0;
 		overtimePaidMinutes += day.overtime_paid_minutes || 0;
@@ -316,7 +345,8 @@ function buildMonthlyRecord({ empId, empInfo, salaryInfo, rows, attendance_ym, p
 	// 不过你有 contractDays 可以兜底，见下方逻辑。
 
 	// 计薪天数/小时
-	let payDays = 0, payHours = 0;
+	let payDays = 0,
+		payHours = 0;
 	if (salaryType === 2) {
 		const standardMinutes = params.standard_work_minutes || 8 * 60;
 		payDays = standardMinutes > 0 ? Math.round((actualMinutes / standardMinutes) * 100) / 100 : 0;
@@ -347,6 +377,7 @@ function buildMonthlyRecord({ empId, empInfo, salaryInfo, rows, attendance_ym, p
 		employee_id: empId,
 		employee_name: employeeName,
 		card: card,
+		company_id: company_id,
 		attendance_ym: attendance_ym,
 		period_start: periodRange.startStr,
 		period_end: periodRange.endStr,
@@ -398,6 +429,7 @@ function buildExemptedRecord({
 		employee_id: empId,
 		employee_name: empInfo.employee_name || '',
 		card: empInfo.card || '',
+		company_id: empInfo.company_id || '',
 		attendance_ym: attendance_ym,
 		period_start: periodRange.startStr,
 		period_end: periodRange.endStr,
@@ -449,6 +481,7 @@ async function loadEmployeeInfoMap(util, employees) {
 		fieldJson: {
 			employee_id: true,
 			card: true,
+			company_id: true,
 			employee_name: true,
 			department_id: true
 		},

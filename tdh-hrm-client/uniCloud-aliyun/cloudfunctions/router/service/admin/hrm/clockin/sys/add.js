@@ -1,3 +1,4 @@
+const HrmService = require('../../../../common/pub/class/hrm-service.js');
 module.exports = {
 	/**
 	 * 添加单条数据
@@ -40,14 +41,23 @@ module.exports = {
 			update_date,
 			updat_id
 		} = data;
-		// 参数验证开始
 
-		// 参数验证结束
+		// 参数验证开始	
+
+		if (vk.pubfn.isNull(employee_id)) return {
+			code: -1,
+			msg: '工号不能为空'
+		};
+		// 参数验证结束		
 		let dbName = 'hrm-clockin'; // 表名
 		// 执行 数据库add 命令
+		const hrmService = new HrmService(vk, db);
+		// 在业务流程中获取 company_id（自动走缓存）
+		const companyId = await hrmService.getCompanyIdByKeyWithCache(employee_id);
 		res.id = await vk.baseDao.add({
 			dbName,
 			dataJson: {
+				company_id: companyId,
 				employee_id,
 				bssid,
 				position,

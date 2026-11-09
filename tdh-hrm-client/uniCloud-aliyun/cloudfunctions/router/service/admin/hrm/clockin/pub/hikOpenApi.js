@@ -96,7 +96,8 @@ module.exports = {
 		} = event;
 		const {
 			vk,
-			pubFun
+			pubFun,
+			_
 		} = util;
 
 		let {
@@ -121,7 +122,7 @@ module.exports = {
 
 				// 拉取原始打卡记录（自动分页）
 				case 'getOriginRecords': {
-					const records = await getOriginRecords(vk, uid, {
+					const records = await getOriginRecords(_, vk, uid, {
 						beginDate: data.beginDate,
 						endDate: data.endDate,
 						personNos: data.personNos || []
@@ -226,7 +227,7 @@ async function getAppAccessToken(vk) {
  * @param {String} options.endDate   - 结束日期，格式 "2024-08-26"
  * @param {Array}  options.personNos - 人员编号（可选）
  */
-async function getOriginRecords(vk, uid, {
+async function getOriginRecords(_, vk, uid, {
 	beginDate,
 	endDate,
 	personNos = []
@@ -334,19 +335,52 @@ async function getOriginRecords(vk, uid, {
 		console.warn(`[hikOpenApi] 已达到最大页数限制 ${maxPage}，停止拉取`);
 	}
 
-	// 重新组装打卡地点、打卡时间、工号、图片等
+	// ========== 批量查询员工 company_id ==========
+	// 1. 收集所有工号（去重）
+	const employeeIds = [...new Set(
+		allRecords.map(e => vk.myfn.formatJobNumber(e.jobNumber)).filter(Boolean)
+	)];
+
+	// 2. 批量查询 hrm-employees，拿到 employee_id → company_id 映射
+	const employeeCompanyMap = {};
+	if (employeeIds.length > 0) {
+		// uniCloud 单次 in 查询建议不超过 100~500 个，分批查
+		const batchSize = 500;
+		for (let i = 0; i < employeeIds.length; i += batchSize) {
+			const batchIds = employeeIds.slice(i, i + batchSize);
+			const empRes = await vk.baseDao.select({
+				dbName: 'hrm-employees',
+				whereJson: {
+					employee_id: _.in(vk.pubfn.isNull(batchIds) ? [] : batchIds),
+					// 若需要过滤在职，可加 status: 1
+				},
+				fieldJson: {
+					employee_id: 1,
+					company_id: 1
+				},
+				pageSize: batchSize
+			});
+			(empRes.rows || []).forEach(emp => {
+				employeeCompanyMap[emp.employee_id] = emp.company_id || '';
+			});
+		}
+	}
+
+	// 3. 重新组装记录，带上 company_id
 	allRecords = allRecords.map((e) => {
+		const employeeId = vk.myfn.formatJobNumber(e.jobNumber);
 		return {
 			// ========== 主表字段 ==========
-			employee_id: vk.myfn.formatJobNumber(e.jobNumber), // 工号，如 "t-00002"
-			position: e.deviceName || '', // 打卡地点，用设备名
-			type: '公司卡', // 打卡类型，按业务需要调整
+			employee_id: employeeId,
+			company_id: employeeCompanyMap[employeeId] || '', // 新增：公司ID
+			position: e.deviceName || '',
+			type: '公司卡',
 			remark: e.remark || '',
 			img: e.photo || '',
-			clockintime: vk.myfn.clockTimeToTimestamp(e.clockTime), // 打卡时间字符串 "2026-10-14 06:39"，变成数字
+			clockintime: vk.myfn.clockTimeToTimestamp(e.clockTime),
 			update_id: uid,
 			update_date: new Date().getTime(),
-			// ========== 海康原始数据（追踪用） ==========
+			// ========== 海康原始数据 ==========
 			hik_info: {
 				personNo: e.personNo || '',
 				jobNumber: e.jobNumber || '',

@@ -395,7 +395,7 @@ async function simulateNode(currentNode, processDefinition, simulation, employee
 }
 
 /**
- * 估算任务负责人列表（支持角色/部门多选，返回所有可能的负责人）
+ * 估算任务负责人列表（支持角色/部门多选，返回所有可能的负责人，已去重）
  */
 async function estimateAssignees(node, variables, employeeInfo, vk, db) {
 	const assigneeType = node.assignee_type;
@@ -412,93 +412,98 @@ async function estimateAssignees(node, variables, employeeInfo, vk, db) {
 		values = [assigneeValue];
 	}
 
-	for (const val of values) {
-		switch (assigneeType) {
-			case 'role':
-				const roleUsers = await getUsersByRole(val, vk, db);
-				console.log(`角色 ${val} 用户数: ${roleUsers.length}`);
-				for (const u of roleUsers) {
-					assignees.push({
-						id: u.username,
-						name: u.nickname || u.username,
-						type: 'role'
-					});
-				}
-				break;
-			case 'department':
-				const deptMgr = await getDepartmentManagerForSimulate(val, employeeInfo, db);
-				console.log(`部门 ${val} 负责人:`, deptMgr);
-				if (deptMgr) {
-					assignees.push({
-						id: deptMgr.id,
-						name: deptMgr.name,
-						type: 'department'
-					});
-				}
-				break;
-			case 'variable':
-				// === 新增逻辑开始 ===
-				const rawValue = val;
-				if (!rawValue) break;
+	try {
+		for (const val of values) {
+			switch (assigneeType) {
+				case 'role':
+					const roleUsers = await getUsersByRole(val, vk, db, employeeInfo.company_id);
+					console.log(`角色 ${val} 用户数: ${roleUsers.length}`);
+					for (const u of roleUsers) {
+						assignees.push({
+							id: u.username,
+							name: u.nickname || u.username,
+							type: 'role'
+						});
+					}
+					break;
+				case 'department':
+					const deptMgr = await getDepartmentManagerForSimulate(val, employeeInfo, db);
+					console.log(`部门 ${val} 负责人:`, deptMgr);
+					if (deptMgr) {
+						assignees.push({
+							id: deptMgr.id,
+							name: deptMgr.name,
+							type: 'department'
+						});
+					}
+					break;
+				case 'variable':
+					const rawValue = val;
+					if (!rawValue) break;
 
-				let resolvedValue = rawValue;
-				const varRegex = /\$\{([^}]+)\}/g;
-				let match;
-				while ((match = varRegex.exec(rawValue)) !== null) {
-					const varName = match[1].trim();
-					const varValue = getValueFromData(varName, variables);
-					if (varValue !== undefined && varValue !== null) {
-						resolvedValue = resolvedValue.replace(match[0], varValue);
+					let resolvedValue = rawValue;
+					const varRegex = /\$\{([^}]+)\}/g;
+					let match;
+					while ((match = varRegex.exec(rawValue)) !== null) {
+						const varName = match[1].trim();
+						const varValue = getValueFromData(varName, variables);
+						if (varValue !== undefined && varValue !== null) {
+							resolvedValue = resolvedValue.replace(match[0], varValue);
+						} else {
+							console.warn(`变量 ${varName} 不存在，保留原占位符`);
+						}
+					}
+
+					console.log(`变量表达式解析后: ${resolvedValue}`);
+
+					if (resolvedValue.startsWith('role_')) {
+						const roleKey = resolvedValue.substring(5);
+						const roleUsers = await getUsersByRole(roleKey, vk, db, employeeInfo.company_id);
+						for (const u of roleUsers) {
+							assignees.push({
+								id: u.username,
+								name: u.nickname || u.username,
+								type: 'variable'
+							});
+						}
+					} else if (resolvedValue.startsWith('user_')) {
+						const userId = resolvedValue.substring(5);
+						const hrmService = new HrmService(vk, db);
+						const userInfo = await hrmService.getEmployeeInfoByUsername(userId);
+						if (userInfo) {
+							assignees.push({
+								id: userInfo.employee_id,
+								name: userInfo.employee_name,
+								type: 'variable'
+							});
+						}
 					} else {
-						console.warn(`变量 ${varName} 不存在，保留原占位符`);
+						// 默认作为角色处理					
+						const roleUsers = await getUsersByRole(resolvedValue, vk, db, employeeInfo.company_id);
+						for (const u of roleUsers) {
+							assignees.push({
+								id: u.username,
+								name: u.nickname || u.username,
+								type: 'variable'
+							});
+						}
 					}
-				}
-
-				console.log(`变量表达式解析后: ${resolvedValue}`);
-
-				if (resolvedValue.startsWith('role_')) {
-					const roleKey = resolvedValue.substring(5);
-					const roleUsers = await getUsersByRole(roleKey, vk, db);
-					for (const u of roleUsers) {
-						assignees.push({
-							id: u.username,
-							name: u.nickname || u.username,
-							type: 'variable'
-						});
-					}
-				} else if (resolvedValue.startsWith('user_')) {
-					const userId = resolvedValue.substring(5);
-					const userInfo = await hrmService.getEmployeeInfoByUsername(userId);
-					if (user) {
-						assignees.push({
-							id: userInfo.employee_id,
-							name: userInfo.employee_name,
-							type: 'variable'
-						});
-					}
-				} else {
-					// 默认作为角色处理
-					const roleUsers = await getUsersByRole(resolvedValue, vk, db);
-					for (const u of roleUsers) {
-						assignees.push({
-							id: u.username,
-							name: u.nickname || u.username,
-							type: 'variable'
-						});
-					}
-				}
-				// === 新增逻辑结束 ===
-				break;
-			case 'previous':
-				assignees.push({
-					id: employeeInfo.employee_id,
-					name: employeeInfo.employee_name,
-					type: 'previous'
-				});
-				break;
+					break;
+				case 'previous':
+					assignees.push({
+						id: employeeInfo.employee_id,
+						name: employeeInfo.employee_name,
+						type: 'previous'
+					});
+					break;
+			}
 		}
+	} catch (error) {
+		// 捕获 getUsersByRole 抛出的“角色未加入审核人员”等错误
+		throw new Error(`节点【${node.node_name}】分配异常：${error.message}`);
 	}
 
+	// 如果通过上述配置没找到任何人，尝试兜底给主管
 	if (assignees.length === 0) {
 		const managerId = employeeInfo.manager_id;
 		if (managerId && managerId !== employeeInfo.employee_id) {
@@ -508,32 +513,109 @@ async function estimateAssignees(node, variables, employeeInfo, vk, db) {
 				type: 'default'
 			});
 		} else {
-			throw new Error(`节点“${node.node_name}”未配置负责人，且无法找到合适的默认审批人`);
+			throw new Error(`节点【${node.node_name}】未配置负责人，且找不到申请人主管作为兜底`);
 		}
 	}
 
-	// 去重
+	// === 核心：对结果进行去重 ===
 	const unique = new Map();
 	for (const a of assignees) {
-		if (!unique.has(a.id)) unique.set(a.id, a);
+		if (!unique.has(a.id)) {
+			unique.set(a.id, a);
+		}
 	}
+
 	const result = Array.from(unique.values());
-	console.log('最终负责人列表:', result);
+	console.log('最终去重后的负责人列表:', result);
 	return result;
 }
 
 /**
- * 根据角色获取用户列表
+ * 根据角色和公司获取用户列表（支持跨表、跨公司高管、兜底）
  */
-async function getUsersByRole(role, vk, db) {
+async function getUsersByRole(role, vk, db, company_id = null) {
 	try {
-		const usersRes = await db.collection('uni-id-users').where({
-			role: role
-		}).get();
-		return usersRes.data || [];
+		// 1. 先通过 hrm-employees 查出属于该公司的所有员工工号
+		let employeeIds = [];
+		if (company_id) {
+			// 注意：如果用户的 company_id 是多选数组，这里用 eq 可能匹配不到，如果单值用 eq 没问题
+			const empRes = await vk.baseDao.getTableData({
+				dbName: "hrm-employees",
+				whereJson: {
+					company_id: company_id // 单一值直接匹配
+				},
+				pageSize: -1, // 取消分页，查全量
+				fieldJson: {
+					employee_id: true
+				}
+			});
+			if (empRes.code === 0 && empRes.rows) {
+				employeeIds = empRes.rows.map(item => item.employee_id);
+			}
+		}
+
+		// 2. 查询 uni-id-users 表，过滤角色和工号
+		let userWhereJson = {};
+		if (employeeIds.length > 0) {
+			// 找到了属于该公司的员工，按员工ID过滤
+			userWhereJson = {
+				username: db.command.in(employeeIds)
+			};
+		} else if (company_id) {
+			// 传了公司ID，但是该公司下没有员工，直接返回空，触发兜底逻辑
+			console.log(`公司 ${company_id} 下没有员工，跳过本公司角色查询`);
+			employeeIds = null; // 标记一下
+		}
+
+		// 只有该公司有员工，或者没传公司ID时，才去查用户表
+		if (employeeIds !== null) {
+			if (employeeIds.length === 0 && !company_id) {
+				// 没传公司ID，查全局
+				userWhereJson = {};
+			} else if (employeeIds.length > 0) {
+				// 正常查询
+				userWhereJson = {
+					username: db.command.in(employeeIds)
+				};
+			}
+
+			// 增加角色过滤
+			userWhereJson.role = role; // 如果 role 是数组，这里可能需要 db.command.in 或 all
+
+			const userRes = await vk.baseDao.getTableData({
+				dbName: "uni-id-users",
+				whereJson: userWhereJson,
+				pageSize: -1, // 查全量
+				// 关联 hrm-employees 表获取真实姓名等（可选，这里为了代码精简不展示副表，直接返回原始数据）
+			});
+
+			if (userRes.code === 0 && userRes.rows.length > 0) {
+				// 找到了本公司匹配的角色，直接返回
+				return userRes.rows;
+			}
+		}
+
+		// === 兜底逻辑 1：如果本公司没找到（或者该公司没员工），尝试全局找该角色 ===
+		console.log(`本公司未找到角色 ${role}，尝试全局兜底...`);
+		const fallbackRes = await vk.baseDao.getTableData({
+			dbName: "uni-id-users",
+			whereJson: {
+				role: role // 这里不要加 company 限制，直接查该角色
+			},
+			pageSize: 1 // 兜底只要 1 个人即可
+		});
+
+		if (fallbackRes.code === 0 && fallbackRes.rows.length > 0) {
+			console.log(`全局找到角色 ${role}，提取第一个作为兜底审批人`);
+			return [fallbackRes.rows[0]];
+		}
+
+		// === 兜底逻辑 2：如果全局依然没有该角色，抛出异常 ===
+		throw new Error(`角色 [${role}] 未加入任何审核人员，请检查角色权限配置`);
+
 	} catch (error) {
-		console.error('根据角色获取用户失败:', error);
-		return [];
+		console.error('根据角色获取用户失败:', error.message);
+		throw error; // 向上抛出，让流程引擎捕获并提示用户
 	}
 }
 
