@@ -383,6 +383,7 @@
 								key: "img",
 								title: "考勤图片",
 								type: "image",
+								disabled: true,
 								width: colWidth,
 								limit: 1,
 								placeholder: "请上传考勤图片"

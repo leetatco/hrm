@@ -6,7 +6,7 @@ class CloudStorage {
     this.counterNum = 0;
   }
   // 上传文件
-  uploadFile(obj = {}) {
+  async uploadFile(obj = {}) {
     let {
       filePath,
       fileType,
@@ -24,6 +24,13 @@ class CloudStorage {
     if (!cloudPath) cloudPath = createFileName(obj);
     // 获取配置
     let cloudStorageConfig = getConfig();
+    let uploadFilePath = filePath;
+    // #ifdef APP
+    if (filePath.startsWith('data:') && filePath.indexOf(';base64,') !== -1) {
+      const localFile = await vk.pubfn.base64ToFile({ base64: filePath });
+      uploadFilePath = localFile.path;
+    }
+    // #endif
     return new Promise((resolve, reject) => {
       vk.callFunction({
         url: cloudStorageConfig.authAction,
@@ -46,9 +53,10 @@ class CloudStorage {
       return new Promise((resolve, reject) => {
         let uploadTask = uni.uploadFile({
           ...uploadFileOptionsRes.uploadFileOptions,
-          filePath, // 本地文件路径
+          filePath: uploadFilePath, // 本地文件路径
+          fileType,
           success: (uploadFileRes) => {
-            if (![200, 201].includes(uploadFileRes.statusCode)) {
+            if (![200, 201].includes(Number(uploadFileRes.statusCode))) {
               reject(uploadFileRes);
             } else {
               // 上传成功
@@ -90,6 +98,33 @@ class CloudStorage {
           }
         });
       });
+    }).finally(async () => {
+      // #ifdef APP
+      // 仅清理本次 Base64 转换生成的文件
+      if (uploadFilePath !== filePath) {
+        try {
+          // #ifdef UNI-APP-X || APP-HARMONY
+          await new Promise((resolve, reject) => {
+            uni.getFileSystemManager().unlink({
+              filePath: uploadFilePath,
+              success: resolve,
+              fail: reject,
+            });
+          });
+          // #endif
+          // #ifdef APP-PLUS
+          const entry = await new Promise((resolve, reject) => {
+            plus.io.resolveLocalFileSystemURL(uploadFilePath, resolve, reject);
+          });
+          await new Promise((resolve, reject) => {
+            entry.remove(resolve, reject);
+          });
+          // #endif
+        } catch (err) {
+          console.warn('清理上传临时文件失败:', err);
+        }
+      }
+      // #endif
     });
   }
 }

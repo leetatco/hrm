@@ -60,12 +60,12 @@ module.exports = {
 			whereJson._id = formData.oa_instance_id;
 		}
 
+		data.pageIndex = 1;
+		data.pageSize = -1;
+
 		return vk.baseDao.getTableData({
 			dbName: 'bpmn-application-form',
-			data: {
-				pageIndex: 1,
-				pageSize: -1
-			},
+			data,
 			whereJson: whereJson,
 			sortArr: [{
 				name: 'update_date',

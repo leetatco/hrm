@@ -5,7 +5,7 @@ class CloudStorage {
     this.counterNum = 0;
   }
   // 上传文件
-  uploadFile(obj = {}) {
+  async uploadFile(obj = {}) {
     let {
       filePath,
       fileType,
@@ -23,6 +23,7 @@ class CloudStorage {
     if (!cloudPath)
       cloudPath = createFileName(obj);
     let cloudStorageConfig = getConfig();
+    let uploadFilePath = filePath;
     return new Promise((resolve, reject) => {
       vk.callFunction({
         url: cloudStorageConfig.authAction,
@@ -45,10 +46,11 @@ class CloudStorage {
       return new Promise((resolve, reject) => {
         let uploadTask = common_vendor.index.uploadFile({
           ...uploadFileOptionsRes.uploadFileOptions,
-          filePath,
+          filePath: uploadFilePath,
           // 本地文件路径
+          fileType,
           success: (uploadFileRes) => {
-            if (![200, 201].includes(uploadFileRes.statusCode)) {
+            if (![200, 201].includes(Number(uploadFileRes.statusCode))) {
               reject(uploadFileRes);
             } else {
               let extendInfo = {};
@@ -63,7 +65,7 @@ class CloudStorage {
                     extendInfo.size = Number(extendInfo.size);
                 }
               } catch (err) {
-                common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/cloud-storage/extStorage.js:64", "err: ", err);
+                common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/cloud-storage/extStorage.js:72", "err: ", err);
               }
               const { cloudPath: cloudPath2, fileID, fileURL } = uploadFileOptionsRes;
               const res = {
@@ -97,6 +99,7 @@ class CloudStorage {
           }
         });
       });
+    }).finally(async () => {
     });
   }
 }

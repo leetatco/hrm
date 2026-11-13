@@ -35,13 +35,13 @@
 			:close-on-click-modal="false">
 			<vk-data-form ref="form1" v-model="form1.data" :rules="form1.props.rules" :action="form1.props.action"
 				:form-type="form1.props.formType" :columns="form1.props.columns" label-width="130px" :inline="true"
-				:columnsNumber="2" @success="form1.props.show = false; refresh();" :border="true" />
+				:columnsNumber="2" :border="true" @success="form1.props.show = false; refresh();" />
 		</vk-data-dialog>
 
 	</view>
 </template>
 
-<script>	
+<script>
 	let vk = uni.vk;
 	const colWidth = 200;
 
@@ -103,7 +103,7 @@
 						},
 						{
 							key: "contractInfo.contract_sign_name",
-							title: "合同/协议名称",
+							title: "合约名称",
 							type: "text",
 							width: colWidth - 50
 						},
@@ -149,7 +149,7 @@
 						},
 						{
 							key: "contract_sign_file",
-							title: "合同文件",
+							title: "合约文件",
 							type: "file",
 							width: colWidth - 100,
 							show: ["detail", "row"]
@@ -187,7 +187,7 @@
 						},
 						{
 							key: "contract_sign_id",
-							title: "合同/协议名称",
+							title: "合约名称",
 							type: "remote-select",
 							width: colWidth,
 							action: "admin/hrm/contract-sign/sys/setting/getList",
@@ -278,6 +278,13 @@
 										title: "姓名",
 										type: "text",
 										nameKey: true
+									},
+									{
+										key: "company_id",
+										title: "公司别",
+										type: "text",
+										show: ['none'],
+										nameKey: true
 									}
 								],
 								queryColumns: [{
@@ -292,11 +299,40 @@
 										type: "text",
 										mode: "%%"
 									}
-								]
+								],
+								watch: async ({
+									option
+								}) => {
+									console.log(option);
+									this.$set(this.form1.data, "company_id", option.company_id);
+									// 此处根据选择的值动态改变department_id的actionData的值
+									let item = vk.pubfn.getListItem(this.form1.props.columns, "key",
+										"contract_sign_id");
+									item.actionData.company_id = option.company_id;
+									// this.$set(this.form1.data, item.key, "");
+								}
+							},
+							{
+								key: "company_id",
+								title: "公司名称",
+								type: "remote-select",
+								placeholder: "先选择员工姓名",
+								action: "admin/hrm/company/sys/getList",
+								width: colWidth,
+								disabled: true,
+								props: {
+									list: "rows",
+									value: "company_id",
+									label: "company_name"
+								},
+								showAll: true,
+								actionData: {
+									pageSize: 1000
+								}
 							},
 							{
 								key: "contract_sign_id",
-								title: "合同/协议名称",
+								title: "合约名称",
 								type: "remote-select",
 								width: colWidth,
 								action: "admin/hrm/contract-sign/sys/setting/getList",
@@ -307,6 +343,7 @@
 								},
 								showAll: true,
 								actionData: {
+									company_id: '',
 									pageSize: 1000
 								}
 							},
@@ -349,14 +386,19 @@
 							},
 							{
 								key: "contract_sign_file",
-								title: "合同文件",
+								title: "合约文件",
 								type: "file",
 								accept: ".pdf",
 								limit: 1,
 								cloudDirectory: "contract/sign",
 								width: colWidth,
-								onRemove: (file, fileList) => {
-									vk.myfn.deleteFile(file)
+								onSuccess: (data) => {
+									this.successPrefill()
+								},
+								onRemove: (file, fileList) => {									
+									vk.myfn.deleteFiles([file.url,this.form1.data.signature_url]);
+									this.$set(this.form1.data, 'signature_url', '');									
+									this.$set(this.form1.data, 'status', 4);									
 								}
 							},
 							{
@@ -381,7 +423,7 @@
 							}],
 							contract_sign_id: [{
 								required: true,
-								message: "请选择合同/协议名称",
+								message: "请选择合约名称",
 								trigger: "change"
 							}],
 							sign_date: [{
@@ -396,7 +438,7 @@
 							}],
 							contract_sign_file: [{
 								required: true,
-								message: "请上传合同",
+								message: "请上传合约",
 								trigger: "change"
 							}]
 						}
@@ -415,22 +457,55 @@
 				this.queryForm1.formData = {};
 				this.search();
 			},
+			async successPrefill() {
+				let formData = this.form1.data;
+				const needFillKeys = ['employee_name', 'mobile', 'card', 'card_location', 'current_address'];
+				if (formData.contract_sign_file && formData.card && formData.contract_sign_id && needFillKeys.length >
+					0) {
+					try {
+						// 调用云函数生成预填合同
+						let res = await vk.callFunction({
+							url: 'admin/hrm/contract-sign/sys/prefill',
+							title: "员工信息填入合同，请稍候...",
+							data: {
+								template_file: formData.contract_sign_file, // 刚上传的模板
+								card: formData.card,
+								contract_sign_id: formData.contract_sign_id,
+								fieldKeys: needFillKeys
+							}
+						});
+						if (res.code === 0) {
+							// 将生成的预填合同地址，替换掉刚上传的模板地址
+							formData.contract_sign_file = res.data.contract_sign_file;
+						} else {
+							this.$message.error('生成合同失败：' + res.msg);
+							return false; // 阻止表单提交
+						}
+					} catch (e) {
+						console.error(e);
+						this.$message.error('生成合同异常');
+						return false;
+					}
+				}
+			},
 			addBtn() {
 				this.form1.data = {
 					status: 4
 				};
 				this.form1.props.action = "admin/hrm/contract-sign/sys/add";
 				this.form1.props.formType = "add";
-				this.form1.props.title = "新增合同签署";
+				this.form1.props.title = "新增合约签署";
 				this.form1.props.show = true;
 			},
 			updateBtn({
 				item
 			}) {
+				let contractItem = vk.pubfn.getListItem(this.form1.props.columns, "key", "contract_sign_id");
+				contractItem.actionData.company_id = item.company_id;
 				this.form1.data = item;
 				this.form1.props.action = "admin/hrm/contract-sign/sys/update";
 				this.form1.props.formType = "update";
-				this.form1.props.title = "编辑合同签署";
+				this.form1.props.title = "编辑合约签署";
 				this.form1.props.show = true;
 			},
 			deleteBtn({
@@ -448,7 +523,7 @@
 			},
 			exportExcelAll() {
 				this.$refs.table1.exportExcel({
-					fileName: "合同签署列表",
+					fileName: "合约签署列表",
 					title: "正在导出...",
 					columns: this.table1.columns.filter(
 						(c) => !["contract_sign_file", "signature_url", "update_date", "users.nickname"]
@@ -457,7 +532,7 @@
 					pageIndex: 1,
 					pageSize: -1
 				});
-			}			
+			}
 		}
 	};
 </script>

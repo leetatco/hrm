@@ -143,6 +143,9 @@
 						<u-form-item label="户口所在地" prop="card_location" required>
 							<u-input v-model="formData.card_location" type="textarea" />
 						</u-form-item>
+						<u-form-item label="现住地址" prop="current_address" required>
+							<u-input v-model="formData.current_address" type="textarea" />
+						</u-form-item>
 						<u-form-item label="紧急联系人" prop="emergency_contact" required>
 							<u-input v-model="formData.emergency_contact" />
 						</u-form-item>
@@ -286,6 +289,7 @@
 					educational_id_label: '',
 					expiration_date: '',
 					card_location: '',
+					current_address: '',
 					emergency_contact: '',
 					emergency_mobile: '',
 					comment: '',
@@ -346,6 +350,10 @@
 					card_location: {
 						required: true,
 						message: '请输入户口所在地'
+					},
+					current_address: {
+						required: true,
+						message: '请输入现住址'
 					},
 					emergency_contact: {
 						required: true,
@@ -467,7 +475,9 @@
 				this.selectVisible[fieldKey] = false;
 			},
 			async loadList(reset = true) {
-				const userCenter = await vk.userCenter.code2SessionWeixin({needLogin: false});
+				const userCenter = await vk.userCenter.code2SessionWeixin({
+					needLogin: false
+				});
 				this.formData.openid = userCenter.openid;
 				if (reset) this.pagination.pageIndex = 1;
 				if (reset && !this.loading) this.loading = true;
@@ -526,7 +536,9 @@
 				return vk.pubfn.timeFormat(ts, fmt);
 			},
 			async onCardBlur() {
-				const userCenter = await vk.userCenter.code2SessionWeixin({needLogin: false});
+				const userCenter = await vk.userCenter.code2SessionWeixin({
+					needLogin: false
+				});
 				this.formData.openid = userCenter.openid;
 				this.formData.card = this.formData.card.toLocaleUpperCase();
 				const res = vk.myfn.test1(this.formData.card);
@@ -583,6 +595,7 @@
 					educational_id_label: '',
 					expiration_date: '',
 					card_location: '',
+					current_address: '',
 					emergency_contact: '',
 					emergency_mobile: '',
 					comment: '',
@@ -675,24 +688,29 @@
 					delete data._add_time;
 					delete data._update_time;
 
-					const res = await vk.callFunction({
-						title: '请求中...',
-						url: action,
-						data
+					vk.confirm('所填内容将作为合同的重要依据,请务必仔细核对,尤其是身份证号,户口所在地和现住地址,确保填写清楚详细!', '温馨提示', '确定', '取消', async (
+						e) => {
+						if (e.confirm) {
+							const res = await vk.callFunction({
+								title: '请求中...',
+								url: action,
+								data
+							});
+							if (res.code === 0) {
+								uni.showToast({
+									title: '保存成功',
+									icon: 'success'
+								});
+								this.formDialog.show = false;
+								this.loadList(true);
+							} else {
+								uni.showToast({
+									title: res.message || '保存失败',
+									icon: 'none'
+								});
+							}
+						}
 					});
-					if (res.code === 0) {
-						uni.showToast({
-							title: '保存成功',
-							icon: 'success'
-						});
-						this.formDialog.show = false;
-						this.loadList(true);
-					} else {
-						uni.showToast({
-							title: res.message || '保存失败',
-							icon: 'none'
-						});
-					}
 				});
 			},
 			deleteEntry(item) {

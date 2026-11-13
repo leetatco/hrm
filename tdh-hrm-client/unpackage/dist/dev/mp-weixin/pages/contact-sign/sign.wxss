@@ -11,7 +11,7 @@ page.data-v-8ed2ed6a {
 		flex-direction: column;
 }
 
-	/* ============ 合同卡片样式 ============ */
+	/* ============ 合约卡片样式 ============ */
 .detail-container.data-v-8ed2ed6a {
 		flex: 1;
 		display: flex;
@@ -185,7 +185,8 @@ page.data-v-8ed2ed6a {
 		align-items: center;
 }
 .handCenter.data-v-8ed2ed6a {
-		border: none; /* 去掉边框，如果需要视觉上的框，放在 canvas 外层或使用背景图 */
+		border: none;
+		/* 去掉边框，如果需要视觉上的框，放在 canvas 外层或使用背景图 */
 		flex: 5;
 		overflow: hidden;
 		box-sizing: border-box;

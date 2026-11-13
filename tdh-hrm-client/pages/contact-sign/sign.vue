@@ -1,6 +1,6 @@
 <template>
 	<view class="sign-page">
-		<!-- ============ 合同预览区域 ============ -->
+		<!-- ============ 合约预览区域 ============ -->
 		<view class="detail-container" v-if="!showSignBoard">
 			<scroll-view class="detail-scroll" scroll-y :refresher-enabled="true" :refresher-triggered="refreshing"
 				@refresherrefresh="onRefresh">
@@ -9,14 +9,14 @@
 				<view class="contract-card" v-if="contractData">
 					<!-- 头部标题 -->
 					<view class="card-header">
-						<view class="title">合同信息</view>
+						<view class="title">合约信息</view>
 						<view class="status-tag" :class="contractData.status === 1 ? 'signed' : 'unsigned'">
 							{{ contractData.status === 1 ? '已签署' : '未签署' }}
 						</view>
 					</view>
 
 					<view class="info-row">
-						<text class="label">合同名称</text>
+						<text class="label">合约名称</text>
 						<text class="value">{{ contractData.contractInfo?.contract_sign_name || '-' }}</text>
 					</view>
 					<view class="info-row">
@@ -28,23 +28,23 @@
 						<text class="value">{{ formatDate(contractData.end_date) || '-' }}</text>
 					</view>
 
-					<!-- 合同文件预览按钮 -->
+					<!-- 合约文件预览按钮 -->
 					<view class="file-box" v-if="contractData.contract_sign_file">
 						<view class="file-icon">📄</view>
 						<view class="file-info">
-							<text class="file-title">合同电子版.pdf</text>
+							<text class="file-title">合约电子版.pdf</text>
 							<text class="file-tip">点击右侧按钮预览全文</text>
 						</view>
 						<button class="preview-btn" size="mini" @click="previewFile">预览</button>
 					</view>
 				</view>
 
-				<view v-else class="loading-detail">加载合同中...</view>
+				<view v-else class="loading-detail">加载合约中...</view>
 
 				<!-- 底部提醒 -->
 				<view class="reminder" v-if="contractData">
 					<text class="reminder-icon">💡</text>
-					<text>请仔细阅读合同内容，确认无误后签名。签名即表示您已阅读并同意本合同全部条款，具有同等法律效力。</text>
+					<text>请仔细阅读合约内容，确认无误后签名。签名即表示您已阅读并同意本合约全部条款，具有同等法律效力。</text>
 				</view>
 			</scroll-view>
 
@@ -53,7 +53,7 @@
 				<button class="btn-sign" @click="openSignBoard">立即签署</button>
 			</view>
 			<view class="btn-sign-wrapper" v-else-if="contractData && contractData.status === 1">
-				<button class="btn-sign disabled" disabled>合同已签署</button>
+				<button class="btn-sign disabled" disabled>合约已签署</button>
 			</view>
 		</view>
 
@@ -69,7 +69,7 @@
 						:src="selectColor === 'red' ? '/static/other/color_red_selected.png' : '/static/other/color_red.png'"
 						class="red-select"></image>
 					<!-- #endif -->
-					
+
 					<!-- #ifndef MP-WEIXIN -->
 					<div class="color_pic" :style="{background:lineColor}" @click="showPickerColor=true"></div>
 					<!-- #endif -->
@@ -135,7 +135,7 @@
 				requestAnimationFrame: null, // 兼容函数
 				cancelAnimationFrame: null, // 兼容函数
 				toDataURL: void 0,
-				
+
 				// 签名板配置参数
 				minSpeed: 1.5,
 				minWidth: 3,
@@ -180,7 +180,7 @@
 				this.showSignBoard = false;
 			},
 
-			/* ========== 加载合同详情 ========== */
+			/* ========== 加载合约详情 ========== */
 			async loadDetail(fromRefresh = false) {
 				if (this.loading) return;
 				this.loading = true;
@@ -200,7 +200,7 @@
 						this.contractData = res.rows[0] || {};
 						this.lastSignatureUrl = res.extra?.lastSignatureUrl || '';
 					} else {
-						this.$refs.toast.showToast(res.msg || '获取合同失败');
+						this.$refs.toast.showToast(res.msg || '获取合约失败');
 					}
 				} catch (e) {
 					this.$refs.toast.showToast('网络异常');
@@ -217,9 +217,13 @@
 			previewFile() {
 				const url = this.contractData.contract_sign_file;
 				if (!url) return;
-				uni.previewFile ? uni.previewFile({ url }) : uni.downloadFile({
+				uni.previewFile ? uni.previewFile({
+					url
+				}) : uni.downloadFile({
 					url,
-					success: r => uni.openDocument({ filePath: r.tempFilePath })
+					success: r => uni.openDocument({
+						filePath: r.tempFilePath
+					})
 				});
 			},
 
@@ -266,10 +270,17 @@
 
 						const tempPath = await this.getTempFilePath();
 						const imgInfo = await new Promise((res, rej) =>
-							uni.getImageInfo({ src: tempPath, success: res, fail: rej })
+							uni.getImageInfo({
+								src: tempPath,
+								success: res,
+								fail: rej
+							})
 						);
 
-						const { width, height } = imgInfo;
+						const {
+							width,
+							height
+						} = imgInfo;
 
 						const nodeInfo = await new Promise((res, rej) => {
 							uni.createSelectorQuery().in(this)
@@ -292,7 +303,12 @@
 						ctx.drawImage(img, -width / 2, -height / 2);
 
 						const rotatedPath = await new Promise((res, rej) =>
-							uni.canvasToTempFilePath({ canvas, fileType: 'png', success: res, fail: rej })
+							uni.canvasToTempFilePath({
+								canvas,
+								fileType: 'png',
+								success: res,
+								fail: rej
+							})
 						);
 
 						// 上传七牛云
@@ -300,7 +316,9 @@
 
 						const uploadOptionRes = await vk.callFunction({
 							url: 'common/pub/getUploadFileOptions/index',
-							data: { cloudPath }
+							data: {
+								cloudPath
+							}
 						});
 
 						if (uploadOptionRes.code !== 0) {
@@ -320,19 +338,22 @@
 					}
 
 					// 【核心修改】：调用专门处理 PDF 合成的云函数
-					this.$refs.toast.showLoading('正在合成合同...');
+					const needFillKeys = ['sign_year', 'sign_month', 'sign_day'];
+
+					this.$refs.toast.showLoading('正在合成合约...');
 					const signRes = await vk.callFunction({
-						url: 'admin/hrm/contract-sign/sys/updatePdf', 
+						url: 'admin/hrm/contract-sign/sys/updatePdf',
 						data: {
 							_id: this._id,
-							signature_url: signatureUrl
+							signature_url: signatureUrl,
+							fieldKeys: needFillKeys
 						}
 					});
 
 					this.$refs.toast.hide();
 
 					if (signRes.code === 0) {
-						this.$refs.toast.showToast('合同签署成功');
+						this.$refs.toast.showToast('合约签署成功');
 						setTimeout(() => uni.navigateBack(), 1500);
 					} else {
 						this.$refs.toast.showToast(signRes.msg || '签署失败');
@@ -375,7 +396,11 @@
 				this.ctx.setLineCap("round");
 
 				const touch = e.touches[0];
-				this.pointQueue.push({ x: touch.x, y: touch.y, t: Date.now() });
+				this.pointQueue.push({
+					x: touch.x,
+					y: touch.y,
+					t: Date.now()
+				});
 
 				this.startRenderLoop();
 			},
@@ -392,7 +417,11 @@
 			uploadScaleMove(e) {
 				if (!this.isDrawing) return;
 				const touch = e.changedTouches[0];
-				this.pointQueue.push({ x: touch.x, y: touch.y, t: Date.now() });
+				this.pointQueue.push({
+					x: touch.x,
+					y: touch.y,
+					t: Date.now()
+				});
 			},
 
 			uploadScaleEnd() {
@@ -440,7 +469,11 @@
 			},
 
 			initPoint(x, y) {
-				var point = { x: x, y: y, t: Date.now() };
+				var point = {
+					x: x,
+					y: y,
+					t: Date.now()
+				};
 				var prePoint = this.points.slice(-1)[0];
 				if (prePoint && (prePoint.t === point.t || prePoint.x === x && prePoint.y === y)) {
 					return;
@@ -485,7 +518,8 @@
 				}
 				point.perLineWidth = (prePoint.lineWidth + point.lineWidth) / 2;
 				if (typeof prePoint.lastX1 === 'number') {
-					this.drawCurveLine(prePoint.lastX2, prePoint.lastY2, prePoint.x, prePoint.y, point.lastX1, point.lastY1, point.perLineWidth);
+					this.drawCurveLine(prePoint.lastX2, prePoint.lastY2, prePoint.x, prePoint.y, point.lastX1, point
+						.lastY1, point.perLineWidth);
 					if (prePoint.isFirstPoint) return;
 					if (prePoint.lastX1 === prePoint.lastX2 && prePoint.lastY1 === prePoint.lastY2) return;
 					var data = this.getRadianData(prePoint.lastX1, prePoint.lastY1, prePoint.lastX2, prePoint.lastY2);
@@ -501,7 +535,8 @@
 				point.lastX = prePoint.x + (point.x - prePoint.x) * 0.5;
 				point.lastY = prePoint.y + (point.y - prePoint.y) * 0.5;
 				if (typeof prePoint.lastX === 'number') {
-					this.drawCurveLine(prePoint.lastX, prePoint.lastY, prePoint.x, prePoint.y, point.lastX, point.lastY, this.maxWidth);
+					this.drawCurveLine(prePoint.lastX, prePoint.lastY, prePoint.x, prePoint.y, point.lastX, point.lastY,
+						this.maxWidth);
 				}
 			},
 
@@ -511,7 +546,8 @@
 				this.ctx.lineWidth = lineWidth;
 				this.ctx.beginPath();
 				this.ctx.moveTo(Number(x1.toFixed(1)), Number(y1.toFixed(1)));
-				this.ctx.quadraticCurveTo(Number(x2.toFixed(1)), Number(y2.toFixed(1)), Number(x3.toFixed(1)), Number(y3.toFixed(1)));
+				this.ctx.quadraticCurveTo(Number(x2.toFixed(1)), Number(y2.toFixed(1)), Number(x3.toFixed(1)), Number(y3
+					.toFixed(1)));
 				this.ctx.stroke();
 			},
 
@@ -529,28 +565,64 @@
 			getRadianData(x1, y1, x2, y2) {
 				var dis_x = x2 - x1;
 				var dis_y = y2 - y1;
-				if (dis_x === 0) return { val: 0, pos: -1 };
-				if (dis_y === 0) return { val: 0, pos: 1 };
+				if (dis_x === 0) return {
+					val: 0,
+					pos: -1
+				};
+				if (dis_y === 0) return {
+					val: 0,
+					pos: 1
+				};
 				var val = Math.abs(Math.atan(dis_y / dis_x));
 				if (x2 > x1 && y2 < y1 || x2 < x1 && y2 > y1) {
-					return { val: val, pos: 1 };
+					return {
+						val: val,
+						pos: 1
+					};
 				}
-				return { val: val, pos: -1 };
+				return {
+					val: val,
+					pos: -1
+				};
 			},
 
 			getRadianPoints(radianData, x, y, halfLineWidth) {
 				if (radianData.val === 0) {
 					if (radianData.pos === 1) {
-						return [{ x: x, y: y + halfLineWidth }, { x: x, y: y - halfLineWidth }];
+						return [{
+							x: x,
+							y: y + halfLineWidth
+						}, {
+							x: x,
+							y: y - halfLineWidth
+						}];
 					}
-					return [{ y: y, x: x + halfLineWidth }, { y: y, x: x - halfLineWidth }];
+					return [{
+						y: y,
+						x: x + halfLineWidth
+					}, {
+						y: y,
+						x: x - halfLineWidth
+					}];
 				}
 				var dis_x = Math.sin(radianData.val) * halfLineWidth;
 				var dis_y = Math.cos(radianData.val) * halfLineWidth;
 				if (radianData.pos === 1) {
-					return [{ x: x + dis_x, y: y + dis_y }, { x: x - dis_x, y: y - dis_y }];
+					return [{
+						x: x + dis_x,
+						y: y + dis_y
+					}, {
+						x: x - dis_x,
+						y: y - dis_y
+					}];
 				}
-				return [{ x: x + dis_x, y: y - dis_y }, { x: x - dis_x, y: y + dis_y }];
+				return [{
+					x: x + dis_x,
+					y: y - dis_y
+				}, {
+					x: x - dis_x,
+					y: y + dis_y
+				}];
 			},
 
 			drawByImage(url) {
@@ -559,7 +631,11 @@
 				uni.getImageInfo({
 					src: url,
 					success: (res) => {
-						const { width, height, path } = res;
+						const {
+							width,
+							height,
+							path
+						} = res;
 						const isLandscape = width > height;
 						if (isLandscape) {
 							this.ctx.save();
@@ -692,7 +768,7 @@
 		flex-direction: column;
 	}
 
-	/* ============ 合同卡片样式 ============ */
+	/* ============ 合约卡片样式 ============ */
 	.detail-container {
 		flex: 1;
 		display: flex;
@@ -889,7 +965,8 @@
 	}
 
 	.handCenter {
-		border: none; /* 去掉边框，如果需要视觉上的框，放在 canvas 外层或使用背景图 */
+		border: none;
+		/* 去掉边框，如果需要视觉上的框，放在 canvas 外层或使用背景图 */
 		flex: 5;
 		overflow: hidden;
 		box-sizing: border-box;

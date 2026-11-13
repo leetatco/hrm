@@ -1,13 +1,26 @@
 <template>
 	<view class="sign-position-wrap">
-		<!-- PDF 上传 -->
-		<el-upload class="upload-btn" action="#" :show-file-list="false" accept=".pdf" :http-request="onUpload">
-			<el-button size="small" type="primary" icon="el-icon-upload">上传PDF并选页</el-button>
-		</el-upload>
+		<!-- 状态提示与模式切换 -->
+		<view class="tips-bar" style="display: flex; justify-content: space-between; align-items: center;">
+			<div>
+				<template v-if="!fileUrl">
+					<span style="color: #f56c6c; font-size: 13px;">
+						<i class="el-icon-warning-outline"></i> 请先在上方“模版文件”中上传PDF文件，上传后即可在此处定位
+					</span>
+				</template>
+				<template v-else>
+					<span style="color: #909399; font-size: 13px;">
+						请拖拽画框，按住框可移动，拖拽四角可缩放
+					</span>
+				</template>
+			</div>
 
-		<span style="margin-left: 10px; color: #909399; font-size: 12px;">
-			上传合同PDF后，在签名栏位置拖拽一个框即可
-		</span>
+			<!-- 画笔模式切换 -->
+			<el-radio-group v-model="drawMode" size="mini" v-if="fileUrl">
+				<el-radio-button label="sign">✍️ 画签名框</el-radio-button>
+				<el-radio-button label="text">📝 画文本框</el-radio-button>
+			</el-radio-group>
+		</view>
 
 		<!-- 页码选择 -->
 		<view class="page-bar" v-if="totalPage > 0">
@@ -20,45 +33,103 @@
 			<el-button size="mini" type="success" style="margin-left: 10px;" @click="useLastPage">使用最后一页</el-button>
 		</view>
 
-		<!-- PDF 画布 + 拖拽层 -->
-		<view v-if="pdfUrl" class="canvas-wrap" ref="canvasWrap" @mousedown.prevent="startDraw" @mousemove="drawing"
-			@mouseup="stopDraw" @mouseleave="stopDraw">
+		<!-- PDF 画布 + 交互层 -->
+		<view v-if="pdfRenderUrl" class="canvas-wrap" ref="canvasWrap" @mousedown.prevent="onMouseDown" @mousemove="onMouseMove"
+			@mouseup="onMouseUp" @mouseleave="onMouseUp">
 			<canvas id="pdf-canvas" ref="pdfCanvas" :style="{ width: canvasW + 'px', height: canvasH + 'px' }"></canvas>
 
-			<!-- 拖拽中的框 -->
-			<view v-if="drawingBox.show" class="drag-box" :style="{
-					left: drawingBox.left + 'px',
-					top: drawingBox.top + 'px',
-					width: drawingBox.width + 'px',
-					height: drawingBox.height + 'px'
-				}"></view>
+			<!-- 拖拽中的框（新建） -->
+			<view v-if="drawingBox.show" class="drag-box" :class="drawMode === 'text' ? 'is-text' : 'is-sign'" :style="boxStyle(drawingBox)"></view>
 
-			<!-- 已确认的框 -->
-			<view v-if="confirmBox.show" class="confirm-box" :style="{
-					left: confirmBox.left + 'px',
-					top: confirmBox.top + 'px',
-					width: confirmBox.width + 'px',
-					height: confirmBox.height + 'px'
-				}">
-				<view class="box-tip">
-					{{ confirmBox.ptW }} × {{ confirmBox.ptH }} pt
-				</view>
+			<!-- 已保存的签名框 -->
+			<view v-for="(box, idx) in currentPageSignBoxes" :key="'sign-' + idx" class="confirm-box sign-box" :style="boxStyle(box)">
+				<view class="box-tip">签名框</view>
+			</view>
+
+			<!-- 已保存的文本框 -->
+			<view v-for="(box, idx) in currentPageTextBoxes" :key="'text-' + idx" class="confirm-box text-box" :style="boxStyle(box)">
+				<view class="box-tip">{{ getFieldLabel(box.fieldKey) }}</view>
+			</view>
+
+			<!-- 当前操作中的框（支持移动和缩放） -->
+			<view v-if="confirmBox.show" class="confirm-box pending" :class="pendingType === 'text' ? 'is-text' : 'is-sign'" :style="boxStyle(confirmBox)"
+				@mousedown.prevent.stop="startAction('moving', $event, 'center')">
+				
+				<!-- 提示标签 -->
+				<view class="box-tip">{{ confirmBox.ptW }} × {{ confirmBox.ptH }} pt</view>
+				
+				<!-- 四个角的缩放手柄 -->
+				<view class="handle tl" @mousedown.prevent.stop="startAction('resizing', $event, 'tl')"></view>
+				<view class="handle tr" @mousedown.prevent.stop="startAction('resizing', $event, 'tr')"></view>
+				<view class="handle bl" @mousedown.prevent.stop="startAction('resizing', $event, 'bl')"></view>
+				<view class="handle br" @mousedown.prevent.stop="startAction('resizing', $event, 'br')"></view>
 			</view>
 		</view>
 
-		<!-- 坐标结果 -->
-		<view class="result" v-if="result.page !== null">
-			<el-alert title="签名位置（pt）" type="success" :closable="false">
-				<p>页码（page）: {{ result.page }}（0=最后一页）</p>
-				<p>X: {{ result.x }} pt</p>
-				<p>Y: {{ result.y }} pt</p>
-				<p>宽度: {{ result.width }} pt</p>
-				<p>高度: {{ result.height }} pt</p>
+		<!-- 待确认框操作 -->
+		<view class="result" v-if="confirmBox.show">
+			<el-alert :title="pendingType === 'sign' ? '当前签名框（pt）' : '当前文本框（pt）'" :type="pendingType === 'sign' ? 'success' : 'warning'" :closable="false">
+				<p>页码（page）: {{ pendingResult.page }}（0=最后一页）</p>
+				<p>X: {{ pendingResult.x }} pt，Y: {{ pendingResult.y }} pt</p>
+				<p>宽度: {{ pendingResult.width }} pt，高度: {{ pendingResult.height }} pt</p>
+
+				<!-- 如果是文本框，要求选择绑定的字段 -->
+				<div v-if="pendingType === 'text'" style="margin-top: 10px; display: flex; align-items: center;">
+					<span style="margin-right: 10px; font-weight: bold;">绑定员工字段：</span>
+					<el-select v-model="pendingFieldKey" size="small" placeholder="请选择要填入的数据" style="width: 200px;">
+						<el-option v-for="opt in fieldOptions" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
+					</el-select>
+				</div>
 			</el-alert>
 
-			<el-button size="mini" type="primary" style="margin-top: 10px;" @click="confirmPosition">确认使用该位置</el-button>
+			<div style="margin-top: 10px;">
+				<el-button size="mini" type="primary" @click="addCurrentBox">保存此框</el-button>
+				<el-button size="mini" @click="clearPendingBox">取消</el-button>
+			</div>
+		</view>
 
-			<el-button size="mini" style="margin-top: 10px; margin-left: 10px;" @click="clearSelection">清除重选</el-button>
+		<!-- 已保存列表 (Tab切换展示) -->
+		<view class="saved-list" style="margin-top: 20px;" v-if="signPositions.length > 0 || textPositions.length > 0">
+			<el-tabs type="border-card">
+				<el-tab-pane :label="`签名位置 (${signPositions.length})`">
+					<el-table :data="signPositions" size="mini" border>
+						<el-table-column label="#" type="index" width="50" />
+						<el-table-column label="页码" width="80">
+							<template slot-scope="scope">{{ scope.row.page === 0 ? '最后一页' : scope.row.page }}</template>
+						</el-table-column>
+						<el-table-column prop="x" label="X" width="70" />
+						<el-table-column prop="y" label="Y" width="70" />
+						<el-table-column prop="width" label="宽" width="70" />
+						<el-table-column prop="height" label="高" width="70" />
+						<el-table-column label="操作" width="120">
+							<template slot-scope="scope">
+								<el-button type="text" size="mini" @click="gotoPosition(scope.row)">定位</el-button>
+								<el-button type="text" size="mini" style="color:#f56c6c" @click="removeSignPos(scope.$index)">删除</el-button>
+							</template>
+						</el-table-column>
+					</el-table>
+				</el-tab-pane>
+				
+				<el-tab-pane :label="`文本填充位置 (${textPositions.length})`">
+					<el-table :data="textPositions" size="mini" border>
+						<el-table-column label="#" type="index" width="50" />
+						<el-table-column label="页码" width="80">
+							<template slot-scope="scope">{{ scope.row.page === 0 ? '最后一页' : scope.row.page }}</template>
+						</el-table-column>
+						<el-table-column label="填充内容" width="120">
+							<template slot-scope="scope">{{ getFieldLabel(scope.row.fieldKey) }}</template>
+						</el-table-column>
+						<el-table-column prop="x" label="X" width="70" />
+						<el-table-column prop="y" label="Y" width="70" />
+						<el-table-column label="操作" width="120">
+							<template slot-scope="scope">
+								<el-button type="text" size="mini" @click="gotoPosition(scope.row)">定位</el-button>
+								<el-button type="text" size="mini" style="color:#f56c6c" @click="removeTextPos(scope.$index)">删除</el-button>
+							</template>
+						</el-table-column>
+					</el-table>
+				</el-tab-pane>
+			</el-tabs>
 		</view>
 	</view>
 </template>
@@ -72,85 +143,99 @@
 	export default {
 		name: "contract-sign-position",
 		props: {
-			value: {
-				type: Object,
-				default: () => ({
-					page: 0,
-					x: 300,
-					y: 180,
-					width: 150,
-					height: 60
-				})
-			}
+			value: { type: Array, default: () => [] },
+			textValue: { type: Array, default: () => [] },
+			fileUrl: { type: String, default: "" }
 		},
 		data() {
 			return {
-				pdfUrl: "",
+				pdfRenderUrl: "",
 				pdfDoc: null,
 				totalPage: 0,
 				currentPage: 1,
 
-				canvasW: 0,
-				canvasH: 0,
-				pdfW: 0,
-				pdfH: 0,
-				scale: 1,
+				canvasW: 0, canvasH: 0, pdfW: 0, pdfH: 0, scale: 1,
+				renderTask: null, renderSeq: 0,
 
-				renderTask: null,
-				renderSeq: 0,
+				drawMode: 'sign',
+				actionType: 'none',
+				activeHandle: '', 
+				
+				drawingBox: { show: false, left: 0, top: 0, width: 0, height: 0 },
+				startX: 0, startY: 0,
 
-				drawingBox: {
-					show: false,
-					left: 0,
-					top: 0,
-					width: 0,
-					height: 0
-				},
+				confirmBox: { show: false, left: 0, top: 0, width: 0, height: 0, ptW: 0, ptH: 0 },
+				pendingType: 'sign',
+				pendingResult: { page: null, x: 0, y: 0, width: 0, height: 0 },
+				pendingFieldKey: "",
 
-				confirmBox: {
-					show: false,
-					left: 0,
-					top: 0,
-					width: 0,
-					height: 0,
-					ptW: 0,
-					ptH: 0
-				},
+				moveStartX: 0, moveStartY: 0,
+				boxStart: { left: 0, top: 0, width: 0, height: 0 },
 
-				result: {
-					page: null,
-					x: 0,
-					y: 0,
-					width: 0,
-					height: 0
-				},
-
-				startX: 0,
-				startY: 0,
-				dragging: false
+				fieldOptions: [
+					{ label: '员工姓名', value: 'employee_name' },
+					{ label: '身份证号码', value: 'card' },	
+					{ label: '手机号码', value: 'mobile' },				
+					{ label: '户籍地址', value: 'card_location' },
+					{ label: '现住地址', value: 'current_address' },
+					{ label: '签名年', value: 'sign_year' },
+					{ label: '签名月', value: 'sign_month' },
+					{ label: '签名日', value: 'sign_day' }
+				]
 			};
 		},
+		computed: {
+			signPositions() { return Array.isArray(this.value) ? this.value : []; },
+			textPositions() { return Array.isArray(this.textValue) ? this.textValue : []; },
+			
+			currentPageSignBoxes() {
+				if (!this.pdfDoc || !this.pdfW || !this.pdfH) return [];
+				return this.signPositions
+					.filter(p => (p.page === 0 ? this.totalPage : p.page) === this.currentPage)
+					.map(p => this.formatBoxToCss(p));
+			},
+			currentPageTextBoxes() {
+				if (!this.pdfDoc || !this.pdfW || !this.pdfH) return [];
+				return this.textPositions
+					.filter(p => (p.page === 0 ? this.totalPage : p.page) === this.currentPage)
+					.map(p => this.formatBoxToCss(p));
+			}
+		},
 		watch: {
-			value: {
-				deep: true,
-				handler(val) {
-					if (val && val.page !== undefined && this.pdfDoc) {
-						this.restoreFromValue(val);
+			fileUrl: {
+				immediate: true,
+				handler(newVal) {
+					if (newVal && newVal !== this.pdfRenderUrl) {
+						this.loadPdfFromUrl(newVal);
+					} else if (!newVal) {
+						this.pdfRenderUrl = "";
+						this.pdfDoc = null;
+						this.totalPage = 0;
+						this.clearPendingBox();
 					}
 				}
 			}
 		},
-		beforeDestroy() {
-			if (this.renderTask) {
-				try {
-					this.renderTask.cancel();
-				} catch (e) {}
-			}
-			if (this.pdfDoc) {
-				this.pdfDoc.destroy();
-			}
-		},
 		methods: {
+			formatBoxToCss(p) {
+				return {
+					...p,
+					left: p.x * this.scale,
+					top: (this.pdfH - p.y - p.height) * this.scale,
+					width: p.width * this.scale,
+					height: p.height * this.scale,
+					ptW: p.width,
+					ptH: p.height
+				};
+			},
+			getFieldLabel(key) {
+				const f = this.fieldOptions.find(i => i.value === key);
+				return f ? f.label : key;
+			},
+			boxStyle(box) {
+				return { left: box.left + 'px', top: box.top + 'px', width: box.width + 'px', height: box.height + 'px' };
+			},
+
 			getRealCanvas() {
 				let el = document.getElementById('pdf-canvas');
 				if (!el) return null;
@@ -165,19 +250,15 @@
 				return ref ? (ref.$el || ref) : null;
 			},
 
+			// 【核心修复】不再读取组件的实时宽度，避免切换页时容器塌陷导致变小
 			getContainerWidth() {
-				const el = this.getWrapEl();
-				if (el) {
-					const w = el.clientWidth || el.parentElement?.clientWidth;
-					if (w && w > 100) return w;
-				}
-				if (this.$el && this.$el.clientWidth > 100) {
-					return this.$el.clientWidth;
-				}
-				return 800;
+				// 强制读取父级容器宽度，因为外层是 vk-data-dialog，宽度通常是固定的
+				let parent = this.$el ? this.$el.parentElement : null;
+				if (parent && parent.clientWidth > 100) return parent.clientWidth;
+				return 800; // 默认兜底
 			},
 
-			async onUpload({ file }) {
+			async loadPdfFromUrl(url) {
 				if (this.renderTask) {
 					try { this.renderTask.cancel(); } catch (e) {}
 					this.renderTask = null;
@@ -186,24 +267,23 @@
 					try { this.pdfDoc.destroy(); } catch (e) {}
 					this.pdfDoc = null;
 				}
-				this.pdfUrl = URL.createObjectURL(file);
-				this.resetSelectionLocal();
-				await this.loadPdf(this.pdfUrl);
-			},
-
-			async loadPdf(url) {
-				const loadingTask = pdfjsLib.getDocument(url);
-				this.pdfDoc = await loadingTask.promise;
-				this.totalPage = this.pdfDoc.numPages;
-				this.currentPage = 1;
-				await this.renderPage(this.currentPage);
+				this.pdfRenderUrl = url;
+				this.clearPendingBox();
+				try {
+					this.pdfDoc = await pdfjsLib.getDocument(url).promise;
+					this.totalPage = this.pdfDoc.numPages;
+					this.currentPage = 1;
+					await this.renderPage(this.currentPage);
+				} catch (e) {
+					this.$message && this.$message.error("加载PDF失败");
+				}
 			},
 
 			async renderPage(pageNum) {
 				if (!this.pdfDoc) return;
-
 				const seq = ++this.renderSeq;
 
+				// 取消上一次未完成的渲染
 				if (this.renderTask) {
 					const oldTask = this.renderTask;
 					this.renderTask = null;
@@ -218,14 +298,16 @@
 					const page = await this.pdfDoc.getPage(pageNum);
 					if (seq !== this.renderSeq) return;
 
-					const viewport = page.getViewport({ scale: 1 });
+					// 修复：携带 page.rotate 属性，防止倒置
+					const viewport = page.getViewport({ scale: 1, rotation: page.rotate });
 					this.pdfW = viewport.width;
 					this.pdfH = viewport.height;
 
 					const containerWidth = this.getContainerWidth();
-					const maxW = Math.max(containerWidth - 20, 600);
+					const maxW = Math.max(containerWidth - 40, 600); // 留出一点 padding
+					
+					// 计算缩放比
 					this.scale = maxW / this.pdfW;
-
 					this.canvasW = this.pdfW * this.scale;
 					this.canvasH = this.pdfH * this.scale;
 
@@ -235,6 +317,7 @@
 					const canvas = this.getRealCanvas();
 					if (!canvas) return;
 
+					// 清理画布，防止多个页面的内容重叠
 					const ctx = canvas.getContext("2d", { willReadFrequently: true });
 					const dpr = window.devicePixelRatio || 1;
 
@@ -242,7 +325,7 @@
 					canvas.height = Math.round(this.canvasH * dpr);
 					ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-					const renderViewport = page.getViewport({ scale: this.scale * dpr });
+					const renderViewport = page.getViewport({ scale: this.scale * dpr, rotation: page.rotate });
 
 					this.renderTask = page.render({
 						canvasContext: ctx,
@@ -251,16 +334,12 @@
 
 					await this.renderTask.promise;
 					if (seq !== this.renderSeq) return;
-
-					this.restoreFromValue(this.value);
 				} catch (error) {
 					if (error.name !== 'RenderingCancelledException' && seq === this.renderSeq) {
 						console.error('渲染失败:', error);
 					}
 				} finally {
-					if (seq === this.renderSeq) {
-						this.renderTask = null;
-					}
+					if (seq === this.renderSeq) this.renderTask = null;
 				}
 			},
 
@@ -268,177 +347,245 @@
 				const target = this.currentPage + delta;
 				if (target < 1 || target > this.totalPage) return;
 				this.currentPage = target;
-				this.resetSelectionLocal();
+				this.clearPendingBox();
 				this.renderPage(target);
 			},
 
 			useLastPage() {
 				if (this.currentPage === this.totalPage) return;
 				this.currentPage = this.totalPage;
-				this.resetSelectionLocal();
+				this.clearPendingBox();
 				this.renderPage(this.currentPage);
 			},
 
-			// 【核心修复1】：精准获取基于原生 canvas 的真实 DOM 边界
 			getCanvasRect() {
 				const canvas = this.getRealCanvas();
-				if (canvas) {
-					return canvas.getBoundingClientRect();
-				}
+				if (canvas) return canvas.getBoundingClientRect();
 				const wrap = this.getWrapEl();
 				return wrap ? wrap.getBoundingClientRect() : null;
 			},
 
-			startDraw(e) {
+			// ======== 鼠标事件处理 ========
+			onMouseDown(e) {
 				if (!this.pdfDoc) return;
 				const rect = this.getCanvasRect();
 				if (!rect) return;
 
-				// 【核心修复2】：基于原生 canvas 边界计算，十字星和画框完全对齐
 				let x = e.clientX - rect.left;
 				let y = e.clientY - rect.top;
-
 				x = Math.max(0, Math.min(x, this.canvasW));
 				y = Math.max(0, Math.min(y, this.canvasH));
 
+				this.actionType = 'drawing';
 				this.startX = x;
 				this.startY = y;
-				this.dragging = true;
 
-				this.drawingBox = {
-					show: true,
-					left: this.startX,
-					top: this.startY,
-					width: 0,
-					height: 0
-				};
-
+				this.drawingBox = { show: true, left: this.startX, top: this.startY, width: 0, height: 0 };
 				this.confirmBox.show = false;
 			},
 
-			drawing(e) {
-				if (!this.dragging) return;
-				const rect = this.getCanvasRect();
-				if (!rect) return;
-
-				let curX = e.clientX - rect.left;
-				let curY = e.clientY - rect.top;
-
-				// 严格限制在 CSS 宽度和高度内
-				curX = Math.max(0, Math.min(curX, this.canvasW));
-				curY = Math.max(0, Math.min(curY, this.canvasH));
-
-				this.drawingBox = {
-					show: true,
-					left: Math.min(this.startX, curX),
-					top: Math.min(this.startY, curY),
-					width: Math.abs(curX - this.startX),
-					height: Math.abs(curY - this.startY)
+			startAction(type, e, handleType) {
+				this.actionType = type;
+				this.activeHandle = handleType;
+				this.moveStartX = e.clientX;
+				this.moveStartY = e.clientY;
+				this.boxStart = {
+					left: this.confirmBox.left,
+					top: this.confirmBox.top,
+					width: this.confirmBox.width,
+					height: this.confirmBox.height
 				};
 			},
 
-			stopDraw() {
-				if (!this.dragging) return;
-				this.dragging = false;
+			onMouseMove(e) {
+				if (this.actionType === 'none') return;
+				const rect = this.getCanvasRect();
+				if (!rect) return;
 
-				if (this.drawingBox.width < 5 || this.drawingBox.height < 5) {
-					this.drawingBox.show = false;
-					return;
+				if (this.actionType === 'drawing') {
+					let curX = e.clientX - rect.left;
+					let curY = e.clientY - rect.top;
+
+					curX = Math.max(0, Math.min(curX, this.canvasW));
+					curY = Math.max(0, Math.min(curY, this.canvasH));
+
+					this.drawingBox = {
+						show: true,
+						left: Math.min(this.startX, curX),
+						top: Math.min(this.startY, curY),
+						width: Math.abs(curX - this.startX),
+						height: Math.abs(curY - this.startY)
+					};
+				} else if (this.actionType === 'moving') {
+					let deltaX = e.clientX - this.moveStartX;
+					let deltaY = e.clientY - this.moveStartY;
+
+					let newLeft = this.boxStart.left + deltaX;
+					let newTop = this.boxStart.top + deltaY;
+
+					newLeft = Math.max(0, Math.min(newLeft, this.canvasW - this.confirmBox.width));
+					newTop = Math.max(0, Math.min(newTop, this.canvasH - this.confirmBox.height));
+
+					this.confirmBox.left = newLeft;
+					this.confirmBox.top = newTop;
+					this.updatePendingResult();
+				} else if (this.actionType === 'resizing') {
+					let deltaX = e.clientX - this.moveStartX;
+					let deltaY = e.clientY - this.moveStartY;
+					
+					let newLeft = this.boxStart.left;
+					let newTop = this.boxStart.top;
+					let newWidth = this.boxStart.width;
+					let newHeight = this.boxStart.height;
+
+					const minSize = 20;
+
+					if (this.activeHandle === 'br') {
+						newWidth = Math.max(minSize, this.boxStart.width + deltaX);
+						newHeight = Math.max(minSize, this.boxStart.height + deltaY);
+					} else if (this.activeHandle === 'tl') {
+						let possibleWidth = this.boxStart.width - deltaX;
+						let possibleHeight = this.boxStart.height - deltaY;
+						if (possibleWidth >= minSize) {
+							newWidth = possibleWidth;
+							newLeft = this.boxStart.left + deltaX;
+						}
+						if (possibleHeight >= minSize) {
+							newHeight = possibleHeight;
+							newTop = this.boxStart.top + deltaY;
+						}
+					} else if (this.activeHandle === 'tr') {
+						newWidth = Math.max(minSize, this.boxStart.width + deltaX);
+						let possibleHeight = this.boxStart.height - deltaY;
+						if (possibleHeight >= minSize) {
+							newHeight = possibleHeight;
+							newTop = this.boxStart.top + deltaY;
+						}
+					} else if (this.activeHandle === 'bl') {
+						newHeight = Math.max(minSize, this.boxStart.height + deltaY);
+						let possibleWidth = this.boxStart.width - deltaX;
+						if (possibleWidth >= minSize) {
+							newWidth = possibleWidth;
+							newLeft = this.boxStart.left + deltaX;
+						}
+					}
+
+					newLeft = Math.max(0, Math.min(newLeft, this.canvasW - minSize));
+					newTop = Math.max(0, Math.min(newTop, this.canvasH - minSize));
+					newWidth = Math.min(newWidth, this.canvasW - newLeft);
+					newHeight = Math.min(newHeight, this.canvasH - newTop);
+
+					this.confirmBox.left = newLeft;
+					this.confirmBox.top = newTop;
+					this.confirmBox.width = newWidth;
+					this.confirmBox.height = newHeight;
+
+					this.updatePendingResult();
 				}
+			},
 
-				const ptX = Math.round(this.drawingBox.left / this.scale);
-				const ptY = Math.round(this.drawingBox.top / this.scale);
-				const ptW = Math.round(this.drawingBox.width / this.scale);
-				const ptH = Math.round(this.drawingBox.height / this.scale);
+			onMouseUp() {
+				if (this.actionType === 'drawing') {
+					if (this.drawingBox.width < 5 || this.drawingBox.height < 5) {
+						this.drawingBox.show = false;
+						this.actionType = 'none';
+						return;
+					}
 
-				const pdfLibY = Math.round(this.pdfH - (this.drawingBox.top / this.scale) - (this.drawingBox.height / this.scale));
+					this.confirmBox = {
+						show: true,
+						left: this.drawingBox.left,
+						top: this.drawingBox.top,
+						width: this.drawingBox.width,
+						height: this.drawingBox.height,
+						ptW: Math.round(this.drawingBox.width / this.scale),
+						ptH: Math.round(this.drawingBox.height / this.scale)
+					};
+					this.pendingType = this.drawMode; 
+					this.pendingFieldKey = "";
+					this.updatePendingResult();
+				} 
+				
+				if (this.actionType !== 'none') {
+					this.drawingBox.show = false;
+					this.actionType = 'none';
+				}
+			},
 
-				this.result = {
+			updatePendingResult() {
+				const ptX = Math.round(this.confirmBox.left / this.scale);
+				const ptW = Math.round(this.confirmBox.width / this.scale);
+				const ptH = Math.round(this.confirmBox.height / this.scale);
+				const pdfLibY = Math.round(this.pdfH - (this.confirmBox.top / this.scale) - (this.confirmBox.height / this.scale));
+
+				this.pendingResult = {
 					page: this.currentPage,
 					x: ptX,
 					y: pdfLibY,
 					width: ptW,
 					height: ptH
 				};
-
-				this.confirmBox = {
-					show: true,
-					left: this.drawingBox.left,
-					top: this.drawingBox.top,
-					width: this.drawingBox.width,
-					height: this.drawingBox.height,
-					ptW,
-					ptH
-				};
+				this.confirmBox.ptW = ptW;
+				this.confirmBox.ptH = ptH;
 			},
 
-			confirmPosition() {
-				const emitPage = this.result.page === this.totalPage ? 0 : this.result.page;
+			addCurrentBox() {
+				if (!this.confirmBox.show) return;
+				if (this.pendingType === 'text' && !this.pendingFieldKey) {
+					return this.$message.error("请选择要绑定的员工字段");
+				}
 
-				let newValue = {
-					...this.value,
+				const emitPage = this.pendingResult.page === this.totalPage ? 0 : this.pendingResult.page;
+				const newPos = {
 					page: emitPage,
-					x: this.result.x,
-					y: this.result.y,
-					width: this.result.width,
-					height: this.result.height
+					x: this.pendingResult.x,
+					y: this.pendingResult.y,
+					width: this.pendingResult.width,
+					height: this.pendingResult.height
 				};
 
-				this.$emit("input", newValue);
-				this.$emit("change", newValue);
-
-				this.$message && this.$message.success("签名位置已确认");
+				if (this.pendingType === 'sign') {
+					const newList = [...this.signPositions, newPos];
+					this.$emit("input", newList);
+					this.$emit("change", newList);
+				} else {
+					newPos.fieldKey = this.pendingFieldKey;
+					const newList = [...this.textPositions, newPos];
+					this.$emit("text-change", newList);
+				}
+				
+				this.clearPendingBox();
+				this.$message && this.$message.success("已添加");
 			},
 
-			resetSelectionLocal() {
+			clearPendingBox() {
 				this.drawingBox = { show: false, left: 0, top: 0, width: 0, height: 0 };
 				this.confirmBox = { show: false, left: 0, top: 0, width: 0, height: 0, ptW: 0, ptH: 0 };
-				this.result = { page: null, x: 0, y: 0, width: 0, height: 0 };
+				this.pendingResult = { page: null, x: 0, y: 0, width: 0, height: 0 };
+				this.actionType = 'none';
+				this.pendingFieldKey = "";
 			},
 
-			clearSelection() {
-				this.resetSelectionLocal();
-				let newValue = {
-					...this.value,
-					page: 0,
-					x: 300,
-					y: 180,
-					width: 150,
-					height: 60
-				};
-				this.$emit("input", newValue);
-				this.$emit("change", newValue);
+			removeSignPos(index) {
+				const newList = this.signPositions.slice();
+				newList.splice(index, 1);
+				this.$emit("input", newList);
+				this.$emit("change", newList);
+			},
+			
+			removeTextPos(index) {
+				const newList = this.textPositions.slice();
+				newList.splice(index, 1);
+				this.$emit("text-change", newList);
 			},
 
-			restoreFromValue(val) {
-				if (!val || val.x === undefined || val.x === null) return;
-				if (!this.pdfDoc || !this.pdfW || !this.pdfH) return;
-
-				const targetPage = val.page === 0 ? this.totalPage : val.page;
-				if (targetPage !== this.currentPage) return;
-
-				const left = val.x * this.scale;
-				const top = (this.pdfH - val.y - val.height) * this.scale;
-				const width = val.width * this.scale;
-				const height = val.height * this.scale;
-
-				this.confirmBox = {
-					show: true,
-					left,
-					top,
-					width,
-					height,
-					ptW: val.width,
-					ptH: val.height
-				};
-
-				this.result = {
-					page: val.page === 0 ? this.totalPage : val.page,
-					x: val.x,
-					y: val.y,
-					width: val.width,
-					height: val.height
-				};
+			gotoPosition(pos) {
+				const targetPage = pos.page === 0 ? this.totalPage : pos.page;
+				if (targetPage !== this.currentPage) {
+					this.currentPage = targetPage;
+					this.clearPendingBox();
+					this.renderPage(targetPage);
+				}
 			}
 		}
 	};
@@ -447,34 +594,40 @@
 <style lang="scss" scoped>
 	.sign-position-wrap {
 		position: relative;
+		width: 100%; /* 确保容器宽度撑满 */
 
-		.upload-btn {
-			display: inline-block;
+		.tips-bar {
 			margin-bottom: 10px;
+			line-height: 1.5;
 		}
-
-		.page-bar {
-			margin-bottom: 10px;
-			display: flex;
-			align-items: center;
+		
+		.page-bar { 
+			margin-bottom: 10px; 
+			display: flex; 
+			align-items: center; 
 		}
 
 		.canvas-wrap {
 			position: relative;
-			display: inline-block;
+			display: block; /* 改为 block */
+			width: 100%; /* 撑满父容器 */
 			border: 1px solid #dcdfe6;
 			cursor: crosshair;
 			user-select: none;
 			overflow: hidden;
 			touch-action: none;
 			line-height: 0;
-			/* 移除最大宽度限制，避免被外层样式挤压导致坐标系再次错乱 */
+			background-color: #f5f7fa;
+			padding: 10px; /* 内边距，避免贴边 */
+			box-sizing: border-box;
+			text-align: center; /* 居中画布 */
 		}
-
-		canvas {
-			display: block;
-			/* 确保 canvas 自身不会因为 max-width 被浏览器强行缩放 */
+		
+		/* Canvas 居中显示 */
+		canvas { 
+			display: inline-block; 
 			max-width: none; 
+			box-shadow: 0 0 10px rgba(0,0,0,0.1);
 		}
 
 		.drag-box {
@@ -483,14 +636,40 @@
 			background: rgba(64, 158, 255, 0.1);
 			pointer-events: none;
 			box-sizing: border-box;
+			
+			&.is-text {
+				border-color: #e6a23c;
+				background: rgba(230, 162, 60, 0.1);
+			}
 		}
 
 		.confirm-box {
 			position: absolute;
-			border: 2px solid #67c23a;
-			background: rgba(103, 194, 58, 0.1);
 			pointer-events: none;
 			box-sizing: border-box;
+
+			&.sign-box {
+				border: 2px solid #67c23a;
+				background: rgba(103, 194, 58, 0.1);
+			}
+
+			&.text-box {
+				border: 2px dashed #e6a23c;
+				background: rgba(230, 162, 60, 0.1);
+			}
+
+			&.pending {
+				pointer-events: auto;
+				cursor: move;
+				border: 2px solid #409eff;
+				background: rgba(64, 158, 255, 0.15);
+
+				&.is-text {
+					border-style: dashed;
+					border-color: #e6a23c;
+					background: rgba(230, 162, 60, 0.15);
+				}
+			}
 
 			.box-tip {
 				position: absolute;
@@ -502,12 +681,29 @@
 				padding: 2px 6px;
 				border-radius: 2px;
 				white-space: nowrap;
+				pointer-events: none;
 			}
+			
+			&.text-box .box-tip,
+			&.pending.is-text .box-tip {
+				background: #e6a23c;
+			}
+
+			.handle {
+				position: absolute;
+				width: 10px;
+				height: 10px;
+				background: #fff;
+				border: 2px solid #e6a23c;
+				border-radius: 50%;
+				z-index: 10;
+			}
+			.handle.tl { top: -6px; left: -6px; cursor: nwse-resize; }
+			.handle.tr { top: -6px; right: -6px; cursor: nesw-resize; }
+			.handle.bl { bottom: -6px; left: -6px; cursor: nesw-resize; }
+			.handle.br { bottom: -6px; right: -6px; cursor: nwse-resize; }
 		}
 
-		.result {
-			margin-top: 15px;
-			max-width: 100%;
-		}
+		.result { margin-top: 15px; max-width: 100%; }
 	}
 </style>

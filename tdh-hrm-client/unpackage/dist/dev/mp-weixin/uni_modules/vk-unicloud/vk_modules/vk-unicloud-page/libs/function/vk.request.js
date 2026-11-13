@@ -16,37 +16,40 @@ requestUtil.config = {
 };
 let counterNum = 0;
 requestUtil.request = function(obj = {}) {
+  obj = { ...obj };
   let vk = common_vendor.index.vk;
-  if (typeof obj.data === "object") {
+  const isArrayBuffer = Object.prototype.toString.call(obj.data) === "[object ArrayBuffer]";
+  const canMergeData = !isArrayBuffer && typeof obj.data !== "string";
+  if (typeof obj.data === "object" && !isArrayBuffer) {
     obj.data = vk.pubfn.copyObject(obj.data);
   }
   let config = requestUtil.config;
   let globalParam = common_vendor.index.getStorageSync(config.requestGlobalParamKeyName) || {};
   for (let i in globalParam) {
     let customDate2 = globalParam[i];
-    if (customDate2.regExp) {
+    if (canMergeData && customDate2.regExp) {
       if (typeof customDate2.regExp === "object") {
         for (let i2 = 0; i2 < customDate2.regExp.length; i2++) {
           let regExp = new RegExp(customDate2.regExp[i2]);
           if (regExp.test(obj.url)) {
-            obj.data = Object.assign(customDate2.data, obj.data);
+            obj.data = mergeRequestData(customDate2.data, obj.data);
             break;
           }
         }
       } else {
         let regExp = new RegExp(customDate2.regExp);
         if (regExp.test(obj.url)) {
-          obj.data = Object.assign(customDate2.data, obj.data);
+          obj.data = mergeRequestData(customDate2.data, obj.data);
         }
       }
     }
   }
   let customDate = requestUtil.getRequestGlobalParam(obj.globalParamName);
-  if (customDate && JSON.stringify(customDate) !== "{}") {
+  if (canMergeData && customDate && JSON.stringify(customDate) !== "{}") {
     if (customDate.regExp) {
-      obj.data = Object.assign(customDate.data, obj.data);
+      obj.data = mergeRequestData(customDate.data, obj.data);
     } else {
-      obj.data = Object.assign(customDate, obj.data);
+      obj.data = mergeRequestData(customDate, obj.data);
     }
   }
   if (!obj.method)
@@ -54,12 +57,16 @@ requestUtil.request = function(obj = {}) {
   if (typeof obj.dataType === "undefined")
     obj.dataType = "json";
   if (obj.dataType == "default" || obj.dataType == "buffer" || obj.dataType === "")
-    delete obj.dataType;
+    obj.dataType = "text";
   if (typeof obj.header === "undefined" && typeof obj.headers !== "undefined") {
     obj.header = obj.headers;
   }
+  if (obj.header)
+    obj.header = { ...obj.header };
   if (obj.encrypt) {
-    obj.uniIdToken = true;
+    if (typeof obj.uniIdToken !== "string" || !obj.uniIdToken) {
+      obj.uniIdToken = obj.header && obj.header["uni-id-token"] || true;
+    }
     if (!obj.clientInfo)
       obj.clientInfo = true;
   }
@@ -81,7 +88,7 @@ requestUtil.request = function(obj = {}) {
     if (obj.clientInfo === true) {
       clientInfo = common_vendor.index.getSystemInfoSync();
     } else if (typeof obj.clientInfo === "object") {
-      clientInfo = obj.clientInfo;
+      clientInfo = { ...obj.clientInfo };
     }
     if (vk.pubfn.isNotNull(clientInfo)) {
       if (!obj.header)
@@ -160,33 +167,43 @@ requestUtil.request = function(obj = {}) {
       success: (res) => {
         if (decryptFn)
           res.data = decryptFn(res.data);
+        let params = obj;
         if (interceptor && typeof interceptor.success === "function") {
           let interceptorRes = interceptor.success(res);
           if (interceptorRes === false) {
-            return;
+            params = { ...obj, success: void 0 };
           }
         }
-        requestSuccess({
-          res,
-          params: obj,
-          Logger,
-          resolve,
-          reject
-        });
+        try {
+          requestSuccess({
+            res,
+            params,
+            Logger,
+            resolve,
+            reject
+          });
+        } catch (error) {
+          reject(error);
+        }
       },
       fail: (res) => {
+        let params = obj;
         if (interceptor && typeof interceptor.fail === "function") {
           let interceptorRes = interceptor.fail(res);
           if (interceptorRes === false) {
-            return;
+            params = { ...obj, fail: void 0, needAlert: false };
           }
         }
-        requestFail({
-          res,
-          params: obj,
-          Logger,
-          reject
-        });
+        try {
+          requestFail({
+            res,
+            params,
+            Logger,
+            reject
+          });
+        } catch (error) {
+          reject(error);
+        }
       },
       complete: (res) => {
         if (interceptor && typeof interceptor.complete === "function") {
@@ -207,26 +224,36 @@ requestUtil.request = function(obj = {}) {
   });
   return promiseAction;
 };
+function mergeRequestData(defaultData, requestData) {
+  return Object.assign({}, defaultData, requestData);
+}
 function requestSuccess(obj = {}) {
   let vk = common_vendor.index.vk;
   let config = requestUtil.config;
   let { res = {}, params, Logger, resolve, reject } = obj;
-  let { title, needOriginalRes, dataType, errorCodeName, errorMsgName, success, loading, responseType } = params;
-  let data = res.data || {};
+  let { title, needOriginalRes, dataType, errorCodeName, errorMsgName, success, responseType } = params;
+  let data = res.data === null || typeof res.data === "undefined" ? {} : res.data;
   if (responseType !== "arraybuffer") {
     if (vk.pubfn.isNotNullAll(errorCodeName, data[errorCodeName])) {
       data.code = data[errorCodeName];
-      delete data[errorCodeName];
+      if (errorCodeName !== "code")
+        delete data[errorCodeName];
     }
     if (vk.pubfn.isNotNullAll(errorMsgName, data[errorMsgName])) {
       data.msg = data[errorMsgName];
-      if (typeof data[errorMsgName] === "string") {
+      if (errorMsgName !== "msg" && typeof data[errorMsgName] === "string") {
         delete data[errorMsgName];
       }
     }
     if (config.debug)
       Logger.result = typeof data == "object" ? vk.pubfn.copyObject(data) : data;
-    if ([1301, 1302, 30201, 30202, 30203, 30204].indexOf(data.code) > -1 && data.msg.indexOf("token") > -1) {
+    if ([1301, 1302, 30201, 30202, 30203, 30204].indexOf(data.code) > -1 && String(data.msg || "").indexOf("token") > -1) {
+      if (title)
+        vk.hideLoading();
+      if (Logger.loading) {
+        vk.setLoading(false, Logger.loading);
+        Logger.loading = null;
+      }
       let { interceptor = {} } = vk.callFunctionUtil;
       if (typeof interceptor.login === "function") {
         interceptor.login({
@@ -235,19 +262,24 @@ function requestSuccess(obj = {}) {
           vk
         });
       }
+      if (typeof params.fail === "function")
+        params.fail(data);
       reject(data);
       return;
-    } else if (res.statusCode >= 400 || data.code && data.code != 200) {
-      requestFail({
-        res: data,
-        params,
-        Logger,
-        reject
-      });
-      return;
     }
-    if (needOriginalRes)
-      data.originalRes = res;
+  }
+  if (res.statusCode >= 400 || responseType !== "arraybuffer" && data.code && data.code != 200) {
+    requestFail({
+      res: responseType === "arraybuffer" ? res : data,
+      params,
+      Logger,
+      reject
+    });
+    return;
+  }
+  if (responseType !== "arraybuffer") {
+    if (needOriginalRes && typeof data === "object")
+      data.originalRes = vk.pubfn.copyObject(res);
     if (data.vk_uni_token)
       vk.callFunctionUtil.saveToken(data.vk_uni_token);
     if (data.userInfo && data.needUpdateUserInfo)
@@ -255,7 +287,7 @@ function requestSuccess(obj = {}) {
   }
   if (title)
     vk.hideLoading();
-  if (loading) {
+  if (Logger.loading) {
     vk.setLoading(false, Logger.loading);
     Logger.loading = null;
   }
@@ -268,14 +300,14 @@ function requestFail(obj = {}) {
   let vk = common_vendor.index.vk;
   let config = requestUtil.config;
   let { res = {}, params, Logger, reject } = obj;
-  let { title, needAlert, fail, loading } = params;
+  let { title, needAlert, fail } = params;
   if (typeof needAlert === "undefined") {
     needAlert = typeof fail === "function" ? false : true;
   }
   let errMsg = "";
   let sysErr = false;
   if (typeof res.code !== "undefined") {
-    errMsg = res.msg;
+    errMsg = String(res.msg || res.message || res.errMsg || "请求失败");
   } else {
     sysErr = true;
     errMsg = JSON.stringify(res);
@@ -288,7 +320,7 @@ function requestFail(obj = {}) {
     Logger.error = res;
   if (title)
     vk.hideLoading();
-  if (loading) {
+  if (Logger.loading) {
     vk.setLoading(false, Logger.loading);
     Logger.loading = null;
   }
@@ -307,16 +339,16 @@ function requestFail(obj = {}) {
     if (needAlert && vk.pubfn.isNotNull(errMsg)) {
       if (sysErr) {
         vk.toast("网络开小差了！", "none");
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:350", errMsg);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:380", errMsg);
       } else {
         vk.alert(errMsg);
       }
     }
     if (typeof fail === "function")
       fail(res);
-    if (typeof reject === "function")
-      reject(res);
   }
+  if (typeof reject === "function")
+    reject(res);
 }
 function requestComplete(obj = {}) {
   let vk = common_vendor.index.vk;
@@ -330,29 +362,29 @@ function requestComplete(obj = {}) {
     let colorStr = colorArr[counterNum % colorArr.length];
     counterNum++;
     let functionType = Logger.encrypt ? "服务器加密请求" : "服务器请求";
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:373", "%c--------【开始】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:374", "【请求地址】: ", Logger.url);
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:375", "【请求参数】: ", Logger.params);
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:376", "【返回数据】: ", Logger.result);
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:377", "【请求状态】: ", res.statusCode, "【http状态码】");
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:378", "【总体耗时】: ", Logger.runTime, "毫秒【含页面渲染】");
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:379", "【请求时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:403", "%c--------【开始】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:404", "【请求地址】: ", Logger.url);
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:405", "【请求参数】: ", Logger.params);
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:406", "【返回数据】: ", Logger.result);
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:407", "【请求状态】: ", res.statusCode, "【http状态码】");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:408", "【总体耗时】: ", Logger.runTime, "毫秒【含页面渲染】");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:409", "【请求时间】: ", vk.pubfn.timeFormat(Logger.startTime, "yyyy-MM-dd hh:mm:ss"));
     if (Logger.error) {
       let errorLog = console.warn || console.error;
       if (Logger.error.err && Logger.error.err.stack) {
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:383", "【Error】: ", Logger.error);
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:384", "【Stack】: ", Logger.error.err.stack);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:413", "【Error】: ", Logger.error);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:414", "【Stack】: ", Logger.error.err.stack);
       } else {
         errorLog("【Error】: ", Logger.error);
       }
     }
-    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:389", "%c--------【结束】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
+    common_vendor.index.__f__("log", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.request.js:419", "%c--------【结束】【" + functionType + "】【" + Logger.action + "】--------", "color: " + colorStr + ";font-size: 12px;font-weight: bold;");
   }
   let data = res.data;
-  if (needOriginalRes)
+  if (needOriginalRes && data && typeof data === "object" && !data.originalRes)
     data.originalRes = vk.pubfn.copyObject(res);
   if (typeof complete === "function")
-    complete(data);
+    complete("data" in res ? data : res);
   Logger = null;
 }
 requestUtil.updateRequestGlobalParam = (data = {}, setKey) => {
@@ -361,7 +393,8 @@ requestUtil.updateRequestGlobalParam = (data = {}, setKey) => {
   if (setKey) {
     config.request.dataParam = data;
   } else {
-    config.request.dataParam = Object.assign(config.request.dataParam, data);
+    let dataParam = common_vendor.index.getStorageSync(config.requestGlobalParamKeyName) || {};
+    config.request.dataParam = Object.assign(dataParam, data);
   }
   vk.setStorageSync(config.requestGlobalParamKeyName, config.request.dataParam);
 };

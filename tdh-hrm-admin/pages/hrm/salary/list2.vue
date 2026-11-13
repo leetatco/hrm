@@ -41,8 +41,8 @@
 			:close-on-click-modal="false">
 			<vk-data-form v-model="form1.data" :rules="form1.props.rules" :action="form1.props.action"
 				:form-type="form1.props.formType" :before-action="form1.props.beforeAction"
-				:columns='form1.props.columns' label-width="110px" @success="form1.props.show = false;refresh();"
-				:inline="true" :columnsNumber="2"></vk-data-form>
+				:columns='form1.props.columns' label-width="110px" @success="onSuccess" :inline="true"
+				:columnsNumber="2"></vk-data-form>
 		</vk-data-dialog>
 		<!-- 添加或编辑的弹窗结束 -->
 
@@ -368,11 +368,17 @@
 									title: value ? "通过中..." : "未通过中...",
 									data: {
 										_id: row._id,
-										attendance_ym_key: row.attendance_ym_key,
+										attendance_ym: row.attendance_ym,
 										card: row.card,
 										enable_fd1: value
 									},
-									success: data => {
+									success: async () => {
+										if (value === false) {
+											await this.resetPayslips({
+												attendance_ym: row.attendance_ym,
+												cards: [row.card],
+											});
+										}
 										this.refresh();
 									}
 								});
@@ -396,7 +402,7 @@
 									title: value ? "通过中..." : "未通过中...",
 									data: {
 										_id: row._id,
-										attendance_ym_key: row.attendance_ym_key,
+										attendance_ym: row.attendance_ym,
 										card: row.card,
 										enable_fd2: value
 									},
@@ -440,6 +446,24 @@
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							width: colWidth,
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
 							mode: "="
 						},
 						{
@@ -856,6 +880,21 @@
 		onHide() {},
 
 		methods: {
+			// 取消审核时重置工资条（可选）
+			async resetPayslips(row) {
+				try {
+					await vk.callFunction({
+						url: 'admin/hrm/salary/sys/all/resetPayslips',
+						title: '重置工资条中...',
+						data: {
+							attendance_ym: row.attendance_ym,
+							cards: row.cards
+						}
+					});
+				} catch (e) {
+					console.error('重置工资条失败', e);
+				}
+			},
 			// ========== 合计 ==========
 			async getSumList() {
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
@@ -1899,6 +1938,20 @@
 				this.form1.props.title = '添加';
 				this.form1.props.show = true;
 			},
+
+			async onSuccess() {
+				const item = this.form1.data;
+				this.form1.props.show = false;
+				// ★ 审核通过后，批量生成工资条（待签名）
+				if (item.enable_fd1 === false) {
+					await this.resetPayslips({
+						attendance_ym: item.attendance_ym,
+						cards:[item.card]
+					});
+				}
+				this.refresh();
+			},
+
 			updateBtn({
 				item
 			}) {
@@ -1930,6 +1983,16 @@
 							enable_fd2
 						}
 					})
+
+					if (enable_fd1 === false) {
+						// ★ 未通过 → 批量删除工资条
+						const cards = this.table1.multipleSelection.map(i => i.card).filter(Boolean);
+						await this.resetPayslips({
+							attendance_ym: this.queryForm1.formData.attendance_ym,
+							cards
+						});
+					}
+
 					vk.alert('批量审核成功', '确定', () => {
 						this.refresh();
 					});

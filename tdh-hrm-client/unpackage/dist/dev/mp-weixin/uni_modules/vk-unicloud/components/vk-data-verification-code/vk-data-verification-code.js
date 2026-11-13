@@ -105,6 +105,7 @@ const _sfc_main = {
     return {
       secNum: this.seconds,
       timer: null,
+      isDestroyed: false,
       canGetCode: true,
       // 是否可以执行验证码操作
       tips: "",
@@ -115,7 +116,7 @@ const _sfc_main = {
   created() {
     if (typeof vk !== "undefined") {
       let locale = vk.pubfn.getLocale();
-      this.locale = localeObj[locale];
+      this.locale = localeObj[locale] || localeObj.en;
     } else {
       this.locale = localeObj["zh-Hans"];
     }
@@ -151,7 +152,7 @@ const _sfc_main = {
       let nowTimestamp = Math.floor(+/* @__PURE__ */ new Date() / 1e3);
       if (this.keepRunning && lastTimestamp && lastTimestamp > nowTimestamp) {
         this.secNum = lastTimestamp - nowTimestamp;
-        common_vendor.index.removeStorageSync(this.uniqueKey + "_$uCountDownTimestamp");
+        this.removeTimeFromStorage();
         this.start();
       } else {
         this.changeEvent(this.startTextCom);
@@ -166,24 +167,27 @@ const _sfc_main = {
       this.$emit("start");
       this.canGetCode = false;
       this.changeEvent(this.changeTextCom.replace(/x|X/, this.secNum));
-      this.setTimeToStorage();
       this.timer = setInterval(() => {
-        if (--this.secNum) {
+        if (--this.secNum > 0) {
           this.changeEvent(this.changeTextCom.replace(/x|X/, this.secNum));
         } else {
           clearInterval(this.timer);
           this.timer = null;
+          this.removeTimeFromStorage();
           this.changeEvent(this.endTextCom);
           this.secNum = this.seconds;
           this.$emit("end");
           this.canGetCode = true;
         }
       }, 1e3);
+      this.setTimeToStorage();
     },
     // 重置，可以让用户再次获取验证码
     reset(text) {
       this.canGetCode = true;
       clearInterval(this.timer);
+      this.timer = null;
+      this.removeTimeFromStorage();
       this.secNum = this.seconds;
       this.changeEvent(text || this.endTextCom);
     },
@@ -191,16 +195,25 @@ const _sfc_main = {
       this.codeChange(text);
       this.$emit("change", text);
     },
+    // 清除倒计时缓存，失败时仍继续更新组件状态
+    removeTimeFromStorage() {
+      if (!this.keepRunning)
+        return;
+      try {
+        common_vendor.index.removeStorageSync(this.uniqueKey + "_$uCountDownTimestamp");
+      } catch (err) {
+      }
+    },
     // 保存时间戳，为了防止倒计时尚未结束，H5刷新或者各端的右上角返回上一页再进来
     setTimeToStorage() {
       if (!this.keepRunning || !this.timer)
         return;
       if (this.secNum > 0 && this.secNum <= this.seconds) {
         let nowTimestamp = Math.floor(+/* @__PURE__ */ new Date() / 1e3);
-        common_vendor.index.setStorage({
-          key: this.uniqueKey + "_$uCountDownTimestamp",
-          data: nowTimestamp + Number(this.secNum)
-        });
+        try {
+          common_vendor.index.setStorageSync(this.uniqueKey + "_$uCountDownTimestamp", nowTimestamp + Number(this.secNum));
+        } catch (err) {
+        }
       }
     },
     // 倒计时进行时
@@ -233,11 +246,15 @@ const _sfc_main = {
           checkUserExist
         },
         success: (data) => {
+          if (this.isDestroyed)
+            return;
           vk2.toast(this.locale.verificationCodeSent);
           this.start();
           this.$emit("success", data);
         },
         fail: (err) => {
+          if (this.isDestroyed)
+            return;
           this.tips = this.startTextCom;
           if (err.errMsg && err.errMsg.indexOf("触发天级流控") > -1) {
             vk2.alert(this.locale.pleaseTryAgainTomorrow, () => {
@@ -266,8 +283,9 @@ const _sfc_main = {
   },
   // 组件销毁的时候，清除定时器，否则定时器会继续存在，系统不会自动清除
   beforeUnmount() {
+    this.isDestroyed = true;
     this.setTimeToStorage();
-    clearTimeout(this.timer);
+    clearInterval(this.timer);
     this.timer = null;
   }
 };

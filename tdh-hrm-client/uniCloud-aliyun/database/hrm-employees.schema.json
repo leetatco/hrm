@@ -220,6 +220,12 @@
 			"description": "户口所在地",
 			"trim": "both"
 		},
+		"current_address": {
+			"bsonType": "string",
+			"title": "现住地址",
+			"description": "现住地址",
+			"trim": "both"
+		},	
 		"emergency_contact": {
 			"bsonType": "string",
 			"title": "紧急联系人",

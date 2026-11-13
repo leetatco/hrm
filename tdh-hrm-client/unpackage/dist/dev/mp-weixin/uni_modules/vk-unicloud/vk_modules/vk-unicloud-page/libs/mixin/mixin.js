@@ -1,31 +1,33 @@
 "use strict";
+const common_vendor = require("../../../../../../common/vendor.js");
 let isOnLaunch = true;
 const mixin = {
   data() {
     return {};
   },
   onLoad() {
+    const vk = common_vendor.index.vk;
     let app = getApp({ allowDefault: true });
     if (app && app.globalData && !app.globalData.vk) {
-      app.globalData.vk = this.vk;
+      app.globalData.vk = vk;
     }
-    if (this.vk) {
-      const url = this.vk.pubfn.getCurrentPageRoute();
-      this.vk.navigate.checkAllowShare({ url });
+    if (vk) {
+      const url = vk.pubfn.getCurrentPageRoute();
+      vk.navigate.checkAllowShare({ url });
       if (isOnLaunch) {
         isOnLaunch = false;
-        if (this.vk.checkToken()) {
-          if (!this.vk.checkCurrentPagePermission()) {
-            this.vk.navigateTo403();
+        if (vk.checkToken()) {
+          if (!vk.checkCurrentPagePermission()) {
+            vk.navigateTo403();
             return;
           }
         } else {
           if (getCurrentPages().length == 1) {
-            const currentPage = this.vk.pubfn.getCurrentPage() || {};
+            const currentPage = vk.pubfn.getCurrentPage() || {};
             let pagePath = currentPage.pagePath || `/${currentPage.route}` || url;
             let fullPath = currentPage.fullPath;
             let options = currentPage.options;
-            this.vk.pubfn.checkLogin({ url: pagePath, fullPath, options, isOnLaunch: true });
+            vk.pubfn.checkLogin({ url: pagePath, fullPath, options, isOnLaunch: true });
           }
         }
       }
@@ -34,12 +36,12 @@ const mixin = {
   created() {
     let app = getApp({ allowDefault: true });
     if (app && app.globalData && !app.globalData.vk) {
-      app.globalData.vk = this.vk;
+      app.globalData.vk = common_vendor.index.vk;
     }
   },
   methods: {
     $getData(data, key, defaultValue) {
-      let { vk } = this;
+      const vk = common_vendor.index.vk;
       return vk.pubfn.getData(data, key, defaultValue);
     }
   }

@@ -5,6 +5,12 @@ let lastToLoginTime = 0;
 
 import cloudStorage from '../../libs/cloud-storage/index.js';
 
+function hasUserStore() {
+  if (typeof vk.setVuex !== 'function') return false;
+  if (typeof vk.getVuexStore !== 'function') return true;
+  return Object.prototype.hasOwnProperty.call(vk.getVuexStore().state, '$user');
+}
+
 class CallFunctionUtil {
   constructor() {
     // 注意：此处的配置会被项目根目录的 app.config.js 覆盖，无需修改此处的配置
@@ -94,6 +100,13 @@ class CallFunctionUtil {
           token: options.query.token,
           tokenExpired: options.query.tokenExpired || Date.now() + 100 * 365 * 24 * 60 * 60 * 1000,
         });
+        // 查询并更新用户信息到 vuex 缓存
+        vk.userCenter
+          .getCurrentUserInfo({
+            loading: false,
+            needAlert: false,
+          })
+          .catch((err) => {});
       }
     };
     // 删除token，并删除userInfo缓存
@@ -109,8 +122,8 @@ class CallFunctionUtil {
     this.updateUserInfo = (res = {}) => {
       let config = this.config;
       let { userInfo = {} } = res;
-      if (typeof vk.setVuex === 'function') {
-        // 有安装vuex则使用vuex
+      if (hasUserStore()) {
+        // 已绑定用户状态则更新状态，否则使用本地缓存
         vk.setVuex('$user.userInfo', userInfo);
       } else {
         // 否则使用本地缓存
@@ -122,8 +135,8 @@ class CallFunctionUtil {
     this.deleteUserInfo = (res = {}) => {
       let { log = true } = res;
       let config = this.config;
-      if (typeof vk.setVuex === 'function') {
-        // 有安装vuex则使用vuex
+      if (hasUserStore()) {
+        // 只清理实际绑定的用户状态
         vk.setVuex('$user.userInfo', {});
         vk.setVuex('$user.permission', []);
         vk.removeStorageSync(config.uniIdUserInfoKeyName);
@@ -267,6 +280,19 @@ class CallFunctionUtil {
                   let pages = getCurrentPages();
                   if (pages.length >= num) {
                     let that = pages[pages.length - num];
+
+                    // #ifdef UNI-APP-X
+                    // 蒸汽模式的 onLoad 回调保存在页面内部实例中。
+                    const hooks = that.vm?.$?.onLoad;
+                    if (Array.isArray(hooks)) {
+                      const options = that.options;
+                      for (const hook of hooks.slice()) {
+                        hook(options);
+                      }
+                    }
+                    // #endif
+
+                    // #ifndef UNI-APP-X
                     if (typeof that.onLoad == 'function') {
                       // 重新执行页面onLoad函数
                       that.onLoad(that.options);
@@ -277,6 +303,8 @@ class CallFunctionUtil {
                       // 重新执行一次云函数调用（还是让用户自己点比较好）
                       // callFunction(params);
                     }
+                    // #endif
+
                   } else {
                     // 重新执行一次云函数调用（还是让用户自己点比较好）
                     // callFunction(params);
@@ -286,7 +314,7 @@ class CallFunctionUtil {
             });
           } else {
             if (params.needAlert) {
-              vk.alert(res.result.msg);
+              vk.alert(res.msg);
             }
           }
         }, 0);
@@ -349,7 +377,7 @@ class CallFunctionUtil {
             for (let i = 0; i < customDate.regExp.length; i++) {
               let regExp = new RegExp(customDate.regExp[i]);
               if (regExp.test(url)) {
-                obj.data = Object.assign(customDate.data, obj.data);
+                obj.data = mergeRequestData(customDate.data, obj.data);
                 break;
               }
             }
@@ -357,7 +385,7 @@ class CallFunctionUtil {
             // 字符串形式
             let regExp = new RegExp(customDate.regExp);
             if (regExp.test(url)) {
-              obj.data = Object.assign(customDate.data, obj.data);
+              obj.data = mergeRequestData(customDate.data, obj.data);
             }
           }
         }
@@ -366,9 +394,9 @@ class CallFunctionUtil {
       let customDate = that.getRequestGlobalParam(globalParamName);
       if (customDate && JSON.stringify(customDate) !== '{}') {
         if (customDate.regExp) {
-          obj.data = Object.assign(customDate.data, obj.data); // 新版本
+          obj.data = mergeRequestData(customDate.data, obj.data); // 新版本
         } else {
-          obj.data = Object.assign(customDate, obj.data); // 兼容旧版本
+          obj.data = mergeRequestData(customDate, obj.data); // 兼容旧版本
         }
       }
       // 注入自定义全局参数结束-----------------------------------------------------------
@@ -391,7 +419,7 @@ class CallFunctionUtil {
       if (needCheckToken) {
         if (!vk.checkToken()) {
           // 若本地token校验未通过，则直接执行 login 拦截器函数
-          return new Promise((resolve, reject) => {
+          let promiseAction = new Promise((resolve, reject) => {
             // 执行 login 拦截器函数（跳转到页面页面）
             let res = { code: 30204, msg: '本地token校验未通过' };
             let params = obj;
@@ -404,6 +432,8 @@ class CallFunctionUtil {
             }
             reject(res);
           });
+          promiseAction.catch((error) => {});
+          return promiseAction;
         }
       }
       if (typeof obj.isRequest === 'undefined') {
@@ -679,7 +709,7 @@ class CallFunctionUtil {
     /**
      * 选择文件并直接上传 vk.chooseAndUploadFile
      * 文档：[https://vkdoc.fsq.pub/client/pages/chooseAndUploadFile.html](https://vkdoc.fsq.pub/client/pages/chooseAndUploadFile.html)
-     * @param {String} 	obj.type										文件类型，image（图片）、video（视频）、all（任意文件，仅H5和微信小程序支持）（必填）
+     * @param {String} 	obj.type										文件类型，image（图片）、video（视频）、all（任意文件，支持H5、微信小程序和uni-app x蒸汽模式App）（必填）
      * @param {String} 	obj.title										上传时的loading提示语
      * @param {Number} 	obj.count										最多可选择的文件数量，type为image时默认9，type为all时默认100（type为video时无效，一次只能选1个）
      * @param {Array} 	obj.extension								文件扩展名过滤（部分平台支持）
@@ -864,7 +894,6 @@ class CallFunctionUtil {
     let that = this;
     let config = that.config;
     let { url, data, title, loading, name, complete, encrypt, timeout } = obj;
-    if (typeof obj.needAlert === 'undefined') obj.needAlert = true;
     if (!name) name = config.isTest ? config.testFunctionName : config.functionName;
     obj.name = name;
     let functionUrl = config.functionNameToUrl[name];
@@ -963,11 +992,7 @@ class CallFunctionUtil {
     let config = that.config;
     let { res = {}, params, Logger, resolve, reject } = obj;
     let { title, loading, success } = params;
-    if (title) vk.hideLoading('request');
-    if (loading) {
-      vk.setLoading(false, Logger.loading);
-      Logger.loading = null;
-    }
+    hideRequestLoading(params, Logger);
     if (typeof res.code === 'undefined' && typeof res.errCode !== 'undefined') res.code = res.errCode;
     let code = res.code;
     if (config.debug) Logger.result = typeof res == 'object' ? JSON.parse(JSON.stringify(res)) : res;
@@ -986,6 +1011,7 @@ class CallFunctionUtil {
         });
       }
       reject(res);
+      if (typeof params.fail === 'function') params.fail(res);
     } else {
       that.callFunctionFail({
         res,
@@ -1010,8 +1036,7 @@ class CallFunctionUtil {
           Logger.sysFail = true;
           if (typeof params.retry == 'function') params.retry(res, params);
           // 自2.19.4版本开始，新增了loading计数器的概念，故重试会增加loading计数器，所以这里需要减去一次loading计数器
-          if (title) vk.hideLoading('request');
-          if (loading) vk.setLoading(false, Logger.loading);
+          hideRequestLoading(params, Logger);
           return false;
         }
       }
@@ -1022,11 +1047,7 @@ class CallFunctionUtil {
       needAlert = typeof fail === 'function' ? false : true;
     }
     if (errorToast) needAlert = false;
-    if (title) vk.hideLoading('request');
-    if (loading) {
-      vk.setLoading(false, Logger.loading);
-      Logger.loading = null;
-    }
+    hideRequestLoading(params, Logger);
     let errMsg = '';
     let sysErr = false;
     if (res.msg) {
@@ -1074,7 +1095,7 @@ class CallFunctionUtil {
       errMsg = globalErrorCode['cloudfunction-network-unauthorized'];
       sysErr = true;
       needAlert = false;
-      // #ifdef APP-PLUS
+      // #ifdef APP
       vk.pubfn.debounce(
         () => {
           vk.alert(errMsg, '提示', '确定', () => {
@@ -1198,18 +1219,19 @@ class CallFunctionUtil {
   // 获取文件后缀名
   getFileSuffix(obj = {}) {
     let { file, filePath, suffix = 'png' } = obj;
+    let maxSuffixLength = 8; // 最大后缀名长度
     if (filePath) {
       let suffixName = filePath.substring(filePath.lastIndexOf('.') + 1);
-      if (suffixName && suffixName.length < 5) suffix = suffixName;
+      if (suffixName && suffixName.length < maxSuffixLength) suffix = suffixName;
     }
     if (file) {
       if (file.path) {
         let suffixName = file.path.substring(file.path.lastIndexOf('.') + 1);
-        if (suffixName && suffixName.length < 5) suffix = suffixName;
+        if (suffixName && suffixName.length < maxSuffixLength) suffix = suffixName;
       }
       if (file.name) {
         let suffixName = file.name.substring(file.name.lastIndexOf('.') + 1);
-        if (suffixName && suffixName.length < 5) suffix = suffixName;
+        if (suffixName && suffixName.length < maxSuffixLength) suffix = suffixName;
       }
     }
     return suffix;
@@ -1219,7 +1241,7 @@ class CallFunctionUtil {
   getFileType(obj = {}) {
     let { file, filePath } = obj;
     let fileType = 'other';
-    let suffix = this.getFileSuffix(obj);
+    let suffix = this.getFileSuffix(obj).toLowerCase();
     if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp'].indexOf(suffix) > -1) {
       fileType = 'image';
     } else if (['avi', 'mp3', 'mp4', '3gp', 'mov', 'rmvb', 'rm', 'flv', 'mkv'].indexOf(suffix) > -1) {
@@ -1246,7 +1268,9 @@ class CallFunctionUtil {
           count: count || 9,
           sizeType,
           sourceType,
+          // #ifndef APP
           extension,
+          // #endif
           success: (res) => resolve(that.normalizeChooseFileRes(res, 'image')),
           fail: reject,
         });
@@ -1255,13 +1279,17 @@ class CallFunctionUtil {
           camera,
           maxDuration,
           sourceType,
+          // #ifndef APP
           extension,
+          // #endif
+          // #ifndef UNI-APP-X && APP-HARMONY
           compressed: typeof compressed === 'undefined' ? true : compressed,
+          // #endif
           success: (res) => resolve(that.normalizeChooseFileRes(res, 'video')),
           fail: reject,
         });
       } else if (type === 'all') {
-        // #ifdef H5
+        // #ifdef H5 || (APP && VUE3-VAPOR)
         uni.chooseFile({
           count: count || 100,
           type: 'all',
@@ -1279,8 +1307,8 @@ class CallFunctionUtil {
           fail: reject,
         });
         // #endif
-        // #ifndef H5 || MP-WEIXIN
-        reject({ errMsg: 'chooseAndUploadFile:fail 当前平台不支持 type:"all"，仅 H5 和微信小程序支持选择任意文件' });
+        // #ifndef H5 || MP-WEIXIN || (APP && VUE3-VAPOR)
+        reject({ errMsg: 'chooseAndUploadFile:fail 当前平台不支持 type:"all"，仅 H5、微信小程序和 uni-app x 蒸汽模式 App 支持选择任意文件' });
         // #endif
       }
     });
@@ -1385,11 +1413,14 @@ class CallFunctionUtil {
 
   // 系统异常重试机制（表单提交时慎用，建议只用在查询请求中，即无任何数据库修改的请求中）
   callFunctionRetry(obj = {}) {
+    obj = { ...obj };
     let { retryCount } = obj;
     delete obj.retryCount;
-    return new Promise((resolve, reject) => {
+    let promiseAction = new Promise((resolve, reject) => {
       this.callRetryFn(obj, resolve, reject, retryCount);
     });
+    promiseAction.catch((error) => {});
+    return promiseAction;
   }
   // 重试实现
   callRetryFn(obj, resolve, reject, retryCount) {
@@ -1422,6 +1453,21 @@ class CallFunctionUtil {
     } else {
       this.callFunction(obj).then(resolve).catch(reject);
     }
+  }
+}
+
+// 浅合并全局参数，请求参数优先，不修改传入对象。
+function mergeRequestData(defaultData, requestData) {
+  return Object.assign({}, defaultData, requestData);
+}
+
+function hideRequestLoading(params, Logger) {
+  if (Logger.loadingFinished) return;
+  Logger.loadingFinished = true;
+  if (params.title) vk.hideLoading('request');
+  if (Logger.loading) {
+    vk.setLoading(false, Logger.loading);
+    Logger.loading = null;
   }
 }
 

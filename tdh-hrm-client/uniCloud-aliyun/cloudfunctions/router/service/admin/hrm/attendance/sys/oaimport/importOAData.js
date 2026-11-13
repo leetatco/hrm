@@ -255,6 +255,7 @@ async function handleCompensatory(app, util, uid) {
 		dbName: 'hrm-attendance-compensatoryrecord',
 		dataJson: {
 			employee_id: employeeId,
+			company_id: app.company_id,
 			oa_instance_id: app._id,
 			compensatory_date: compensatoryDateTimestamp,
 			total_minutes: totalMinutes,
@@ -408,7 +409,8 @@ async function handleLeave(app, util, uid) {
 	if (totalMinutes <= 0) throw new Error('请假总时长为0');
 
 	if (hasQuota) {
-		await deductLeaveBalance(util, employeeId, leaveTypeCode, leaveTypeName, totalMinutes, app._id, uid);
+		await deductLeaveBalance(util, employeeId, leaveTypeCode, leaveTypeName, totalMinutes, app._id, app
+			.company_id, uid);
 	}
 
 	await vk.baseDao.adds({
@@ -849,7 +851,7 @@ async function handleOvertime(app, util, uid) {
 			const compRule = await getCompRule(util);
 			const ratio = compRule.overtime_to_comp_ratio || 1.0;
 			const addMinutes = Math.floor(totalCompMinutes * ratio);
-			await addCompLeaveBalance(util, employeeId, addMinutes, app._id, uid, compRule);
+			await addCompLeaveBalance(util, employeeId, addMinutes, app._id, app.company_id, uid, compRule);
 		}
 	}
 }
@@ -969,7 +971,7 @@ async function getDayType(util, dateStr) {
 }
 
 // ==================== 辅助函数 ====================
-async function addCompLeaveBalance(util, employeeId, minutes, refId, uid, compRule) {
+async function addCompLeaveBalance(util, employeeId, minutes, refId, company_id, uid, compRule) {
 	const {
 		vk,
 		db
@@ -1024,6 +1026,7 @@ async function addCompLeaveBalance(util, employeeId, minutes, refId, uid, compRu
 			dbName: 'hrm-attendance-leavebalance',
 			dataJson: {
 				employee_id: employeeId,
+				company_id: company_id,
 				leave_type_id: leaveTypeCode,
 				year: year,
 				total_minutes: newTotal,
@@ -1039,9 +1042,10 @@ async function addCompLeaveBalance(util, employeeId, minutes, refId, uid, compRu
 	const changeAmount = newTotal - oldTotal;
 	if (changeAmount !== 0) {
 		await vk.baseDao.add({
-			dbName: 'hrm-attendance-balancelog',
+			dbName: 'hrm-attendance-leavebalancelog',
 			dataJson: {
 				employee_id: employeeId,
+				company_id: company_id,
 				leave_type_id: leaveTypeCode,
 				year: year,
 				change_type: 2,
@@ -1058,7 +1062,7 @@ async function addCompLeaveBalance(util, employeeId, minutes, refId, uid, compRu
 	}
 }
 
-async function deductLeaveBalance(util, employeeId, leaveTypeCode, leaveTypeName, minutes, refId, uid) {
+async function deductLeaveBalance(util, employeeId, leaveTypeCode, leaveTypeName, minutes, refId, company_id, uid) {
 	const {
 		vk,
 		db
@@ -1104,9 +1108,10 @@ async function deductLeaveBalance(util, employeeId, leaveTypeCode, leaveTypeName
 
 	// ========== 写入额度日志 ==========
 	await vk.baseDao.add({
-		dbName: 'hrm-attendance-balancelog',
+		dbName: 'hrm-attendance-leavebalancelog',
 		dataJson: {
 			employee_id: employeeId,
+			company_id: company_id,
 			leave_type_id: leaveTypeCode,
 			year: year,
 			change_type: 4,

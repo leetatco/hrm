@@ -27,6 +27,14 @@ util.navigateTo = function(obj) {
   lastNavigate = { url: obj.url, time };
   if (!obj.__vkNavigateTo404 && !util.checkPageExists({ url: obj.url })) {
     vk.navigateTo404();
+    let err = { errMsg: `${obj.mode || "navigateTo"}:fail page ${obj.url} not found` };
+    try {
+      if (typeof obj.fail === "function")
+        obj.fail(err);
+    } finally {
+      if (typeof obj.complete === "function")
+        obj.complete(err);
+    }
     return false;
   }
   util.checkNeedLogin({
@@ -82,6 +90,7 @@ util._navigateTo = function(obj) {
   } else {
     navigateFn = common_vendor.index.navigateTo;
   }
+  let fallbackStarted = false;
   navigateFn({
     url,
     animationType,
@@ -95,49 +104,68 @@ util._navigateTo = function(obj) {
     fail: function(err) {
       if (err.errMsg.indexOf("not found") > -1) {
         let vk = common_vendor.index.vk;
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:128", err);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:135", err);
         if (!obj.__vkNavigateTo404) {
           vk.navigateTo404();
         } else {
           let errUrl = vk.pubfn.getPageFullPath(url);
           vk.toast(`页面 ${errUrl} 不存在`, "none");
         }
+        if (typeof obj.fail == "function")
+          obj.fail(err);
         return false;
       }
+      fallbackStarted = true;
+      let redirectStarted = false;
       common_vendor.index.switchTab({
         url,
         success: obj.success,
         fail: function() {
+          redirectStarted = true;
           common_vendor.index.redirectTo({
             url,
             success: obj.success,
             fail: function(err2) {
-              common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:145", err2);
+              common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:156", err2);
               if (typeof obj.fail == "function")
                 obj.fail(err2);
+            },
+            complete: function(res) {
+              if (typeof obj.complete == "function")
+                obj.complete(res);
             }
           });
+        },
+        complete: function(res) {
+          if (!redirectStarted && typeof obj.complete == "function")
+            obj.complete(res);
         }
       });
     },
     complete: function(res) {
-      if (typeof obj.complete == "function")
+      if (!fallbackStarted && typeof obj.complete == "function")
         obj.complete(res);
     }
   });
 };
 util.redirectTo = function(obj) {
   obj = util.paramsInit(obj);
+  if (!obj)
+    return false;
   obj.mode = "redirectTo";
   util.navigateTo(obj);
 };
 util.reLaunch = function(obj) {
   obj = util.paramsInit(obj);
+  if (!obj)
+    return false;
   obj.mode = "reLaunch";
   util.navigateTo(obj);
 };
 util.switchTab = function(obj) {
   obj = util.paramsInit(obj);
+  if (!obj)
+    return false;
   obj.mode = "switchTab";
   util.navigateTo(obj);
 };
@@ -161,7 +189,7 @@ util.navigateBack = function(obj) {
         obj.success();
     },
     fail: function(res) {
-      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:210", res);
+      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:230", res);
       if (typeof obj.fail == "function")
         obj.fail();
     },
@@ -177,8 +205,16 @@ util.originalTo = function() {
   vk.navigate.setOriginalPage(null);
   util.redirectTo(originalPage);
 };
+function hasAppStore() {
+  const vk = common_vendor.index.vk;
+  if (typeof vk.getVuex !== "function")
+    return false;
+  if (typeof vk.getVuexStore !== "function")
+    return true;
+  return Object.prototype.hasOwnProperty.call(vk.getVuexStore().state, "$app");
+}
 util.getOriginalPage = function() {
-  if (typeof common_vendor.index.vk.getVuex === "function") {
+  if (hasAppStore()) {
     return common_vendor.index.vk.getVuex("$app.originalPage");
   } else {
     return common_vendor.index.vk.getStorageSync("vk.navigate.originalPage");
@@ -188,7 +224,7 @@ util.setOriginalPage = function(originalPage) {
   if (originalPage === null)
     originalPage = "";
   common_vendor.index.vk.navigate.originalPage = originalPage;
-  if (typeof common_vendor.index.vk.getVuex === "function") {
+  if (hasAppStore()) {
     return common_vendor.index.vk.setVuex("$app.originalPage", originalPage);
   } else {
     return common_vendor.index.vk.setStorageSync("vk.navigate.originalPage", originalPage);
@@ -213,7 +249,7 @@ util.navigateToLogin = function(obj = {}) {
   } = obj;
   let url = app_config.config.login.url;
   let { pagePath, fullPath } = vk.pubfn.getCurrentPage();
-  if (pagePath === url) {
+  if (pagePath === util.getPagePath(url)) {
     return false;
   }
   if (mode !== "navigateTo") {
@@ -483,12 +519,6 @@ util.navigateToLuckyDraw = function(obj = {}) {
     complete,
     openEmbedded
   } = obj;
-  const failCallback = (err) => {
-    if (typeof fail === "function")
-      fail(err);
-    if (typeof complete === "function")
-      complete(err);
-  };
   const openMiniProgram = openEmbedded ? common_vendor.index.openEmbeddedMiniProgram : common_vendor.index.navigateToMiniProgram;
   openMiniProgram({
     appId: mpConfig.appid,
@@ -501,7 +531,8 @@ util.navigateToLuckyDraw = function(obj = {}) {
     success,
     complete,
     fail: (err) => {
-      failCallback(err);
+      if (typeof fail === "function")
+        fail(err);
       let subMsg = err.errMsg || err.message;
       if (subMsg && subMsg.indexOf("cancel") > -1) {
         return;
@@ -513,7 +544,7 @@ util.navigateToLuckyDraw = function(obj = {}) {
       if (subMsg) {
         errMsg += `：${subMsg}`;
       }
-      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:729", errMsg);
+      common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/vk.navigate.js:763", errMsg);
     }
   });
 };

@@ -37,14 +37,12 @@ storage.clearStorageSync = function(key) {
     if (keys) {
       keys.map((keyName) => {
         if (keyName.indexOf(key) == 0) {
-          storage.removeStorage({
-            key: keyName
-          });
+          storage.removeStorageSync(keyName);
         }
       });
     }
   } else {
-    common_vendor.index.clearStorage();
+    common_vendor.index.clearStorageSync();
     watchLocalStorage({ type: "clear" });
   }
 };

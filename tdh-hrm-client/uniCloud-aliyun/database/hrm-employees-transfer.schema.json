@@ -70,6 +70,11 @@
 			"description": "新职务",
 			"trim": "both"
 		},
+		"remark": {
+			"bsonType": "string",
+			"description": "备注",
+			"trim": "both"
+		},
 		"update_date": {
 			"title": "更新时间",
 			"bsonType": "timestamp",

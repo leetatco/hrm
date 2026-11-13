@@ -327,6 +327,12 @@
 							"width": colWidth
 						},
 						{
+							"key": "current_address",
+							"title": "现住地址",
+							"type": "text",
+							"width": colWidth
+						},
+						{
 							"key": "emergency_contact",
 							"title": "紧急联系人",
 							"type": "text",
@@ -1160,6 +1166,18 @@
 									"value": 2,
 									"label": "无"
 								}]
+							},
+							{
+								"key": "current_address",
+								"title": "现住地址",
+								"type": "textarea",
+								"maxlength": "99",
+								"showWordLimit": true,
+								"width": colWidth,
+								"autosize": {
+									minRows: 3,
+									maxRows: 10
+								}
 							},
 							{
 								"key": "status",

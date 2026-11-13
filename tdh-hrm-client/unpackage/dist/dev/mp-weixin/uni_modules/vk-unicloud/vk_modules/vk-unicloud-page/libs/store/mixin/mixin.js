@@ -1,7 +1,9 @@
 "use strict";
+const common_vendor = require("../../../../../../../common/vendor.js");
 const storeMixin = {
   beforeCreate() {
-    let { vk, $store } = this;
+    let { $store } = this;
+    let vk = common_vendor.index.vk;
     if (typeof $store !== "undefined" && typeof vk.getVuexStore === "undefined") {
       vk.getVuexStore = function() {
         return $store;

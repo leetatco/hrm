@@ -1,3 +1,155 @@
+## 3.0.0 (2026-11-09)
+- 【重要】支持 uni-app x 蒸汽模式
+- 【修复】云端 `vk.request` 的 `retryCount` 表示额外重试次数：默认 `0` 不重试，`1` 最多请求 `2` 次，`2` 最多请求 `3` 次 [传送门](https://vkdoc.fsq.pub/client/jsapi.html#requestcloud)
+- 【修复】App 端 Base64 文件转换及上传的兼容性问题
+- 【修复】`vk.callFunction`、`vk.request` 在 loading 绑定失败时，状态清理异常的问题
+- 【新增】uni-app x 使用 Pinia 进行状态管理，并继续保留 `vk.getVuex`、`vk.setVuex` 等调用方式
+- 【新增】验证码组件 `vk-data-verification-code` 支持 uni-app x 蒸汽模式
+- 【调整】uni-app x 的自定义 loading 需使用对象模式，需显式传入响应式状态对象
+
+**完整框架项目地址：**
+- [uni-app 版本](https://ext.dcloud.net.cn/plugin?name=vk-cloud-router)
+- [uni-app x 版本](https://ext.dcloud.net.cn/plugin?name=vk-cloud-router-x)
+## 2.26.3（2026-10-25）
+- 【新增】前后端统一提供 `vk.pubfn.deepMerge`：普通对象递归合并，数组整体覆盖，保留显式 `null` 等覆盖值 [传送门](https://vkdoc.fsq.pub/client/jsapi.html#deepmerge)
+- 【优化】`vk.callFunction` 和 `vk.request` 注入全局请求参数时，使用新对象承接浅合并结果，避免直接修改参与合并的全局参数对象 [传送门](https://vkdoc.fsq.pub/client/pages/updateRequestGlobalParam.html#mode2-merge)
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.26.2（2026-10-24）
+- 【修复】`vk.pubfn.escapeRegExp` 的数据库 PCRE 兼容性问题，避免搜索内容含空格、连字符等字符时正则查询报错
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.26.1（2026-10-21）
+- 【修复】`2.26.0` 重构 `toDecimal` 导致的处理空值时报错的问题，空值统一返回 `0`
+- 【修复】批量导入菜单时忽略重复标识失效、覆盖导入丢失内置权限的问题
+- 【修复】支付统计已知的问题
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.26.0（2026-10-14）
+- 【优化】三方登录逻辑细节问题
+- 【优化】前后端公共函数细节问题
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.25.2（2026-09-10）
+- 【重要】恢复 `"runtime": "Nodejs18"` 配置，注意：此配置不兼容 `HBuilderX 5.15` 版本，请尽快升级到 HBuilderX 最新版
+- 【重要】修复定时任务在部分情况下可能不运行的问题
+- 【优化】定时任务日志优化，打印本次要执行的任务列表和本次不执行的任务列表
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.25.1（2026-07-27）
+- 【重要】临时移除 `"runtime": "Nodejs18"` 配置，以便兼容 `HBuilderX 5.15` 版本
+- 【重要】增加定时任务周月及 cron 调度支持，并设置默认时区为 UTC+8（北京时间）
+- 【新增】增加文件选择并上传接口 `vk.chooseAndUploadFile`，支持批量上传 [传送门](https://vkdoc.fsq.pub/client/pages/chooseAndUploadFile.html)
+
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.25.0（2026-06-17）
+- 【新增】支付收入统计（聚合查询版本），支持趋势图、平台/支付方式/订单类型下钻分析、退款统计、转化漏斗等
+- 【新增】用户统计云对象（`admin/system_uni/sys.stats`），提供注册用户统计、登录用户统计、新增用户趋势图、登录用户趋势图等接口
+- 【新增】定时任务：用户统计（`statUser`，每小时自动统计登录/注册用户数据，支持小时/日/周/月维度）和缓存清理（`clearExpiredCache`，每小时清理 `vk-global-data` 表过期缓存）
+- 【新增】`vk-stat-result` 数据库表及索引（用于存储定时统计结果）
+- 【新增】框架新增页面存在性检测，访问不存在的页面自动跳转404（需配置 `app.config.js` 的 `error.url`）
+- 【新增】`vk.navigateTo404()` 跳转404页面
+- 【新增】`vk.pubfn.thousandSeparator` 千分位分隔符格式化函数
+- 【调整】云函数超时时间由 900 秒调整为 7200 秒（统计任务需要更长执行时间）
+- 【优化】`vk.pubfn.escapeRegExp` 正则特殊字符转义函数，转义范围更完整
+- 【优化】`vk.pubfn.priceFilter` 新增 `format: 'thousandSeparator'` 参数，支持金额千分位展示
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.24.0（2026-05-28）
+- 【新增】`vk.baseDao.getTableData` 支持 `getOne` 参数，可查询单条数据
+- 【新增】用户标签管理功能（`vk-user-tag` 表 + `admin/system/sys.tag` 云对象）
+- 【优化】文件分类（`vk-files-categories`）支持层级结构（`parent_id` 字段）
+- 【优化】文件类型新增 `audio` 枚举值，音频文件不再归类为视频
+- 【优化】其他一些细节
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.23.1（2026-03-20）
+- 【重要】项目使用 `Prettier` 进行统一代码格式化 [传送门](https://vkdoc.fsq.pub/client/codeFormat.html)
+- 【调整】`router/service/plugs/baidu/` 为云对象方式实现
+- 【调整】云函数 `admin/select/kh/user` 移动到 `admin/system/user/kh/select`，废弃 `admin/select/` 目录
+- 【优化】完善 `dao/base.js` 的注释，方便 AI 使用 dao 层操作数据库
+- 【优化】移除过时的示例代码，避免干扰 AI
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.23.0（2026-03-20）
+- 【重要】项目使用 `Prettier` 进行统一代码格式化 [传送门](https://vkdoc.fsq.pub/client/codeFormat.html)
+- 【调整】`router/service/plugs/baidu/` 为云对象方式实现
+- 【调整】云函数 `admin/select/kh/user` 移动到 `admin/system/user/kh/select`，废弃 `admin/select/` 目录
+- 【优化】完善 `dao/base.js` 的注释，方便 AI 使用 dao 层操作数据库
+- 【优化】移除过时的示例代码，避免干扰 AI
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.22.2（2026-03-03）
+* 【修复】dao2.0 版本会有循环依赖的问题
+* 【修复】hbx 4.87 版本导入插件会有两个uniCloud目录的问题
+
+**特别注意：本次更新需要替换框架内置文件**
+
+- 替换文件 `router/dao/base.js`
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.22.1（2026-02-11）
+* 【优化】router 内的定时任务支持设置并发执行数，参数名 concurrency [传送门](https://vkdoc.fsq.pub/client/uniCloud/cloudfunctions/timer.html)
+* 【优化】绑定新手机号和绑定新邮箱的业务逻辑
+
+**特别注意：本次更新需要替换框架内置文件**
+
+- 替换文件 `/router/service/user/kh/bindNewEmail.js`
+- 替换文件 `/router/service/user/kh/bindNewMobile.js`
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.22.0（2026-02-07）
+* 【重要】移除 `db_init.json` 单一文件，将其拆分为多文件结构并补全完整表结构，采用新版数据库初始化方案（通过右键 database 目录完成数据库初始化操作）
+* 【重要】Dao 文件升级为 Dao2.0 版本 [传送门](https://vkdoc.fsq.pub/client/uniCloud/db/dao.html)
+* 【新增】websocket新增isAlive，检测连接是否存活 [传送门](https://vkdoc.fsq.pub/client/uniCloud/cloudfunctions/websocket.html#cloud-is-alive)
+* 【新增】任意页面传token参数实现自动登录 [传送门](https://vkdoc.fsq.pub/client/vk.userCenter.html#handleautologintoken)
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.21.0（2026-01-30）
+* 【重要】`router` 函数支持以定时任务方式运行 [传送门](https://vkdoc.fsq.pub/client/uniCloud/cloudfunctions/timer.html)
+* 【修复】websocket 连接管理，部分情况下连接无法删除的问题
+* 【修复】函数根目录是 pub kh sys 时，无法调用的问题
+* 【修复】`vk.pubfn.formValidate` 在检测 `min:0` 时不生效的问题
+* 【新增】`vk-ws-connection` 表新增 `space_id`、`provider`、`ip` 字段
+* 【新增】`vk.sendSms` 等价于 `vk.system.smsUtil.sendSms` [传送门](https://vkdoc.fsq.pub/client/uniCloud/plus/sms.html)
+* 【优化】`vk.sendSms` 新增参数 `phoneList` 支持批量发送短信（一次最多50个手机号码）[传送门](https://vkdoc.fsq.pub/client/uniCloud/plus/sms.html)
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.20.3（2025-12-09）
+* 【新增】鸿蒙App端新增华为账号一键登录功能 [传送门](https://vkdoc.fsq.pub/client/vk.userCenter.html#loginbyhuaweiphonenumber)
+* 【优化】连表查询时，副表新增 localKeyIndex 属性，可实现副表按主表外键的索引顺序排序功能 [传送门](https://vkdoc.fsq.pub/client/uniCloud/db/selects.html#scene5)
+* 【修复】`vk.baseDao.getTableData` 模糊查询时，模糊查询无法查询 `* + ?` 等特殊符号的问题
+* 【修复】`vk.baseDao.getTableData` 模糊查询时，新增属性 `ignoreCase`，如设置为 true，可忽略大小写，默认为 true
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.20.2（2025-11-07）
+* 【修复】vk.pubfn.snake2camelJson、vk.pubfn.camel2snakeJson 函数不支持深层嵌套转换的问题
+* 【优化】绑定微信逻辑细节（需替换框架内置目录 `/router/service/user/util`）
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.20.0（2025-09-26）
+* 【重要】新增中间件 loginFilter，可控制开启或关闭登录注册相关接口
+* 【新增】vk.userCenter.closeAccount 注销账号 [传送门](https://vkdoc.fsq.pub/client/vk.userCenter.html#closeaccount)
+* 【新增】vk.userCenter.openAccount 恢复账号（仅限未二次确认注销时）[传送门](https://vkdoc.fsq.pub/client/vk.userCenter.html#openaccount)
+* 【新增】vk.userCenter.getCoolingStatus 获取注销冷静期状态 [传送门](https://vkdoc.fsq.pub/client/vk.userCenter.html#getcoolingstatus)
+* 【修复】vk.updateManager.updateReady 在不支持的小程序平台运行时会报错的问题
+* 【修复】发送短信时可能会报签名错误的问题
+* 【优化】vk.pubfn.formValidate 支持属性 pattern
+* 【优化】通过邮箱、手机号重置密码时，保留当前操作用户的token
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.19.9（2025-07-07）
+* 【重要】新增 API vk.navigateToLuckyDraw，可跳转到抽奖活动小助手实现抽奖功能 [传送门](https://vkdoc.fsq.pub/vk-lucky-draw/)
+* 【修复】支付宝云内置数据库绑定邀请码会报错的问题
+* 【修复】微信多App登录时报错的问题
+* 【新增】云端请求限流策略，适合用于限制用户操作频率，防止用户高频请求某个接口 [传送门](https://vkdoc.fsq.pub/client/uniCloud/cloudfunctions/rateLimit.html)
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
+## 2.19.8（2025-05-23）
+* 【优化】去除微信小程序平台上提示 uni.getSystemInfoSync 过期的警告问题
+
+* 完整框架项目地址：`https://ext.dcloud.net.cn/plugin?id=2204`[点击查看](https://ext.dcloud.net.cn/plugin?id=2204)
 ## 2.19.7（2025-04-08）
 * 【重要】增强邀请码随机能力，解决在支付宝云下邀请码会连续10次都重复，导致生成邀请码失败的问题
 * 【调整】邀请码从8位数调整为7位数，因为微信小程序码最大32位字符串，24（_id）+1（分割符号）+7（邀请码）=32

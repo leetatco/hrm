@@ -1,5 +1,6 @@
-function $hasRole(...args) {
-  const userRoles = this.$store.state.$user.userInfo.role || [];
+export function $hasRole(...args) {
+  const vk = uni.vk;
+  const userRoles = vk.getVuex('$user.userInfo.role') || [];
   return args.some((arg) => {
     if (Array.isArray(arg)) {
       return arg.every((role) => userRoles.includes(role));
@@ -9,8 +10,9 @@ function $hasRole(...args) {
   });
 }
 
-function $hasPermission(...args) {
-  const userPermission = this.$store.state.$user.permission || [];
+export function $hasPermission(...args) {
+  const vk = uni.vk;
+  const userPermission = vk.getVuex('$user.permission') || [];
   return args.some((arg) => {
     if (Array.isArray(arg)) {
       return arg.every((permission) => userPermission.includes(permission));
@@ -20,6 +22,7 @@ function $hasPermission(...args) {
   });
 }
 
+// #ifndef UNI-APP-X
 export default function (Vue) {
   // #ifdef VUE2
   Vue.prototype.$hasRole = $hasRole;
@@ -31,3 +34,5 @@ export default function (Vue) {
   Vue.config.globalProperties.$hasPermission = $hasPermission;
   // #endif
 }
+// #endif
+

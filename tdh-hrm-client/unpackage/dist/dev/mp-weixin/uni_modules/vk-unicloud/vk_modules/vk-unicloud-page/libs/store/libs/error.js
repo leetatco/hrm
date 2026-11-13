@@ -1,13 +1,14 @@
 "use strict";
+const common_vendor = require("../../../../../../../common/vendor.js");
 const install = (Vue) => {
-  let vk = Vue.prototype ? Vue.prototype.vk : Vue.config.globalProperties.vk;
+  let vk = common_vendor.index.vk;
   if (vk) {
     const oldErrorHandler = Vue.config.errorHandler;
     Vue.config.errorHandler = function errorHandler(err, vm, info) {
-      const route = vm.$page && vm.$page.route;
+      const route = vm && vm.$page && vm.$page.route;
       let date = /* @__PURE__ */ new Date();
       let log = {
-        err: err.toString(),
+        err: String(err),
         info,
         route,
         time: date.getTime(),
@@ -15,7 +16,9 @@ const install = (Vue) => {
       };
       if (vk.vuex)
         vk.vuex.dispatch("$error/add", log);
-      return oldErrorHandler(err, vm, info);
+      if (typeof oldErrorHandler === "function") {
+        return oldErrorHandler(err, vm, info);
+      }
     };
   }
 };

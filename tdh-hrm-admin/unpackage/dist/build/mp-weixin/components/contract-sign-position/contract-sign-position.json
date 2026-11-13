@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "contract-sign-position-el-table-column-default": "/components/contract-sign-position/contract-sign-position-el-table-column-default",
+    "contract-sign-position-el-table-column-default1": "/components/contract-sign-position/contract-sign-position-el-table-column-default1",
+    "contract-sign-position-el-table-column-default2": "/components/contract-sign-position/contract-sign-position-el-table-column-default2",
+    "contract-sign-position-el-table-column-default3": "/components/contract-sign-position/contract-sign-position-el-table-column-default3"
+  }
+}

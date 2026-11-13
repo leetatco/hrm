@@ -228,6 +228,12 @@
 							width: colWidth
 						},
 						{
+							key: "current_address",
+							title: "现住地址",
+							type: "text",
+							width: colWidth
+						},
+						{
 							key: "emergency_contact",
 							title: "紧急联系人",
 							type: "text",
@@ -689,6 +695,16 @@
 								}]
 							},
 							{
+								key: "current_address",
+								title: "现住地址",
+								type: "textarea",
+								width: colWidth,
+								autosize: {
+									minRows: 2,
+									maxRows: 4
+								}
+							},
+							{
 								key: "interviewer_name",
 								title: "面试人",
 								type: "text",
@@ -1096,6 +1112,16 @@
 						title: "紧急联系人电话",
 						type: "text",
 						width: colWidth
+					},
+					{
+						key: "current_address",
+						title: "现住地址",
+						type: "textarea",
+						width: colWidth,
+						autosize: {
+							minRows: 2,
+							maxRows: 3
+						}
 					},
 					{
 						key: "marital_status",
@@ -1623,6 +1649,10 @@
 						title: "户口所在地",
 						type: "text"
 					},
+					current_address: {
+						title: "现住地址",
+						type: "text"
+					},
 					emergency_contact: {
 						title: "紧急联系人",
 						type: "text"
@@ -1749,6 +1779,11 @@
 							type: "text"
 						},
 						{
+							key: "current_address",
+							title: "现住地址",
+							type: "text"
+						},
+						{
 							key: "emergency_contact",
 							title: "紧急联系人",
 							type: "text"
@@ -1816,6 +1851,7 @@
 					stay: row.stay,
 					expiration_date: row.expiration_date,
 					card_location: row.card_location,
+					current_address: row.current_address,
 					emergency_contact: row.emergency_contact,
 					emergency_mobile: row.emergency_mobile,
 					marital_status: row.marital_status,

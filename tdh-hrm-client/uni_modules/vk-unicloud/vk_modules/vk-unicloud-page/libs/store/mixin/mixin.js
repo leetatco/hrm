@@ -1,7 +1,8 @@
 export default {
   beforeCreate() {
     // 将vuex方法挂在到vk实例中 beforeCreate created
-    let { vk, $store } = this;
+    let { $store } = this;
+    let vk = uni.vk;
     if (typeof $store !== 'undefined' && typeof vk.getVuexStore === 'undefined') {
       vk.getVuexStore = function () {
         return $store;

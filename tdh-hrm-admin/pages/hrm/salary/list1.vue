@@ -53,8 +53,8 @@
 			:close-on-click-modal="false">
 			<vk-data-form v-model="form1.data" :rules="form1.props.rules" :action="form1.props.action"
 				:form-type="form1.props.formType" :before-action="form1.props.beforeAction"
-				:columns='form1.props.columns' label-width="110px" @success="form1.props.show = false;refresh();"
-				:inline="true" :columnsNumber="2"></vk-data-form>
+				:columns='form1.props.columns' label-width="110px" @success="onSuccess" :inline="true"
+				:columnsNumber="2"></vk-data-form>
 		</vk-data-dialog>
 		<!-- 添加或编辑的弹窗结束 -->
 
@@ -383,7 +383,11 @@
 										attendance_ym: row.attendance_ym,
 										enable_fd1: value
 									},
-									success: data => {
+									success: async () => {
+										// 审核通过后，生成/更新工资条待签名										
+										if (value === true) {
+											await this.createPayslipForRow(row, row.attendance_ym);
+										}
 										this.refresh();
 									}
 								});
@@ -422,6 +426,24 @@
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							width: colWidth,
+							mode: "="
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
 							mode: "="
 						},
 						{
@@ -832,6 +854,22 @@
 		onHide() {},
 
 		methods: {
+			// 单条生成工资条（待签名）
+			async createPayslipForRow(row, attendance_ym) {
+				try {
+					await vk.callFunction({
+						url: 'admin/hrm/salary/sys/all/createPayslips',
+						title: '生成工资条中...',
+						data: {
+							attendance_ym,
+							items: [row]
+						}
+					});
+				} catch (e) {
+					console.error('生成工资条失败', e);
+					vk.alert('工资条生成失败：' + e.message);
+				}
+			},
 			// ========== 合计 ==========
 			async getSumList() {
 				const attendance_ym = this.queryForm1.formData.attendance_ym;
@@ -1875,6 +1913,23 @@
 				this.form1.props.title = '添加';
 				this.form1.props.show = true;
 			},
+			async onSuccess() {
+				const item = this.form1.data;
+				this.form1.props.show = false;
+				// ★ 审核通过后，批量生成工资条（待签名）
+				if (item.enable_fd1 === true) {
+					await vk.callFunction({
+						url: 'admin/hrm/salary/sys/all/createPayslips',
+						title: '生成工资条中...',
+						data: {
+							attendance_ym: item.attendance_ym,
+							items: [item]
+						}
+					});
+				}
+				this.refresh();
+			},
+
 			updateBtn({
 				item
 			}) {
@@ -1897,6 +1952,14 @@
 			},
 			async batchApprove(enable_fd1) {
 				try {
+					if (this.table1.multipleSelection.length === 0) {
+						return vk.alert('请先选择要审核的数据');
+					}
+					const attendance_ym = this.queryForm1.formData.attendance_ym;
+					if (vk.pubfn.isNull(attendance_ym)) {
+						return vk.alert('考勤日期不能为空！');
+					}
+
 					await vk.callFunction({
 						url: 'admin/hrm/salary/sys/all/updateAll',
 						title: '请求中...',
@@ -1905,6 +1968,19 @@
 							enable_fd1
 						}
 					});
+
+					// ★ 审核通过后，批量生成工资条（待签名）
+					if (enable_fd1 === true) {
+						await vk.callFunction({
+							url: 'admin/hrm/salary/sys/all/createPayslips',
+							title: '生成工资条中...',
+							data: {
+								attendance_ym,
+								items: this.table1.multipleSelection
+							}
+						});
+					}
+
 					vk.alert('批量审核成功', '确定', () => {
 						this.refresh();
 					});

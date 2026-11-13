@@ -181,7 +181,7 @@ const modal = {
       placeholderText: localeObj.placeholderText[locale]
     };
     if (typeof a === "object") {
-      obj = a;
+      obj = { ...obj, ...a };
     } else {
       if (typeof a === "string") {
         obj.placeholderText = a;
@@ -229,7 +229,7 @@ const modal = {
     }
     let title = a;
     let icon = "none";
-    let image = "";
+    let image;
     let mask = false;
     let duration = 1500;
     let fn;
@@ -307,13 +307,14 @@ const modal = {
      */
   showActionSheet: function(object) {
     common_vendor.index.vk;
-    object.title;
+    let title = object.title;
     let list = object.list;
     let color = object.color || "#000000";
     let success = object.success;
     let fail = object.fail;
     let complete = object.complete;
     return common_vendor.index.showActionSheet({
+      title,
       itemList: list,
       itemColor: color,
       success: function(res) {
@@ -333,6 +334,8 @@ const modal = {
       }
     });
   },
+  // uni-app x（HBuilderX 5.0+）App/Web 的 showLoading 使用模态 dialogPage，mask: false 也无法穿透操作底层页面。
+  // 如需加载期间仍可操作页面，请使用页面内嵌的 loading 组件。
   showLoading: function(obj = {}, name) {
     if (typeof obj == "string") {
       let title = obj;
@@ -362,15 +365,15 @@ const modal = {
       common_vendor.index.hideLoading();
     }
   },
-  // 设置当前页面的loading变量的值
+  // 设置当前页面或显式对象的 loading 状态。
+  // <script setup> 请显式传入响应式对象：{ that: loading, name: 'xxx' }。
   setLoading: function(loading = true, obj = true) {
     try {
-      let vk = common_vendor.index.vk;
-      if (typeof obj === "boolean") {
+      if (typeof obj === "boolean" || typeof obj === "string") {
         let pages = getCurrentPages();
         let page = pages[pages.length - 1];
-        let that = page.$vm;
-        let name = "loading";
+        let that = page && page.$vm;
+        let name = typeof obj === "string" ? obj : "loading";
         updateCustomLoading({ loading, name, that });
         return { that, name };
       } else if (typeof obj === "object") {
@@ -378,17 +381,12 @@ const modal = {
         if (!data)
           data = that;
         updateCustomLoading({ loading, name, that: data });
-        return { that, name };
-      } else if (typeof obj === "string") {
-        let pages = getCurrentPages();
-        let page = pages[pages.length - 1];
-        let that = page.$vm;
-        let name = obj;
-        updateCustomLoading({ loading, name, that });
-        return { that, name };
+        return { that: data, name };
       }
     } catch (err) {
+      common_vendor.index.__f__("warn", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/modal.js:416", `[vk.setLoading] loading 状态更新失败；setup 页面请使用 loading: { that: loading, name: 'xxx' }`, err);
     }
+    return null;
   }
 };
 function updateCustomLoading(obj = {}) {
@@ -400,8 +398,8 @@ function updateCustomLoading(obj = {}) {
   if (typeof that[keyName][name] !== "number")
     that[keyName][name] = 0;
   if (loading) {
-    that[keyName][name]++;
     vk.pubfn.setData(that, name, loading);
+    that[keyName][name]++;
   } else {
     that[keyName][name]--;
     if (that[keyName][name] <= 0) {

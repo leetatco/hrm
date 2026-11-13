@@ -22,7 +22,7 @@ function updateManagerByMP(obj = {}) {
         if (res.confirm) {
           if (typeof obj.success === "function") {
             obj.success({
-              applyUpdate: updateManager2.applyUpdate
+              applyUpdate: () => updateManager2.applyUpdate()
             });
           }
           if (typeof obj.complete === "function")
@@ -30,12 +30,20 @@ function updateManagerByMP(obj = {}) {
           if (autoUpdate) {
             updateManager2.applyUpdate();
           }
+        } else if (typeof obj.complete === "function") {
+          obj.complete(res);
         }
+      },
+      fail: (res) => {
+        if (typeof obj.fail === "function")
+          obj.fail(res);
+        if (typeof obj.complete === "function")
+          obj.complete(res);
       }
     });
   });
   updateManager2.onUpdateFailed((res) => {
-    common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/updateManager.js:51", "onUpdateFailed", res);
+    common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/function/updateManager.js:57", "onUpdateFailed", res);
     if (typeof obj.fail === "function")
       obj.fail(res);
     if (typeof obj.complete === "function")

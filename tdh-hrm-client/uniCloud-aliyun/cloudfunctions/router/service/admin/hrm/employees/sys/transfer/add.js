@@ -41,6 +41,7 @@ module.exports = {
 				new_company_name,
 				new_department_name,
 				new_position_name,
+				remark,
 				update_date,
 				update_id
 		} = data;
@@ -73,6 +74,7 @@ module.exports = {
 				new_company_name,
 				new_department_name,
 				new_position_name,
+				remark,
 				update_id: uid,
 				update_date: new Date().getTime()
 			}

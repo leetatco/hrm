@@ -31,6 +31,9 @@ util.getDateObject = function(date, targetTimezone) {
   } else if (typeof date === "object") {
     nowDate = new Date(date.getTime());
   } else if (typeof date === "string") {
+    if (new RegExp("^\\d{4}-\\d{2}-\\d{2}T.*(?:Z|[+-]\\d{2}:?\\d{2})$").test(date)) {
+      return new Date(date);
+    }
     targetTimezone = util.getTargetTimezone(targetTimezone);
     let targetTimezoneStr = targetTimezone;
     let targetTimezoneF = targetTimezone >= 0 ? "+" : "";
@@ -39,7 +42,7 @@ util.getDateObject = function(date, targetTimezone) {
     } else if (targetTimezone < 0 && targetTimezone > -10) {
       targetTimezoneStr = `-0${targetTimezone * -1}`;
     }
-    let arr1 = date.split(" ");
+    let arr1 = date.split(new RegExp("[T ]"));
     let arr1_1 = arr1[0] || "";
     let arr1_2 = arr1[1] || "";
     let arr2;
@@ -261,7 +264,7 @@ util.getHourOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new D
   const timeDif = dif * 60 * 1e3 + targetTimezone * 60 * 60 * 1e3;
   let offsetMillisecond = 1e3 * 60 * 60;
   nowDate = new Date(nowDate.getTime() + offsetMillisecond * 1 * count);
-  let dateInfo = util.getDateInfo(nowDate);
+  let dateInfo = util.getDateInfo(nowDate, targetTimezone);
   res.startTime = (/* @__PURE__ */ new Date(`${dateInfo.year}/${dateInfo.month}/${dateInfo.day} ${dateInfo.hour}:00:00`)).getTime() - timeDif;
   res.endTime = (/* @__PURE__ */ new Date(`${dateInfo.year}/${dateInfo.month}/${dateInfo.day} ${dateInfo.hour}:00:00`)).getTime() + (offsetMillisecond - 1) - timeDif;
   return res;
@@ -274,7 +277,7 @@ util.getDayOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new Da
   const timeDif = dif * 60 * 1e3 + targetTimezone * 60 * 60 * 1e3;
   let offsetMillisecond = 1e3 * 60 * 60 * 24;
   nowDate = new Date(nowDate.getTime() + offsetMillisecond * 1 * count);
-  let dateInfo = util.getDateInfo(nowDate);
+  let dateInfo = util.getDateInfo(nowDate, targetTimezone);
   res.startTime = (/* @__PURE__ */ new Date(`${dateInfo.year}/${dateInfo.month}/${dateInfo.day}`)).getTime() - timeDif;
   res.endTime = (/* @__PURE__ */ new Date(`${dateInfo.year}/${dateInfo.month}/${dateInfo.day}`)).getTime() + (offsetMillisecond - 1) - timeDif;
   return res;
@@ -285,11 +288,12 @@ util.getWeekOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new D
   targetTimezone = util.getTargetTimezone(targetTimezone);
   const dif = nowDate.getTimezoneOffset();
   const timeDif = dif * 60 * 1e3 + targetTimezone * 60 * 60 * 1e3;
-  let nowDay = nowDate.getDay() === 0 ? 7 : nowDate.getDay();
+  const { week } = util.getDateInfo(nowDate, targetTimezone);
+  let nowDay = week === 0 ? 7 : week;
   nowDate.setDate(nowDate.getDate() - nowDay + 1 + count * 7);
-  let dateInfo1 = util.getDateInfo(nowDate);
+  let dateInfo1 = util.getDateInfo(nowDate, targetTimezone);
   nowDate.setDate(nowDate.getDate() + 7);
-  let dateInfo2 = util.getDateInfo(nowDate);
+  let dateInfo2 = util.getDateInfo(nowDate, targetTimezone);
   res.startTime = (/* @__PURE__ */ new Date(`${dateInfo1.year}/${dateInfo1.month}/${dateInfo1.day}`)).getTime() - timeDif;
   res.endTime = (/* @__PURE__ */ new Date(`${dateInfo2.year}/${dateInfo2.month}/${dateInfo2.day}`)).getTime() - 1 - timeDif;
   return res;
@@ -300,12 +304,12 @@ util.getMonthOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new 
   targetTimezone = util.getTargetTimezone(targetTimezone);
   const dif = nowDate.getTimezoneOffset();
   const timeDif = dif * 60 * 1e3 + targetTimezone * 60 * 60 * 1e3;
-  let dateInfo = util.getDateInfo(nowDate);
+  let dateInfo = util.getDateInfo(nowDate, targetTimezone);
   let month = dateInfo.month + count;
   let year = dateInfo.year;
   if (month > 12) {
-    year = year + Math.floor(month / 12);
-    month = Math.abs(month) % 12;
+    year = year + Math.floor((month - 1) / 12);
+    month = (month - 1) % 12 + 1;
   } else if (month <= 0) {
     year = year - 1 - Math.floor(Math.abs(month) / 12);
     month = 12 - Math.abs(month) % 12;
@@ -318,12 +322,12 @@ util.getMonthOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new 
 util.getQuarterOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new Date(), targetTimezone) {
   let res = {};
   let nowDate = util.getDateObject(date);
-  nowDate.setMonth(nowDate.getMonth() + count * 3);
   targetTimezone = util.getTargetTimezone(targetTimezone);
   const dif = nowDate.getTimezoneOffset();
   const timeDif = dif * 60 * 1e3 + targetTimezone * 60 * 60 * 1e3;
-  let dateInfo = util.getDateInfo(nowDate);
-  let month = dateInfo.month;
+  let dateInfo = util.getDateInfo(nowDate, targetTimezone);
+  nowDate = new Date(dateInfo.year, dateInfo.month - 1 + count * 3, 1);
+  let month = nowDate.getMonth() + 1;
   if ([1, 2, 3].indexOf(month) > -1) {
     month = 1;
   } else if ([4, 5, 6].indexOf(month) > -1) {
@@ -334,11 +338,9 @@ util.getQuarterOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ ne
     month = 10;
   }
   nowDate.setMonth(month - 1);
-  let dateInfo1 = util.getDateInfo(nowDate);
+  res.startTime = nowDate.getTime() - timeDif;
   nowDate.setMonth(nowDate.getMonth() + 3);
-  let dateInfo2 = util.getDateInfo(nowDate);
-  res.startTime = (/* @__PURE__ */ new Date(`${dateInfo1.year}/${dateInfo1.month}/1`)).getTime() - timeDif;
-  res.endTime = (/* @__PURE__ */ new Date(`${dateInfo2.year}/${dateInfo2.month}/1`)).getTime() - 1 - timeDif;
+  res.endTime = nowDate.getTime() - 1 - timeDif;
   return res;
 };
 util.getYearOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new Date(), targetTimezone) {
@@ -347,7 +349,7 @@ util.getYearOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new D
   targetTimezone = util.getTargetTimezone(targetTimezone);
   const dif = nowDate.getTimezoneOffset();
   const timeDif = dif * 60 * 1e3 + targetTimezone * 60 * 60 * 1e3;
-  let dateInfo = util.getDateInfo(nowDate);
+  let dateInfo = util.getDateInfo(nowDate, targetTimezone);
   let year = dateInfo.year + count;
   res.startTime = (/* @__PURE__ */ new Date(`${year}/1/1`)).getTime() - timeDif;
   res.endTime = (/* @__PURE__ */ new Date(`${year}/12/31`)).getTime() + (24 * 60 * 60 * 1e3 - 1) - timeDif;
@@ -355,7 +357,7 @@ util.getYearOffsetStartAndEnd = function(count = 0, date = /* @__PURE__ */ new D
 };
 util.getOffsetTime = function(date = /* @__PURE__ */ new Date(), obj, targetTimezone) {
   let nowDate = util.getDateObject(date);
-  let dateInfo = util.getDateInfo(nowDate);
+  let dateInfo = util.getDateInfo(nowDate, targetTimezone);
   targetTimezone = util.getTargetTimezone(targetTimezone);
   const dif = nowDate.getTimezoneOffset();
   const timeDif = dif * 60 * 1e3 + targetTimezone * 60 * 60 * 1e3;

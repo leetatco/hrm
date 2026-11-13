@@ -76,7 +76,7 @@ const vk = {
   $emit: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.$emit,
   // 监听全局的自定义事件，事件由 uni.$emit 触发，回调函数会接收事件触发函数的传入参数。
   $on: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.$on,
-  // 触发全局的自定义事件，附加参数都会传给监听器回调函数。
+  // 触发全局的自定义事件，事件由 uni.$emit 触发，回调函数会接收事件触发函数的传入参数。
   $once: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.$once,
   // 移除全局自定义事件监听器。
   $off: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_navigate.util.$off,
@@ -90,7 +90,7 @@ const vk = {
   getLocale: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.getLocale,
   // 获取应用当前语言对象
   getLocaleObject: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.getLocaleObject,
-  // 设置应用当前语言
+  // 设置应用语言
   setLocale: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.setLocale,
   // 设置系统剪贴板的内容
   setClipboardData: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_index.pubfn.setClipboardData,
@@ -117,7 +117,9 @@ const vk = {
   // webSocket
   connectWebSocket: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_connectWebSocket.connectWebSocket,
   // 设置自定义客户端信息
-  setCustomClientInfo: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_setCustomClientInfo.setCustomClientInfo
+  setCustomClientInfo: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_vk_setCustomClientInfo.setCustomClientInfo,
+  $hasRole: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_permission.$hasRole,
+  $hasPermission: uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_permission.$hasPermission
 };
 vk.getGlobalObject = function() {
   if (typeof globalThis === "object")
@@ -137,15 +139,13 @@ vk.use = function(obj, util) {
     vk[name] = obj[name];
   }
 };
-vk.install = (Vue, config) => {
-  Vue.mixin(uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_mixin_mixin.mixin);
-  Vue.config.globalProperties.vk = vk;
-  Vue.config.globalProperties.$fn = vk.pubfn;
+vk.initCore = function(config) {
   if (typeof common_vendor.index == "object")
     common_vendor.index.vk = vk;
   let vkGlobalThis = vk.getGlobalObject();
-  if (typeof vkGlobalThis == "object")
+  if (typeof vkGlobalThis == "object") {
     vkGlobalThis.vk = vk;
+  }
   let util = { vk };
   vk.use(
     {
@@ -154,14 +154,22 @@ vk.install = (Vue, config) => {
     },
     util
   );
-  uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_permission.initPermission(Vue);
+  if (config) {
+    vk.callFunctionUtil.setConfig(config);
+  }
+  uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_install_console_log.consoleLog(vk);
+};
+vk.install = (Vue, config) => {
+  Vue.mixin(uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_mixin_mixin.mixin);
+  Vue.config.globalProperties.vk = vk;
+  Vue.config.globalProperties.$fn = vk.pubfn;
+  vk.initCore(config);
   Vue.mixin(uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_store_mixin_mixin.storeMixin);
+  uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_permission.initPermission(Vue);
   if (config) {
     if (config.globalError) {
       Vue.use(uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_store_libs_error.initGlobalError);
     }
-    vk.callFunctionUtil.setConfig(config);
-    Vue.use(uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_install_console_log.consoleLog);
   }
 };
 vk.init = function(obj = {}) {
@@ -182,7 +190,7 @@ vk.init = function(obj = {}) {
     }
   }
   vk.callFunctionUtil.setConfig(config);
-  Vue.use(uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_install_console_log.consoleLog);
+  uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_install_console_log.consoleLog(vk);
 };
 exports.vk = vk;
 //# sourceMappingURL=../../../../../.sourcemap/mp-weixin/uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/index.js.map

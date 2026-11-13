@@ -9,7 +9,7 @@ util.treeToArrayFn = function(treeData, treeProps = {}, arr = [], current_parent
   let { id = "_id", parent_id = "parent_id", children = "children", deleteChildren = true } = treeProps;
   for (let i in treeData) {
     let item = treeData[i];
-    if (current_parent_id)
+    if (current_parent_id || current_parent_id === 0)
       item[parent_id] = current_parent_id;
     arr.push(item);
     if (item[children] && item[children].length > 0) {
@@ -25,7 +25,7 @@ util.arrayToTree = function(originalArrayData, treeProps) {
   let arrayData = uni_modules_vkUnicloud_vk_modules_vkUnicloudPage_libs_function_deepClone.deepClone(originalArrayData);
   let { id = "_id", parent_id = "parent_id", children = "children", deleteParentId = false, need_field } = treeProps;
   let result = [];
-  let temp = {};
+  let temp = /* @__PURE__ */ Object.create(null);
   for (let i = 0; i < arrayData.length; i++) {
     temp[arrayData[i][id]] = arrayData[i];
   }

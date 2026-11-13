@@ -297,7 +297,7 @@
 								}
 							],
 							mode: "="
-						},
+						},						
 						{
 							key: "attendance_ym",
 							title: "考勤日期",
@@ -306,6 +306,24 @@
 							valueFormat: "yyyy-MM",
 							format: "yyyy-MM",
 							mode: '[]'
+						},
+						{
+							key: "company_id",
+							title: "公司名称",
+							type: "remote-select",
+							placeholder: "请选择公司名称",
+							action: "admin/hrm/company/sys/getList",
+							width: colWidth,
+							props: {
+								list: "rows",
+								value: "company_id",
+								label: "company_name"
+							},
+							showAll: true,
+							actionData: {
+								pageSize: 1000
+							},
+							mode: "="
 						},
 						{
 							key: "sign_status",

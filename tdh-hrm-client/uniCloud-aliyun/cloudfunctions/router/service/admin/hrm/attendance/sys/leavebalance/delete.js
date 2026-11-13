@@ -19,7 +19,7 @@ module.exports = {
 		// 3. 写入额度日志
 		const oldRemain = (oldRes.total_minutes || 0) - (oldRes.used_minutes || 0);
 		await vk.baseDao.add({
-			dbName: 'hrm-attendance-balancelog',
+			dbName: 'hrm-attendance-leavebalancelog',
 			dataJson: {
 				employee_id: oldRes.employee_id,
 				leave_type_id: oldRes.leave_type_id,

@@ -98,8 +98,14 @@
 					],
 					// 表格字段显示规则
 					columns: [{
+							"key": "update_date",
+							"title": "申请日期",
+							"type": "date",
+							"valueFormat": "yyyy-MM-dd",
+							"width": colWidth
+						}, {
 							"key": "transfer_date",
-							"title": "调动日期",
+							"title": "生效日期",
 							"type": "date",
 							"valueFormat": "yyyy-MM-dd",
 							"width": colWidth
@@ -153,6 +159,14 @@
 							"width": colWidth
 						},
 						{
+							key: "remark",
+							title: "调动说明",
+							type: "text",
+							align: "left",
+							show: ["detail"],
+							width: colWidth
+						},
+						{
 							"key": "update_date",
 							"title": "更新时间",
 							"show": ["detail"],
@@ -183,7 +197,7 @@
 					// 查询表单的字段规则 fieldName:指定数据库字段名,不填默认等于key
 					columns: [{
 							"key": "transfer_date",
-							"title": "调动日期",
+							"title": "生效日期",
 							"type": "datetimerange",
 							"width": colWidth + 100,
 							"mode": "[]"
@@ -240,10 +254,22 @@
 						// 表单字段显示规则
 						columns: [{
 								key: "transfer_date",
-								title: "调动日期",
+								title: "生效日期",
 								type: "date",
 								dateType: "date",
 								width: colWidth + 100
+							},
+							{
+								key: "remark",
+								title: "调动说明",
+								type: "textarea",
+								maxlength: "200",
+								showWordLimit: true,
+								width: colWidth + 530,
+								autosize: {
+									minRows: 4,
+									maxRows: 10
+								}
 							},
 							{
 								key: "employee_list",
@@ -374,7 +400,7 @@
 										}) => {
 											if (option && option.company_id) {
 												formData.new_company_id = option.company_id;
-												this.form1.props.columns[1].columns[5].actionData.company_id =
+												this.form1.props.columns[2].columns[5].actionData.company_id =
 													option.company_id;
 											}
 
@@ -446,6 +472,11 @@
 								required: true,
 								message: "该项不能为空",
 								trigger: ['blur', 'change']
+							}],
+							remark: [{
+								required: true,
+								message: "该项不能为空",
+								trigger: ['blur', 'change']
 							}]
 						},
 						// add 代表添加 update 代表修改
@@ -462,7 +493,7 @@
 			};
 		},
 		// 监听 - 页面每次【加载时】执行(如：前进)
-		onLoad(options = {}) {			
+		onLoad(options = {}) {
 			this.options = options;
 			this.init(options);
 		},
@@ -486,6 +517,7 @@
 						// 验证通过				    
 						this.form1.data.employee_list.forEach(async (e) => {
 							e.transfer_date = this.form1.data.transfer_date;
+							e.remark = this.form1.data.remark;
 							let data = await vk.callFunction({
 								url: 'admin/hrm/employees/sys/transfer/add',
 								title: '请求中...',
@@ -519,8 +551,14 @@
 					fileName: new Date().getFullYear() + '调动人员信息',
 					title: "正在导出数据...",
 					columns: [{
+							"key": "update_date",
+							"title": "申请日期",
+							"type": "date",
+							"dateType": "date",
+							"valueFormat": "yyyy-MM-dd",
+						}, {
 							"key": "transfer_date",
-							"title": "调动日期",
+							"title": "生效日期",
 							"type": "date",
 							"dateType": "date",
 							"valueFormat": "yyyy-MM-dd",
@@ -561,6 +599,11 @@
 						{
 							"key": "new_position_name",
 							"title": "新职务",
+							"type": "text"
+						},
+						{
+							"key": "remark",
+							"title": "调动说明",
 							"type": "text"
 						}
 					],

@@ -14,7 +14,7 @@
 
     <!-- 空状态 -->
     <view v-else-if="list.length === 0">
-      <u-empty text="暂无待签合同" mode="list"></u-empty>
+      <u-empty text="暂无待签合约" mode="list"></u-empty>
     </view>
 
     <!-- 列表 -->

@@ -1,17 +1,20 @@
 "use strict";
-let timeoutArr = [];
-let flagArr = [];
+let timeoutArr = /* @__PURE__ */ Object.create(null);
+let flagArr = /* @__PURE__ */ Object.create(null);
 function throttle(fn, time = 500, isImmediate = true, timeoutName = "default") {
   if (!timeoutArr[timeoutName])
     timeoutArr[timeoutName] = null;
   if (isImmediate) {
     if (!flagArr[timeoutName]) {
       flagArr[timeoutName] = true;
-      if (typeof fn === "function")
-        fn();
-      timeoutArr[timeoutName] = setTimeout(() => {
-        flagArr[timeoutName] = false;
-      }, time);
+      try {
+        if (typeof fn === "function")
+          fn();
+      } finally {
+        timeoutArr[timeoutName] = setTimeout(() => {
+          flagArr[timeoutName] = false;
+        }, time);
+      }
     }
   } else {
     if (!flagArr[timeoutName]) {

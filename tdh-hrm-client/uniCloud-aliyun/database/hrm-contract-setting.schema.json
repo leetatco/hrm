@@ -23,56 +23,60 @@
 			"description": "合同名称",
 			"trim": "both"
 		},
-		"sign_position": {
-			"title": "签名位置配置",
-			"bsonType": "object",
-			"description": "签名在PDF中的坐标",
-			"properties": {
-				"page": {
-					"bsonType": "int",
-					"title": "页码（从1开始，0表示最后一页）",
-					"default": 0
-				},
-				"x": {
-					"bsonType": "number",
-					"title": "X坐标（pt）",
-					"default": 300
-				},
-				"y": {
-					"bsonType": "number",
-					"title": "Y坐标（pt，从底部算起）",
-					"default": 150
-				},
-				"width": {
-					"bsonType": "number",
-					"title": "签名宽度（pt）",
-					"default": 150
-				},
-				"height": {
-					"bsonType": "number",
-					"title": "签名高度（pt）",
-					"default": 60
+		"company_id": {
+			"title": "所属公司",
+			"bsonType": "string",
+			"foreignKey": "hrm-companys.company_id",
+			"description": "所属公司",
+			"trim": "both"
+		},
+		"template_file": {
+			"title": "模版文件",
+			"bsonType": "string",
+			"description": "模版文件",
+			"trim": "both"
+		},
+		"sign_positions": {
+			"title": "签名位置配置列表",
+			"bsonType": "array",
+			"description": "签名在PDF中的多个坐标位置",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"page": { "bsonType": "int", "title": "页码" },
+					"x": { "bsonType": "number", "title": "X坐标" },
+					"y": { "bsonType": "number", "title": "Y坐标" },
+					"width": { "bsonType": "number", "title": "宽度" },
+					"height": { "bsonType": "number", "title": "高度" }
+				}
+			}
+		},
+		"text_positions": {
+			"title": "文本填充位置配置列表",
+			"bsonType": "array",
+			"description": "用于填写员工姓名、地址等文本的位置",
+			"items": {
+				"bsonType": "object",
+				"properties": {
+					"page": { "bsonType": "int", "title": "页码" },
+					"x": { "bsonType": "number", "title": "X坐标" },
+					"y": { "bsonType": "number", "title": "Y坐标" },
+					"width": { "bsonType": "number", "title": "宽度" },
+					"height": { "bsonType": "number", "title": "高度" },
+					"fieldKey": { "bsonType": "string", "title": "绑定的员工字段名，如 employee_name" }
 				}
 			}
 		},
 		"update_date": {
 			"title": "更新时间",
 			"bsonType": "timestamp",
-			"description": "更新时间",
-			"forceDefaultValue": {
-				"$env": "now"
-			}
+			"forceDefaultValue": { "$env": "now" }
 		},
 		"updat_id": {
 			"title": "更新人",
 			"bsonType": "string",
-			"description": "更新人ID",
-			"trim": "both",
 			"foreignKey": "uni-id-users._id",
-			"forceDefaultValue": {
-				"$env": "uid"
-			}
+			"forceDefaultValue": { "$env": "uid" }
 		}
-	},
-	"version": "0.0.1"
+	}
 }

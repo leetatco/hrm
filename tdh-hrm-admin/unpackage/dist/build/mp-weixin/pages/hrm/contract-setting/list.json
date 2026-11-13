@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "list-vk-data-form-sign_positions_ui": "/pages/hrm/contract-setting/list-vk-data-form-sign_positions_ui",
+    "contract-sign-position": "/components/contract-sign-position/contract-sign-position"
+  }
+}

@@ -13,18 +13,46 @@ module.exports = {
 	 * @params {String}         msg       详细信息
 	 */
 	main: async (event) => {
-		let { data = {}, userInfo, util, filterResponse, originalParam } = event;
-		let { customUtil, uniID, config, pubFun, vk, db, _ } = util;
-		let { uid } = data;
-		let res = { code: 0, msg: '' };
+		let {
+			data = {}, userInfo, util, filterResponse, originalParam
+		} = event;
+		let {
+			customUtil,
+			uniID,
+			config,
+			pubFun,
+			vk,
+			db,
+			_
+		} = util;
+		let {
+			uid,
+			company_id
+		} = data;
+		let res = {
+			code: 0,
+			msg: ''
+		};
 		// 业务逻辑开始-----------------------------------------------------------
 		let dbName = "hrm-contract-setting"; // 表名
 		res = await vk.baseDao.getTableData({
 			dbName,
+			whereJson:{
+				company_id
+			},			
 			data,
-			sortArr:[{name:'contract_sign_id',type:'asc'}],
+			sortArr: [{
+				name: 'contract_sign_id',
+				type: 'asc'
+			}],
 			// 副表
-			foreignDB: [
+			foreignDB: [{
+					dbName: "hrm-companys",
+					localKey: "company_id",
+					foreignKey: "company_id",
+					as: "companys",
+					limit: 1
+				},
 				{
 					dbName: "uni-id-users",
 					localKey: "update_id",

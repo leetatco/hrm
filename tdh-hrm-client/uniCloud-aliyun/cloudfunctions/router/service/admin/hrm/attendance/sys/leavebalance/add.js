@@ -73,7 +73,7 @@ module.exports = {
 
 		// 3. 写入额度日志
 		await vk.baseDao.add({
-			dbName: 'hrm-attendance-balancelog',
+			dbName: 'hrm-attendance-leavebalancelog',
 			dataJson: {
 				employee_id,
 				leave_type_id,

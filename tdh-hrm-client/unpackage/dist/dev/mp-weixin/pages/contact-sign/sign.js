@@ -76,7 +76,7 @@ const _sfc_main = {
     closeSignBoard() {
       this.showSignBoard = false;
     },
-    /* ========== 加载合同详情 ========== */
+    /* ========== 加载合约详情 ========== */
     async loadDetail(fromRefresh = false) {
       var _a;
       if (this.loading)
@@ -97,7 +97,7 @@ const _sfc_main = {
           this.contractData = res.rows[0] || {};
           this.lastSignatureUrl = ((_a = res.extra) == null ? void 0 : _a.lastSignatureUrl) || "";
         } else {
-          this.$refs.toast.showToast(res.msg || "获取合同失败");
+          this.$refs.toast.showToast(res.msg || "获取合约失败");
         }
       } catch (e) {
         this.$refs.toast.showToast("网络异常");
@@ -115,9 +115,13 @@ const _sfc_main = {
       const url = this.contractData.contract_sign_file;
       if (!url)
         return;
-      common_vendor.index.previewFile ? common_vendor.index.previewFile({ url }) : common_vendor.index.downloadFile({
+      common_vendor.index.previewFile ? common_vendor.index.previewFile({
+        url
+      }) : common_vendor.index.downloadFile({
         url,
-        success: (r) => common_vendor.index.openDocument({ filePath: r.tempFilePath })
+        success: (r) => common_vendor.index.openDocument({
+          filePath: r.tempFilePath
+        })
       });
     },
     formatDate(val) {
@@ -157,9 +161,16 @@ const _sfc_main = {
           this.$refs.toast.showLoading("正在生成签名...");
           const tempPath = await this.getTempFilePath();
           const imgInfo = await new Promise(
-            (res, rej) => common_vendor.index.getImageInfo({ src: tempPath, success: res, fail: rej })
+            (res, rej) => common_vendor.index.getImageInfo({
+              src: tempPath,
+              success: res,
+              fail: rej
+            })
           );
-          const { width, height } = imgInfo;
+          const {
+            width,
+            height
+          } = imgInfo;
           const nodeInfo = await new Promise((res, rej) => {
             common_vendor.index.createSelectorQuery().in(this).select("#rotateCanvas").node().exec((r) => {
               r[0] ? res(r[0]) : rej("canvas error");
@@ -176,12 +187,19 @@ const _sfc_main = {
           ctx.rotate(-90 * Math.PI / 180);
           ctx.drawImage(img, -width / 2, -height / 2);
           const rotatedPath = await new Promise(
-            (res, rej) => common_vendor.index.canvasToTempFilePath({ canvas, fileType: "png", success: res, fail: rej })
+            (res, rej) => common_vendor.index.canvasToTempFilePath({
+              canvas,
+              fileType: "png",
+              success: res,
+              fail: rej
+            })
           );
           const cloudPath = `public/contract/signature/${this._id}_${Date.now()}.png`;
           const uploadOptionRes = await vk.callFunction({
             url: "common/pub/getUploadFileOptions/index",
-            data: { cloudPath }
+            data: {
+              cloudPath
+            }
           });
           if (uploadOptionRes.code !== 0) {
             throw new Error("获取上传参数失败");
@@ -196,17 +214,19 @@ const _sfc_main = {
           });
           signatureUrl = `https://tdhstorage.cntdh.net/${cloudPath}`;
         }
-        this.$refs.toast.showLoading("正在合成合同...");
+        const needFillKeys = ["sign_year", "sign_month", "sign_day"];
+        this.$refs.toast.showLoading("正在合成合约...");
         const signRes = await vk.callFunction({
           url: "admin/hrm/contract-sign/sys/updatePdf",
           data: {
             _id: this._id,
-            signature_url: signatureUrl
+            signature_url: signatureUrl,
+            fieldKeys: needFillKeys
           }
         });
         this.$refs.toast.hide();
         if (signRes.code === 0) {
-          this.$refs.toast.showToast("合同签署成功");
+          this.$refs.toast.showToast("合约签署成功");
           setTimeout(() => common_vendor.index.navigateBack(), 1500);
         } else {
           this.$refs.toast.showToast(signRes.msg || "签署失败");
@@ -214,7 +234,7 @@ const _sfc_main = {
       } catch (e) {
         this.$refs.toast.hide();
         this.$refs.toast.showToast("签署失败");
-        common_vendor.index.__f__("error", "at pages/contact-sign/sign.vue:344", e);
+        common_vendor.index.__f__("error", "at pages/contact-sign/sign.vue:365", e);
       }
     },
     /* ========== 以下为原签名板完整绘制逻辑 ========== */
@@ -243,7 +263,11 @@ const _sfc_main = {
       this.ctx.setStrokeStyle(this.lineColor);
       this.ctx.setLineCap("round");
       const touch = e.touches[0];
-      this.pointQueue.push({ x: touch.x, y: touch.y, t: Date.now() });
+      this.pointQueue.push({
+        x: touch.x,
+        y: touch.y,
+        t: Date.now()
+      });
       this.startRenderLoop();
     },
     startRenderLoop() {
@@ -259,7 +283,11 @@ const _sfc_main = {
       if (!this.isDrawing)
         return;
       const touch = e.changedTouches[0];
-      this.pointQueue.push({ x: touch.x, y: touch.y, t: Date.now() });
+      this.pointQueue.push({
+        x: touch.x,
+        y: touch.y,
+        t: Date.now()
+      });
     },
     uploadScaleEnd() {
       this.isDrawing = false;
@@ -301,7 +329,11 @@ const _sfc_main = {
       this.canAddHistory = true;
     },
     initPoint(x, y) {
-      var point = { x, y, t: Date.now() };
+      var point = {
+        x,
+        y,
+        t: Date.now()
+      };
       var prePoint = this.points.slice(-1)[0];
       if (prePoint && (prePoint.t === point.t || prePoint.x === x && prePoint.y === y)) {
         return;
@@ -361,7 +393,15 @@ const _sfc_main = {
       point.lastX = prePoint.x + (point.x - prePoint.x) * 0.5;
       point.lastY = prePoint.y + (point.y - prePoint.y) * 0.5;
       if (typeof prePoint.lastX === "number") {
-        this.drawCurveLine(prePoint.lastX, prePoint.lastY, prePoint.x, prePoint.y, point.lastX, point.lastY, this.maxWidth);
+        this.drawCurveLine(
+          prePoint.lastX,
+          prePoint.lastY,
+          prePoint.x,
+          prePoint.y,
+          point.lastX,
+          point.lastY,
+          this.maxWidth
+        );
       }
     },
     drawCurveLine(x1, y1, x2, y2, x3, y3, lineWidth) {
@@ -387,28 +427,64 @@ const _sfc_main = {
       var dis_x = x2 - x1;
       var dis_y = y2 - y1;
       if (dis_x === 0)
-        return { val: 0, pos: -1 };
+        return {
+          val: 0,
+          pos: -1
+        };
       if (dis_y === 0)
-        return { val: 0, pos: 1 };
+        return {
+          val: 0,
+          pos: 1
+        };
       var val = Math.abs(Math.atan(dis_y / dis_x));
       if (x2 > x1 && y2 < y1 || x2 < x1 && y2 > y1) {
-        return { val, pos: 1 };
+        return {
+          val,
+          pos: 1
+        };
       }
-      return { val, pos: -1 };
+      return {
+        val,
+        pos: -1
+      };
     },
     getRadianPoints(radianData, x, y, halfLineWidth) {
       if (radianData.val === 0) {
         if (radianData.pos === 1) {
-          return [{ x, y: y + halfLineWidth }, { x, y: y - halfLineWidth }];
+          return [{
+            x,
+            y: y + halfLineWidth
+          }, {
+            x,
+            y: y - halfLineWidth
+          }];
         }
-        return [{ y, x: x + halfLineWidth }, { y, x: x - halfLineWidth }];
+        return [{
+          y,
+          x: x + halfLineWidth
+        }, {
+          y,
+          x: x - halfLineWidth
+        }];
       }
       var dis_x = Math.sin(radianData.val) * halfLineWidth;
       var dis_y = Math.cos(radianData.val) * halfLineWidth;
       if (radianData.pos === 1) {
-        return [{ x: x + dis_x, y: y + dis_y }, { x: x - dis_x, y: y - dis_y }];
+        return [{
+          x: x + dis_x,
+          y: y + dis_y
+        }, {
+          x: x - dis_x,
+          y: y - dis_y
+        }];
       }
-      return [{ x: x + dis_x, y: y - dis_y }, { x: x - dis_x, y: y + dis_y }];
+      return [{
+        x: x + dis_x,
+        y: y - dis_y
+      }, {
+        x: x - dis_x,
+        y: y + dis_y
+      }];
     },
     drawByImage(url) {
       if (!this.canvasWidth || !this.canvasHeight)
@@ -417,7 +493,11 @@ const _sfc_main = {
       common_vendor.index.getImageInfo({
         src: url,
         success: (res) => {
-          const { width, height, path } = res;
+          const {
+            width,
+            height,
+            path
+          } = res;
           const isLandscape = width > height;
           if (isLandscape) {
             this.ctx.save();
@@ -436,7 +516,7 @@ const _sfc_main = {
           this.ctx.draw(true);
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/contact-sign/sign.vue:581", "加载历史签名失败", err);
+          common_vendor.index.__f__("error", "at pages/contact-sign/sign.vue:657", "加载历史签名失败", err);
         }
       });
     },
@@ -543,7 +623,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
     a: !$data.showSignBoard
   }, !$data.showSignBoard ? common_vendor.e({
-    b: common_vendor.o($options.onRefresh, "e1"),
+    b: common_vendor.o($options.onRefresh, "8f"),
     c: common_vendor.p({
       ["refresher-triggered"]: $data.refreshing
     }),
@@ -556,35 +636,35 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     i: common_vendor.t($options.formatDate($data.contractData.end_date) || "-"),
     j: $data.contractData.contract_sign_file
   }, $data.contractData.contract_sign_file ? {
-    k: common_vendor.o((...args) => $options.previewFile && $options.previewFile(...args), "c7")
+    k: common_vendor.o((...args) => $options.previewFile && $options.previewFile(...args), "00")
   } : {}) : {}, {
     l: $data.contractData
   }, $data.contractData ? {} : {}, {
     m: $data.refreshing,
-    n: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "7f"),
+    n: common_vendor.o((...args) => $options.onRefresh && $options.onRefresh(...args), "a3"),
     o: $data.contractData && $data.contractData.status !== 1
   }, $data.contractData && $data.contractData.status !== 1 ? {
-    p: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "6d")
+    p: common_vendor.o((...args) => $options.openSignBoard && $options.openSignBoard(...args), "fc")
   } : $data.contractData && $data.contractData.status === 1 ? {} : {}, {
     q: $data.contractData && $data.contractData.status === 1
   }) : common_vendor.e({
-    r: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "38"),
+    r: common_vendor.o(($event) => $options.selectColorEvent("black", "#1A1A1A"), "63"),
     s: $data.selectColor === "black" ? "/static/other/color_black_selected.png" : "/static/other/color_black.png",
     t: $data.selectColor === "red" ? "/static/other/color_red_selected.png" : "/static/other/color_red.png",
-    v: common_vendor.o((...args) => $options.clear && $options.clear(...args), "9c"),
+    v: common_vendor.o((...args) => $options.clear && $options.clear(...args), "30"),
     w: $data.lastSignatureUrl,
-    x: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "d5"),
+    x: common_vendor.o((...args) => $options.previewCanvasImg && $options.previewCanvasImg(...args), "93"),
     y: $data.lastSignatureUrl,
-    z: common_vendor.o((...args) => $options.undo && $options.undo(...args), "a9"),
+    z: common_vendor.o((...args) => $options.undo && $options.undo(...args), "38"),
     A: $data.lastSignatureUrl,
-    B: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "3c"),
-    C: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "5a"),
-    D: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "d1"),
-    E: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "7b"),
-    F: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "05"),
+    B: common_vendor.o((...args) => $options.closeSignBoard && $options.closeSignBoard(...args), "39"),
+    C: common_vendor.o((...args) => $options.submitSign && $options.submitSign(...args), "ce"),
+    D: common_vendor.o((...args) => $options.uploadScaleStart && $options.uploadScaleStart(...args), "41"),
+    E: common_vendor.o((...args) => $options.uploadScaleMove && $options.uploadScaleMove(...args), "ce"),
+    F: common_vendor.o((...args) => $options.uploadScaleEnd && $options.uploadScaleEnd(...args), "f5"),
     G: $data.showPickerColor
   }, $data.showPickerColor ? {
-    H: common_vendor.o($options.getPickerColor, "c3"),
+    H: common_vendor.o($options.getPickerColor, "34"),
     I: common_vendor.p({
       isShow: $data.showPickerColor,
       bottom: 0

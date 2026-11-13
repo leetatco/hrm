@@ -100,29 +100,15 @@
 									label: "其他调整",
 									tagType: "info"
 								}
-							],
-							formatter: (val) => {
-								const map = {
-									1: '初始化',
-									2: '自动发放',
-									3: '手工增加',
-									4: '请假扣减',
-									5: '手工扣减',
-									6: '过期清零',
-									7: '其他调整'
-								};
-								return map[val] || val;
-							}
+							]
 						},
 						{
 							key: "change_amount",
 							title: "变动额度",
 							type: "text",
 							width: 140,
-							formatter: (val) => {
-								if (!val) return '0分钟';
-								const prefix = val > 0 ? '+' : '';
-								return prefix + vk.myfn.formatMinutes(Math.abs(val)) * (val > 0 ? 1 : -1);
+							formatter: (val) => {														
+								return vk.myfn.formatMinutes(val);
 							}
 						},
 						{

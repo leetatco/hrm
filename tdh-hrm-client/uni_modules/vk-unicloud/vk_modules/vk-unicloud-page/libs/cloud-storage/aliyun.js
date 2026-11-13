@@ -6,7 +6,7 @@ class CloudStorage {
     this.counterNum = 0;
   }
 
-  uploadFile(obj = {}) {
+  async uploadFile(obj = {}) {
     let {
       filePath,
       fileType,
@@ -26,32 +26,34 @@ class CloudStorage {
     let fileName = fileNameObj.fileFullName;
     let formData = vk.pubfn.copyObject(cloudStorageConfig.uploadData);
     formData['key'] = fileName; // 存储在oss的文件路径
-    /**
-     * 特别说明
-     * 若已知本地图片,则使用formData["name"] = filePath
-     * 若已知base64,则是用formData["file"] = file;// file base64字符串转成blob对象
-     */
-    if (filePath.indexOf(';base64,') > -1) {
-      formData['file'] = dataURLtoBlob(filePath);
-    } else {
+    // 仅普通文件路径设置 name 表单字段
+    if (filePath.indexOf(';base64,') === -1) {
       formData['name'] = filePath;
     }
+    let uploadFilePath = filePath;
+    // #ifdef APP
+    if (filePath.startsWith('data:') && filePath.indexOf(';base64,') !== -1) {
+      const localFile = await vk.pubfn.base64ToFile({ base64: filePath });
+      uploadFilePath = localFile.path;
+    }
+    // #endif
     return new Promise((resolve, reject) => {
       let uploadTask = uni.uploadFile({
         url: cloudStorageConfig.action,
-        filePath,
+        filePath: uploadFilePath,
+        fileType,
         name,
         header,
         formData: formData,
         success: (res) => {
-          if (![200, 201].includes(res.statusCode)) {
+          if (![200, 201].includes(Number(res.statusCode))) {
             reject(res);
           } else {
             // 上传成功
             let fileURL = fileNameObj.url;
             res = {
               filePath, // 本地文件路径
-              cloudPath: getCloudPath(fileURL), // 云端文件路径
+              cloudPath: fileName, // 云端文件路径
               fileID: fileURL, // 云端文件ID
               fileURL: fileURL, // 云端文件URL
               url: fileURL, // 云端文件URL，与fileURL一致
@@ -73,6 +75,33 @@ class CloudStorage {
             });
         }
       });
+    }).finally(async () => {
+      // #ifdef APP
+      // 仅清理本次 Base64 转换生成的文件
+      if (uploadFilePath !== filePath) {
+        try {
+          // #ifdef UNI-APP-X || APP-HARMONY
+          await new Promise((resolve, reject) => {
+            uni.getFileSystemManager().unlink({
+              filePath: uploadFilePath,
+              success: resolve,
+              fail: reject,
+            });
+          });
+          // #endif
+          // #ifdef APP-PLUS
+          const entry = await new Promise((resolve, reject) => {
+            plus.io.resolveLocalFileSystemURL(uploadFilePath, resolve, reject);
+          });
+          await new Promise((resolve, reject) => {
+            entry.remove(resolve, reject);
+          });
+          // #endif
+        } catch (err) {
+          console.warn('清理上传临时文件失败:', err);
+        }
+      }
+      // #endif
     });
   }
 }
@@ -170,35 +199,9 @@ function createFileName(obj = {}) {
   // 文件名全称（包含文件路径） = 根目录 + 文件相对路径
   let fileFullName = dirname + '/' + fileRelativePath;
   // 外网地址 = 外网域名 + 文件名全称
-  let url = host + '/' + fileFullName;
+  let url = host + '/' + fileFullName.split('/').map(encodeURIComponent).join('/');
   fileObj.url = url;
   fileObj.fileFullName = fileFullName;
   fileObj.fileNickName = fileNickName;
   return fileObj;
-}
-
-function dataURLtoBlob(dataurl) {
-  let arr = dataurl.split(','),
-    mime = arr[0].match(/:(.*?);/)[1],
-    bstr = atob(arr[1]),
-    n = bstr.length,
-    u8arr = new Uint8Array(n);
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new Blob([u8arr], { type: mime });
-}
-
-function getCloudPath(url) {
-  let cloudPath = '';
-  const match = url.match(/(?:https?:\/\/)?([^/]+)(\/.*)/);
-  if (match && match[2]) {
-    const extractedPath = match[2];
-    if (extractedPath.indexOf('//') === 0) {
-      cloudPath = extractedPath.substring(2);
-    } else {
-      cloudPath = extractedPath.substring(1);
-    }
-  }
-  return cloudPath;
 }

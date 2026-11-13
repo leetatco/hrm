@@ -97,7 +97,7 @@ module.exports = {
 			else changeType = 5; // 手工扣减
 
 			await vk.baseDao.add({
-				dbName: 'hrm-attendance-balancelog',
+				dbName: 'hrm-attendance-leavebalancelog',
 				dataJson: {
 					employee_id: oldRes.employee_id,
 					leave_type_id: oldRes.leave_type_id,

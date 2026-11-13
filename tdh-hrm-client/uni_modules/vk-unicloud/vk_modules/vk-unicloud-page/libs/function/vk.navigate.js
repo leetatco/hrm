@@ -57,6 +57,12 @@ util.navigateTo = function (obj) {
   lastNavigate = { url: obj.url, time };
   if (!obj.__vkNavigateTo404 && !util.checkPageExists({ url: obj.url })) {
     vk.navigateTo404();
+    let err = { errMsg: `${obj.mode || 'navigateTo'}:fail page ${obj.url} not found` };
+    try {
+      if (typeof obj.fail === 'function') obj.fail(err);
+    } finally {
+      if (typeof obj.complete === 'function') obj.complete(err);
+    }
     return false;
   }
   util.checkNeedLogin({
@@ -114,6 +120,7 @@ util._navigateTo = function (obj) {
     navigateFn = uni.navigateTo;
   }
   // 此处写法仅为支持vue3，vue3不支持uni[apiName]的形式调用
+  let fallbackStarted = false;
   navigateFn({
     url: url,
     animationType: animationType,
@@ -132,12 +139,16 @@ util._navigateTo = function (obj) {
           let errUrl = vk.pubfn.getPageFullPath(url);
           vk.toast(`页面 ${errUrl} 不存在`, 'none');
         }
+        if (typeof obj.fail == 'function') obj.fail(err);
         return false;
       }
+      fallbackStarted = true;
+      let redirectStarted = false;
       uni.switchTab({
         url: url,
         success: obj.success,
         fail: function () {
+          redirectStarted = true;
           uni.redirectTo({
             url: url,
             success: obj.success,
@@ -145,12 +156,18 @@ util._navigateTo = function (obj) {
               console.error(err);
               if (typeof obj.fail == 'function') obj.fail(err);
             },
+            complete: function (res) {
+              if (typeof obj.complete == 'function') obj.complete(res);
+            },
           });
+        },
+        complete: function (res) {
+          if (!redirectStarted && typeof obj.complete == 'function') obj.complete(res);
         },
       });
     },
     complete: function (res) {
-      if (typeof obj.complete == 'function') obj.complete(res);
+      if (!fallbackStarted && typeof obj.complete == 'function') obj.complete(res);
     },
   });
 };
@@ -161,6 +178,7 @@ util._navigateTo = function (obj) {
  */
 util.redirectTo = function (obj) {
   obj = util.paramsInit(obj);
+  if (!obj) return false;
   obj.mode = 'redirectTo';
   util.navigateTo(obj);
 };
@@ -171,6 +189,7 @@ util.redirectTo = function (obj) {
  */
 util.reLaunch = function (obj) {
   obj = util.paramsInit(obj);
+  if (!obj) return false;
   obj.mode = 'reLaunch';
   util.navigateTo(obj);
 };
@@ -181,6 +200,7 @@ util.reLaunch = function (obj) {
  */
 util.switchTab = function (obj) {
   obj = util.paramsInit(obj);
+  if (!obj) return false;
   obj.mode = 'switchTab';
   util.navigateTo(obj);
 };
@@ -226,16 +246,23 @@ util.originalTo = function () {
   util.redirectTo(originalPage);
 };
 
+function hasAppStore() {
+  const vk = uni.vk;
+  if (typeof vk.getVuex !== 'function') return false;
+  if (typeof vk.getVuexStore !== 'function') return true;
+  return Object.prototype.hasOwnProperty.call(vk.getVuexStore().state, '$app');
+}
+
 /**
  * 获取登录前的页面
  * vk.navigate.getOriginalPage();
  */
 util.getOriginalPage = function () {
-  if (typeof uni.vk.getVuex === 'function') {
-    // 有安装vuex则使用vuex
+  if (hasAppStore()) {
+    // 已绑定 $app 模块则使用状态管理
     return uni.vk.getVuex('$app.originalPage');
   } else {
-    // 未安装则使用本地缓存
+    // 未绑定 $app 模块则使用本地缓存
     return uni.vk.getStorageSync('vk.navigate.originalPage');
   }
 };
@@ -247,11 +274,11 @@ util.getOriginalPage = function () {
 util.setOriginalPage = function (originalPage) {
   if (originalPage === null) originalPage = '';
   uni.vk.navigate.originalPage = originalPage; // 兼容老版本
-  if (typeof uni.vk.getVuex === 'function') {
-    // 有安装vuex则使用vuex
+  if (hasAppStore()) {
+    // 已绑定 $app 模块则使用状态管理
     return uni.vk.setVuex('$app.originalPage', originalPage);
   } else {
-    // 未安装则使用本地缓存
+    // 未绑定 $app 模块则使用本地缓存
     return uni.vk.setStorageSync('vk.navigate.originalPage', originalPage);
   }
 };
@@ -282,7 +309,7 @@ util.navigateToLogin = function (obj = {}) {
   let url = config.login.url;
   let { pagePath, fullPath } = vk.pubfn.getCurrentPage();
   // 如果已经在登录页面则不跳转
-  if (pagePath === url) {
+  if (pagePath === util.getPagePath(url)) {
     return false;
   }
   if (mode !== 'navigateTo') {
@@ -629,9 +656,6 @@ vk.navigateToLuckyDraw({
  */
 util.navigateToLuckyDraw = function (obj = {}) {
   let vk = uni.vk;
-  // #ifndef APP-PLUS || MP-WEIXIN || WEB
-  vk.alert('请在微信小程序中打开');
-  // #endif
   const mpConfig = {
     appid: 'wx2c55b235ad6553e3', // 抽奖服务小程序的appid（请勿修改）
     ghId: 'gh_fbd003114768', // 抽奖服务小程序的原始ID（请勿修改）
@@ -656,6 +680,14 @@ util.navigateToLuckyDraw = function (obj = {}) {
     if (typeof fail === 'function') fail(err);
     if (typeof complete === 'function') complete(err);
   };
+  // #ifndef APP-PLUS || MP-WEIXIN || WEB
+  vk.alert('当前环境暂不支持跳转抽奖小程序，请在微信小程序中打开');
+  failCallback({
+    errMsg: 'navigateToMiniProgram:fail 当前环境暂不支持跳转抽奖小程序',
+  });
+  return;
+  // #endif
+
   // #ifdef WEB
   let pathArr = path.split('?');
   let page = pathArr[0];
@@ -672,7 +704,7 @@ util.navigateToLuckyDraw = function (obj = {}) {
   // #endif
 
   // #ifdef APP-PLUS
-  plus.share.getServices((res) => {
+  const onGetServices = (res) => {
     let sweixin = null;
     for (let i in res) {
       if (res[i].id === 'weixin') {
@@ -697,8 +729,10 @@ util.navigateToLuckyDraw = function (obj = {}) {
       );
     } else {
       vk.alert('跳转失败：未安装微信');
+      failCallback({ errMsg: 'navigateToMiniProgram:fail 未安装微信' });
     }
-  });
+  };
+  plus.share.getServices(onGetServices, failCallback);
   // #endif
 
   // #ifdef MP-WEIXIN
@@ -714,7 +748,7 @@ util.navigateToLuckyDraw = function (obj = {}) {
     success,
     complete,
     fail: (err) => {
-      failCallback(err);
+      if (typeof fail === 'function') fail(err);
       let subMsg = err.errMsg || err.message;
       if (subMsg && subMsg.indexOf('cancel') > -1) {
         return;

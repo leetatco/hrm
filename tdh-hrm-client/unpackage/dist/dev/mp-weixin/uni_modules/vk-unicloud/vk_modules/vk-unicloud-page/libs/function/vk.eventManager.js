@@ -1,6 +1,6 @@
 "use strict";
 const eventManager = /* @__PURE__ */ function() {
-  const eventStatus = {};
+  const eventStatus = /* @__PURE__ */ Object.create(null);
   return {
     /**
      * 执行并通知 awaitEventReady 的回调函数执行
@@ -17,10 +17,11 @@ const eventManager = /* @__PURE__ */ function() {
       }
       eventStatus[eventName].executed = true;
       eventStatus[eventName].data = data;
-      eventStatus[eventName].callbacks.forEach((callback) => {
+      const callbacks = eventStatus[eventName].callbacks;
+      eventStatus[eventName].callbacks = [];
+      callbacks.forEach((callback) => {
         callback(data);
       });
-      eventStatus[eventName].callbacks = [];
     },
     /**
      * 注册回调函数，并在 notifyEventReady 后执行回调函数
@@ -29,11 +30,18 @@ const eventManager = /* @__PURE__ */ function() {
      */
     awaitEventReady(eventName, callback) {
       return new Promise((resolve, reject) => {
-        if (eventStatus[eventName] && eventStatus[eventName].executed) {
-          if (typeof callback === "function") {
-            callback(eventStatus[eventName].data);
+        const runCallback = (data) => {
+          try {
+            if (typeof callback === "function") {
+              callback(data);
+            }
+            resolve(data);
+          } catch (error) {
+            reject(error);
           }
-          resolve(eventStatus[eventName].data);
+        };
+        if (eventStatus[eventName] && eventStatus[eventName].executed) {
+          runCallback(eventStatus[eventName].data);
         } else {
           if (!eventStatus[eventName]) {
             eventStatus[eventName] = {
@@ -42,10 +50,7 @@ const eventManager = /* @__PURE__ */ function() {
               callbacks: []
             };
           }
-          if (typeof callback === "function") {
-            eventStatus[eventName].callbacks.push(callback);
-          }
-          eventStatus[eventName].callbacks.push(resolve);
+          eventStatus[eventName].callbacks.push(runCallback);
         }
       });
     },

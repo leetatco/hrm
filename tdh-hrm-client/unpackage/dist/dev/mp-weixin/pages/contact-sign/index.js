@@ -83,7 +83,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     c: $data.loading
   }, $data.loading ? {} : $data.list.length === 0 ? {
     e: common_vendor.p({
-      text: "暂无待签合同",
+      text: "暂无待签合约",
       mode: "list"
     })
   } : {

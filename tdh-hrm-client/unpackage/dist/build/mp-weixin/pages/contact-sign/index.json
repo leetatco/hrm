@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "合同列表",
+  "navigationBarTitleText": "合约列表",
   "usingComponents": {
     "u-empty": "../../uni_modules/vk-uview-ui/components/u-empty/u-empty"
   }

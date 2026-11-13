@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "list-vk-data-table-query-card": "/pages/hrm/contract-sign/list-vk-data-table-query-card"
+  }
+}

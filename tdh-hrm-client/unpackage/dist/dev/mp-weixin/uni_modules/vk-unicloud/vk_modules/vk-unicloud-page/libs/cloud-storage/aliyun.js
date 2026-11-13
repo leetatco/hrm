@@ -4,7 +4,7 @@ class CloudStorage {
   constructor() {
     this.counterNum = 0;
   }
-  uploadFile(obj = {}) {
+  async uploadFile(obj = {}) {
     let {
       filePath,
       fileType,
@@ -25,27 +25,27 @@ class CloudStorage {
     let fileName = fileNameObj.fileFullName;
     let formData = vk.pubfn.copyObject(cloudStorageConfig.uploadData);
     formData["key"] = fileName;
-    if (filePath.indexOf(";base64,") > -1) {
-      formData["file"] = dataURLtoBlob(filePath);
-    } else {
+    if (filePath.indexOf(";base64,") === -1) {
       formData["name"] = filePath;
     }
+    let uploadFilePath = filePath;
     return new Promise((resolve, reject) => {
       let uploadTask = common_vendor.index.uploadFile({
         url: cloudStorageConfig.action,
-        filePath,
+        filePath: uploadFilePath,
+        fileType,
         name,
         header,
         formData,
         success: (res) => {
-          if (![200, 201].includes(res.statusCode)) {
+          if (![200, 201].includes(Number(res.statusCode))) {
             reject(res);
           } else {
             let fileURL = fileNameObj.url;
             res = {
               filePath,
               // 本地文件路径
-              cloudPath: getCloudPath(fileURL),
+              cloudPath: fileName,
               // 云端文件路径
               fileID: fileURL,
               // 云端文件ID
@@ -71,6 +71,7 @@ class CloudStorage {
             });
         }
       });
+    }).finally(async () => {
     });
   }
 }
@@ -153,31 +154,11 @@ function createFileName(obj = {}) {
     fileRelativePath = cloudPath;
   }
   let fileFullName = dirname + "/" + fileRelativePath;
-  let url = host + "/" + fileFullName;
+  let url = host + "/" + fileFullName.split("/").map(encodeURIComponent).join("/");
   fileObj.url = url;
   fileObj.fileFullName = fileFullName;
   fileObj.fileNickName = fileNickName;
   return fileObj;
-}
-function dataURLtoBlob(dataurl) {
-  let arr = dataurl.split(","), mime = arr[0].match(/:(.*?);/)[1], bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new Blob([u8arr], { type: mime });
-}
-function getCloudPath(url) {
-  let cloudPath = "";
-  const match = url.match(/(?:https?:\/\/)?([^/]+)(\/.*)/);
-  if (match && match[2]) {
-    const extractedPath = match[2];
-    if (extractedPath.indexOf("//") === 0) {
-      cloudPath = extractedPath.substring(2);
-    } else {
-      cloudPath = extractedPath.substring(1);
-    }
-  }
-  return cloudPath;
 }
 exports.aliyun = aliyun;
 //# sourceMappingURL=../../../../../../../.sourcemap/mp-weixin/uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/cloud-storage/aliyun.js.map

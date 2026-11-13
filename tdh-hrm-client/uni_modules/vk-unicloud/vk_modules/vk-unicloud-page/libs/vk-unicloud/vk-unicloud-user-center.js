@@ -259,7 +259,6 @@ export default {
    * @param {Object} userInfo 用户信息
    */
   getCurrentUserInfo(obj = {}) {
-    addLoading(obj, 'loading');
     return callFunction({
       ...obj,
       url: 'user/kh/getMyUserInfo',
@@ -465,24 +464,37 @@ export default {
    * @param {String} tokenExpired		token过期时间
    */
   loginByUniverify(obj = {}) {
+    // #ifndef UNI-APP-X
+
+    // uni-app x 如果不加这个条件编译会导致必须去申请开通一键登录，否则就无法打包编译，因此这里默认是不编译到 uni-app x，如需要一键登录则去掉这个条件编译
+
     addLoading(obj, 'login');
     if (typeof obj.needAlert === 'undefined') obj.needAlert = true;
     // #ifdef APP
     return new Promise((resolve, reject) => {
+      const { univerifyStyle = {} } = obj;
       const univerifyManager = uni.getUniverifyManager();
       univerifyManager.login({
-        // #ifdef APP-HARMONY
+        // #ifdef APP-HARMONY || UNI-APP-X
         univerifyStyle: {
-          fullScreen: obj.univerifyStyle.fullScreen,
-          logoPath: obj.univerifyStyle.icon && obj.univerifyStyle.icon.path,
-          loginBtnText: obj.univerifyStyle.authButton && obj.univerifyStyle.authButton.title,
+          fullScreen: univerifyStyle.fullScreen,
+          backgroundColor: univerifyStyle.backgroundColor,
+          logoPath: uni.vk.pubfn.isNotNull(univerifyStyle.logoPath) ? univerifyStyle.logoPath : univerifyStyle.icon?.path,
+          loginBtnText: uni.vk.pubfn.isNotNull(univerifyStyle.loginBtnText) ? univerifyStyle.loginBtnText : univerifyStyle.authButton?.title,
         },
         // #endif
-        // #ifndef APP-HARMONY
+        // #ifndef APP-HARMONY || UNI-APP-X
         univerifyStyle: obj.univerifyStyle,
         // #endif
         success: (res) => {
-          let dataJson = Object.assign(obj.data, res.authResult);
+          let authResult = res.authResult;
+          if (uni.vk.pubfn.isNull(authResult)) {
+            authResult = {
+              openid: res.openId,
+              access_token: res.accessToken,
+            };
+          }
+          let dataJson = Object.assign(obj.data || {}, authResult);
           callFunction({
             url: 'user/pub/loginByUniverify',
             ...obj,
@@ -513,6 +525,8 @@ export default {
     // #endif
     // #ifndef APP
     uni.vk.toast('请在APP中使用本机号码一键登录', 'none');
+    // #endif
+
     // #endif
   },
 
@@ -684,9 +698,12 @@ export default {
         resolve();
         return;
       }
-      // #ifdef MP-WEIXIN || APP-HARMONY
+      // #ifdef MP-WEIXIN || APP
       uni.login({
         provider: 'weixin',
+        // #ifdef APP-PLUS || APP-ANDROID || APP-IOS
+        onlyAuthorize: true,
+        // #endif
         success(res) {
           resolve(res.code);
         },
@@ -695,24 +712,6 @@ export default {
           uni.vk.alert(msg);
           reject(err);
         },
-      });
-      // #endif
-      // #ifdef APP-PLUS
-      plus.oauth.getServices((services) => {
-        let weixinAuthService = services.find((service) => {
-          return service.id === 'weixin';
-        });
-        if (weixinAuthService) {
-          weixinAuthService.authorize(
-            function (res) {
-              resolve(res.code);
-            },
-            function (err) {
-              console.log(err);
-              reject(new Error('微信登录失败'));
-            }
-          );
-        }
       });
       // #endif
       // #ifdef WEB
@@ -994,7 +993,7 @@ export default {
    */
   getAlipayCode(obj = {}) {
     let { data = {} } = obj;
-    // #ifdef APP-PLUS
+    // #ifdef APP
     if (data.code) {
       return new Promise((resolve, reject) => {
         resolve(data.code);
@@ -1002,7 +1001,12 @@ export default {
     }
     // #endif
 
-    // #ifdef APP-PLUS || MP-ALIPAY
+    // #ifdef UNI-APP-X && APP
+    const msg = '当前插件暂不支持 uni-app x App 自动获取支付宝登录凭证';
+    return Promise.reject({ code: -1, msg, errMsg: msg });
+    // #endif
+
+    // #ifdef APP || MP-ALIPAY
     return new Promise((resolve, reject) => {
       uni.login({
         provider: 'alipay',
@@ -1301,6 +1305,11 @@ export default {
    * 获取QQ code
    */
   getQQCode() {
+    // #ifdef UNI-APP-X && APP
+    const msg = '当前插件暂不支持 uni-app x App QQ 登录';
+    return Promise.reject({ code: -1, msg, errMsg: msg });
+    // #endif
+
     // #ifdef APP-PLUS || MP-QQ
     return new Promise((resolve, reject) => {
       uni.login({
@@ -1849,13 +1858,34 @@ export default {
           return;
         }
         const provider = 'apple';
-        const loginRes = await uni.login({
-          provider,
+        const loginRes = await new Promise((resolve, reject) => {
+          uni.login({
+            provider,
+            success: resolve,
+            fail: reject,
+          });
         });
-        const getUserInfoRes = await uni.getUserInfo({
-          provider,
+        // #ifdef UNI-APP-X
+        const { appleInfo } = loginRes;
+        if (uni.vk.pubfn.isNull(appleInfo?.identityToken)) {
+          throw new Error('未获取到苹果登录凭证');
+        }
+        const { fullName } = appleInfo;
+        resolve({
+          ...appleInfo,
+          fullName: typeof fullName === 'string' ? { familyName: '', givenName: fullName } : fullName,
+        });
+        // #endif
+        // #ifndef UNI-APP-X
+        const getUserInfoRes = await new Promise((resolve, reject) => {
+          uni.getUserInfo({
+            provider,
+            success: resolve,
+            fail: reject,
+          });
         });
         resolve(getUserInfoRes.userInfo);
+        // #endif
       } catch (err) {
         console.error('苹果登录失败: ', err);
         reject(err);

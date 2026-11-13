@@ -1,10 +1,10 @@
 "use strict";
 const common_vendor = require("../../../../../../common/vendor.js");
+const originalLog = console.log;
 let debug = true;
-const install = (Vue) => {
-  let vk = Vue.prototype ? Vue.prototype.vk : Vue.config.globalProperties.vk;
+const consoleLog = (vk) => {
   if (vk) {
-    vk.log = console.log;
+    vk.log = originalLog;
     if (typeof vk.getConfig === "function") {
       debug = vk.getConfig().debug;
     }
@@ -38,9 +38,6 @@ const install = (Vue) => {
       };
     }
   }
-};
-const consoleLog = {
-  install
 };
 exports.consoleLog = consoleLog;
 //# sourceMappingURL=../../../../../../../.sourcemap/mp-weixin/uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/install/console.log.js.map

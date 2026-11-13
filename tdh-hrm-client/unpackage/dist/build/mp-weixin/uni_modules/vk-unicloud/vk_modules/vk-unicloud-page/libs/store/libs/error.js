@@ -1,1 +1,1 @@
-"use strict";const o={install:o=>{o.prototype?o.prototype.vk:o.config.globalProperties.vk}};exports.initGlobalError=o;
+"use strict";const r=require("../../../../../../../common/vendor.js"),o={install:o=>{r.index.vk}};exports.initGlobalError=o;

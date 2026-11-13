@@ -1,1 +1,1 @@
-"use strict";let t=[],e=[];exports.throttle=function(o,u=500,n=!0,f="default"){t[f]||(t[f]=null),n?e[f]||(e[f]=!0,"function"==typeof o&&o(),t[f]=setTimeout((()=>{e[f]=!1}),u)):e[f]||(e[f]=!0,t[f]=setTimeout((()=>{e[f]=!1,"function"==typeof o&&o()}),u))};
+"use strict";let t=Object.create(null),e=Object.create(null);exports.throttle=function(l,n=500,u=!0,f="default"){if(t[f]||(t[f]=null),u){if(!e[f]){e[f]=!0;try{"function"==typeof l&&l()}finally{t[f]=setTimeout((()=>{e[f]=!1}),n)}}}else e[f]||(e[f]=!0,t[f]=setTimeout((()=>{e[f]=!1,"function"==typeof l&&l()}),n))};

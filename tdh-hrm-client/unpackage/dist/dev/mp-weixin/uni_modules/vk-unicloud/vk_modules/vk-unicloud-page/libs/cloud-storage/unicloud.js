@@ -49,7 +49,7 @@ class CloudStorage {
       });
     }).then((res) => {
       return new Promise((resolve, reject) => {
-        common_vendor.Qs.getTempFileURL({
+        runCloud.getTempFileURL({
           fileList: [res.fileID],
           success: (data) => {
             let { fileID, tempFileURL } = data.fileList[0];

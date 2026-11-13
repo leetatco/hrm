@@ -11,11 +11,19 @@ baidu.open.ocr.business_license = function(obj = {}) {
   obj.action = "ocr/v1/business_license";
   let file = obj.data.file;
   if (file) {
-    vk.pubfn.fileToBase64({ file }).then((base64) => {
-      obj.data.image = base64;
-      delete obj.data.file;
-      baidu.request(obj);
-    });
+    vk.pubfn.fileToBase64({ file }).then(
+      (base64) => {
+        obj.data.image = base64;
+        delete obj.data.file;
+        baidu.request(obj);
+      },
+      (err) => {
+        if (typeof obj.fail === "function")
+          obj.fail(err);
+        if (typeof obj.complete === "function")
+          obj.complete(err);
+      }
+    );
   } else {
     baidu.request(obj);
   }
@@ -26,11 +34,19 @@ baidu.open.ocr.idcard = function(obj = {}) {
   if (!obj.data.id_card_side)
     obj.data.id_card_side = "front";
   if (file) {
-    vk.pubfn.fileToBase64({ file }).then((base64) => {
-      obj.data.image = base64;
-      delete obj.data.file;
-      baidu.request(obj);
-    });
+    vk.pubfn.fileToBase64({ file }).then(
+      (base64) => {
+        obj.data.image = base64;
+        delete obj.data.file;
+        baidu.request(obj);
+      },
+      (err) => {
+        if (typeof obj.fail === "function")
+          obj.fail(err);
+        if (typeof obj.complete === "function")
+          obj.complete(err);
+      }
+    );
   } else {
     baidu.request(obj);
   }
@@ -49,7 +65,8 @@ baidu.request = function(obj = {}) {
       success: (tokenRes) => {
         vk.setStorageSync(baiduOpenApiAccessTokenCacheName, {
           accessToken: tokenRes.access_token,
-          expTime: 259e7 + (/* @__PURE__ */ new Date()).getTime()
+          // 后端缓存提前1小时过期，前端缓存50分钟，避免延长旧token的有效期
+          expTime: 50 * 60 * 1e3 + (/* @__PURE__ */ new Date()).getTime()
         });
         obj.accessToken = tokenRes.access_token;
         request(obj);
@@ -70,9 +87,7 @@ function request(obj = {}) {
   vk.request({
     url: `https://aip.baidubce.com/rest/${actionVersion}/${action}?access_token=${accessToken}`,
     method: "POST",
-    header: {
-      "content-type": "application/x-www-form-urlencoded"
-    },
+    header,
     errorCodeName: "error_code",
     errorMsgName: "error_msg",
     data,
@@ -91,7 +106,7 @@ function request(obj = {}) {
     fail: (data2) => {
       if (title)
         vk.hideLoading();
-      if (data2 && data2.code === 110)
+      if (data2 && (data2.code === 110 || data2.code === 111))
         vk.removeStorageSync(baiduOpenApiAccessTokenCacheName);
       if (typeof obj.fail === "function")
         obj.fail(data2);

@@ -70,6 +70,8 @@
         "banklocation/list",
         "center/list",
         "contract/list",
+        "contract-setting/list",
+        "contract-sign/list",
         "insurance/list",
         "educational/list",
         "nation/list",

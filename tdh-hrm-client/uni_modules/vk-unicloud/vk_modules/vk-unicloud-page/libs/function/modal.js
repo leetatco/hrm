@@ -186,7 +186,7 @@ export default {
       placeholderText: localeObj.placeholderText[locale],
     };
     if (typeof a === 'object') {
-      obj = a;
+      obj = { ...obj, ...a };
     } else {
       if (typeof a === 'string') {
         obj.placeholderText = a;
@@ -241,7 +241,7 @@ export default {
         if (confirm) {
           data.content = res.inputValue;
         }
-        obj.success(data);
+        if (typeof obj.success === 'function') obj.success(data);
       },
       fail: obj.fail,
       complete: obj.complete,
@@ -260,7 +260,7 @@ export default {
     }
     let title = a;
     let icon = 'none';
-    let image = '';
+    let image;
     let mask = false;
     let duration = 1500;
     let fn;
@@ -336,6 +336,7 @@ export default {
     let fail = object.fail;
     let complete = object.complete;
     return uni.showActionSheet({
+      title: title,
       itemList: list,
       // #ifndef MP-ALIPAY
       itemColor: color,
@@ -356,6 +357,8 @@ export default {
       },
     });
   },
+  // uni-app x（HBuilderX 5.0+）App/Web 的 showLoading 使用模态 dialogPage，mask: false 也无法穿透操作底层页面。
+  // 如需加载期间仍可操作页面，请使用页面内嵌的 loading 组件。
   showLoading: function (obj = {}, name) {
     if (typeof obj == 'string') {
       let title = obj;
@@ -384,31 +387,35 @@ export default {
       uni.hideLoading();
     }
   },
-  // 设置当前页面的loading变量的值
+  // 设置当前页面或显式对象的 loading 状态。
+  // <script setup> 请显式传入响应式对象：{ that: loading, name: 'xxx' }。
   setLoading: function (loading = true, obj = true) {
     try {
-      let vk = uni.vk;
-      if (typeof obj === 'boolean') {
+      if (typeof obj === 'boolean' || typeof obj === 'string') {
+        // #ifdef UNI-APP-X
+        // 注意：uni-app x 仅支持对象模式，如 { that: state, name: 'submitting' }，state 为响应式对象。
+        // 此处拒绝布尔值或字符串模式是正常的 API 约定，不是兼容性缺陷。
+        console.warn(`[vk.setLoading] uni-app x 请使用 loading: { that: loading, name: 'xxx' } 传入响应式状态对象`);
+        return null;
+        // #endif
+        // #ifndef UNI-APP-X
         let pages = getCurrentPages();
         let page = pages[pages.length - 1];
-        let that = page.$vm;
-        let name = 'loading';
+        let that = page && page.$vm;
+        let name = typeof obj === 'string' ? obj : 'loading';
         updateCustomLoading({ loading, name, that });
         return { that, name };
+        // #endif
       } else if (typeof obj === 'object') {
         let { data, name, that } = obj;
         if (!data) data = that;
         updateCustomLoading({ loading, name, that: data });
-        return { that, name };
-      } else if (typeof obj === 'string') {
-        let pages = getCurrentPages();
-        let page = pages[pages.length - 1];
-        let that = page.$vm;
-        let name = obj;
-        updateCustomLoading({ loading, name, that });
-        return { that, name };
+        return { that: data, name };
       }
-    } catch (err) {}
+    } catch (err) {
+      console.warn(`[vk.setLoading] loading 状态更新失败；setup 页面请使用 loading: { that: loading, name: 'xxx' }`, err);
+    }
+    return null;
   },
 };
 
@@ -419,8 +426,8 @@ function updateCustomLoading(obj = {}) {
   if (!that[keyName]) that[keyName] = {};
   if (typeof that[keyName][name] !== 'number') that[keyName][name] = 0;
   if (loading) {
-    that[keyName][name]++;
     vk.pubfn.setData(that, name, loading);
+    that[keyName][name]++;
   } else {
     that[keyName][name]--;
     if (that[keyName][name] <= 0) {

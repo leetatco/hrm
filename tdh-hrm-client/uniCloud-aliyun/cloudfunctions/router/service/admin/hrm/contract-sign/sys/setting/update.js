@@ -19,7 +19,10 @@ module.exports = {
 			_id,
 			contract_sign_id,
 			contract_sign_name,
-			sign_position,
+			company_id,
+			template_file,
+			sign_positions,
+			text_positions,
 			update_date,
 			updat_id
 		} = data;
@@ -52,7 +55,10 @@ module.exports = {
 			dataJson:{
 				contract_sign_id,
 				contract_sign_name,
-				sign_position,
+				company_id,
+				template_file,
+				sign_positions,
+				text_positions,
 				update_id: uid,
 				update_date: new Date().getTime()
 			}

@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "合同签署",
+  "navigationBarTitleText": "合约签署",
   "usingComponents": {
     "picker-color": "./pickerColor",
     "custom-toast": "../../components/custom-toast/custom-toast"

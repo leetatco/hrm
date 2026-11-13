@@ -250,7 +250,6 @@ const userCenter = {
    * @param {Object} userInfo 用户信息
    */
   getCurrentUserInfo(obj = {}) {
-    addLoading(obj, "loading");
     return callFunction({
       ...obj,
       url: "user/kh/getMyUserInfo"
@@ -1132,7 +1131,7 @@ const userCenter = {
           });
         },
         fail: function(err) {
-          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1269", err);
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1273", err);
         }
       });
     } else if (fileType === "video") {
@@ -1153,7 +1152,7 @@ const userCenter = {
           });
         },
         fail: function(err) {
-          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1290", err);
+          common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1294", err);
         }
       });
     } else {
@@ -1653,15 +1652,23 @@ const userCenter = {
           return;
         }
         const provider = "apple";
-        const loginRes = await common_vendor.index.login({
-          provider
+        const loginRes = await new Promise((resolve2, reject2) => {
+          common_vendor.index.login({
+            provider,
+            success: resolve2,
+            fail: reject2
+          });
         });
-        const getUserInfoRes = await common_vendor.index.getUserInfo({
-          provider
+        const getUserInfoRes = await new Promise((resolve2, reject2) => {
+          common_vendor.index.getUserInfo({
+            provider,
+            success: resolve2,
+            fail: reject2
+          });
         });
         resolve(getUserInfoRes.userInfo);
       } catch (err) {
-        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1860", "苹果登录失败: ", err);
+        common_vendor.index.__f__("error", "at uni_modules/vk-unicloud/vk_modules/vk-unicloud-page/libs/vk-unicloud/vk-unicloud-user-center.js:1890", "苹果登录失败: ", err);
         reject(err);
         return;
       }
